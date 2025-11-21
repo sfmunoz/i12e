@@ -4,17 +4,27 @@
 
 - [Requirements](#requirements)
   - [age](#age)
+  - [sops](#sops)
   - [helm-secrets](#helm-secrets)
 
 ## Requirements
 
-## age
+### age
 
 - https://age-encryption.org/
 - https://github.com/FiloSottile/age
 
 ```
 # apt install age
+```
+
+### sops
+
+- https://getsops.io/
+- https://github.com/getsops/sops
+
+```
+$ brew install sops
 ```
 
 ### helm-secrets
