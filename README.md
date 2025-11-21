@@ -3,11 +3,21 @@
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
 - [Requirements](#requirements)
+  - [helm](#helm)
   - [age](#age)
   - [sops](#sops)
   - [helm-secrets](#helm-secrets)
 
 ## Requirements
+
+### helm
+
+- https://helm.sh/
+- https://github.com/helm/helm
+
+```
+$ brew install helm
+```
 
 ### age
 
