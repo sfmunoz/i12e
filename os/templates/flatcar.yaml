@@ -34,4 +34,6 @@ passwd:
   users:
   - name: core
     ssh_authorized_keys:
-    - "ssh-rsa AAAA..."
+{{- range .Values.ssh_authorized_keys }}
+    - "{{ . }}"
+{{- end }}
