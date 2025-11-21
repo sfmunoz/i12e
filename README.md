@@ -3,9 +3,19 @@
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
 - [Requirements](#requirements)
+  - [age](#age)
   - [helm-secrets](#helm-secrets)
 
 ## Requirements
+
+## age
+
+- https://age-encryption.org/
+- https://github.com/FiloSottile/age
+
+```
+# apt install age
+```
 
 ### helm-secrets
 
