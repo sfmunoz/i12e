@@ -32,15 +32,20 @@ then
   exit 0
 fi
 
+OS_JSON="build/os.json"
+
 set -x
 mkdir -p build
-$HELM | docker run --rm -i quay.io/coreos/butane:latest > build/os.json
-ls -l build/os.json
+$HELM | docker run --rm -i quay.io/coreos/butane:latest > $OS_JSON
+ls -l $OS_JSON
 { set +x; } 2> /dev/null
 
 [ "$I12E_DIST" = "1" ] || exit 0
 
+DIST_SH="build/dist.sh"
+
 set -x
-$HELM_DIST | yq -r .script > build/dist.sh
-ls -l build/dist.sh
+$HELM_DIST | yq -r .script > $DIST_SH
+ls -l $DIST_SH
+bash $DIST_SH $OS_JSON
 { set +x; } 2> /dev/null
