@@ -1,3 +1,4 @@
+{{- $env := index .Values.env .Release.Name -}}
 variant: flatcar
 version: 1.0.0
 
@@ -33,11 +34,9 @@ storage:
 passwd:
   users:
   - name: core
-{{- with index .Values.env .Release.Name }}
-{{- with .ssh_authorized_keys }}
+{{- with $env.ssh_authorized_keys }}
     ssh_authorized_keys:
 {{- range . }}
     - "{{ . }}"
-{{- end }}
 {{- end }}
 {{- end }}
