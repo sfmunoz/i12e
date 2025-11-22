@@ -42,6 +42,25 @@ ls -l $OS_JSON
 
 [ "$I12E_DIST" = "1" ] || exit 0
 
+REPLY_OK="$(uuidgen | awk -F "-" '{ print $2 }')"
+
+if [ "$REPLY_OK" = "" ]
+then
+  echo "error creating 'REPLY_OK'"
+  exit 1
+fi
+
+echo
+read -p "dist is a potentially dangerous operation... type '${REPLY_OK}' if you are sure: "
+
+if [ "$REPLY" != "$REPLY_OK" ]
+then
+  echo
+  echo "aborted!!"
+  echo
+  exit 1
+fi
+
 DIST_SH="build/dist.sh"
 
 set -x
