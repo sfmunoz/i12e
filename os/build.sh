@@ -4,9 +4,9 @@ set -e -o pipefail
 
 cd "$(dirname "$0")"
 
-[ "$ENV" != "prod" ] && ENV="dev"
+[ "$I12E_ENV" != "prod" ] && I12E_ENV="dev"
 
-HELM="helm template $ENV ."
+HELM="helm template $I12E_ENV ."
 
 for FNAME in secrets.yaml ../secrets.yaml
 do
