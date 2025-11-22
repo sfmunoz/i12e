@@ -22,5 +22,6 @@ then
 fi
 
 set -x
-$HELM | docker run --rm -i quay.io/coreos/butane:latest > os.json
-ls -l os.json
+mkdir -p build
+$HELM | docker run --rm -i quay.io/coreos/butane:latest > build/os.json
+ls -l build/os.json
