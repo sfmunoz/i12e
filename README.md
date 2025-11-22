@@ -7,6 +7,7 @@
   - [age](#age)
   - [sops](#sops)
   - [helm-secrets](#helm-secrets)
+  - [yq](#yq)
 
 ## Requirements
 
@@ -53,4 +54,12 @@ Installed plugin: secrets
 $ helm plugin list
 NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
 secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
+```
+
+### yq
+
+- https://mikefarah.gitbook.io/yq/
+- https://github.com/kislyuk/yq
+```
+# apt install yq
 ```
