@@ -1,4 +1,7 @@
-{{- $env := index .Values.env .Release.Name -}}
+{{- $profile := include "os.profile" . -}}
+{{- if eq $profile "main" -}}
+{{- $env := include "os.env" . -}}
+{{- $e := index .Values.env $env -}}
 variant: flatcar
 version: 1.0.0
 
@@ -34,9 +37,10 @@ storage:
 passwd:
   users:
   - name: core
-{{- with $env.ssh_authorized_keys }}
+{{- with $e.ssh_authorized_keys }}
     ssh_authorized_keys:
 {{- range . }}
     - "{{ . }}"
+{{- end }}
 {{- end }}
 {{- end }}
