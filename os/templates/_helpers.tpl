@@ -3,5 +3,5 @@
 {{- end }}
 
 {{- define "os.profile" -}}
-{{ regexSplit "-" .Release.Name -1 | rest | join "-" }}
+{{ regexSplit "-" .Release.Name -1 | rest | join "-" | default "main" }}
 {{- end }}
