@@ -1,2 +1,7 @@
-ssh_authorized_keys:
-- "ssh-rsa AAAA..."
+env:
+  dev:
+    ssh_authorized_keys:
+    - "ssh-rsa DEV..."
+  prod:
+    ssh_authorized_keys:
+    - "ssh-rsa PROD..."

@@ -33,9 +33,11 @@ storage:
 passwd:
   users:
   - name: core
-{{- with .Values.ssh_authorized_keys }}
+{{- with index .Values.env .Release.Name }}
+{{- with .ssh_authorized_keys }}
     ssh_authorized_keys:
 {{- range . }}
     - "{{ . }}"
+{{- end }}
 {{- end }}
 {{- end }}
