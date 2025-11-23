@@ -6,6 +6,7 @@ variant: flatcar
 version: 1.0.0
 
 systemd:
+{{- if eq $e.k3s "standalone" }}
   units:
     - name: k3s-install.service
       enabled: true
@@ -22,6 +23,7 @@ systemd:
         ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
         [Install]
         WantedBy=multi-user.target
+{{- end }}
 
 storage:
   files:
