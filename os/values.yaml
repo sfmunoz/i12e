@@ -3,11 +3,13 @@ env:
     ssh_authorized_keys:
     - "ssh-rsa DEV..."
     targets:
-    - 192.168.2.101
-    - 192.168.2.102
-    - 192.168.2.103
+    - 192.168.56.51
+    - 192.168.56.52
+    - 192.168.56.53
+    k3s: off
   prod:
     ssh_authorized_keys:
     - "ssh-rsa PROD..."
     targets:
-    - 192.168.2.111
+    - 192.168.56.51
+    k3s: off
