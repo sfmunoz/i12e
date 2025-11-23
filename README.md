@@ -8,6 +8,9 @@
   - [sops](#sops)
   - [helm-secrets](#helm-secrets)
   - [yq](#yq)
+- Modules (not in this page)
+  - [os](os/README.md)
+  - [dhcpd](dhcpd/README.md)
 
 ## Requirements
 
