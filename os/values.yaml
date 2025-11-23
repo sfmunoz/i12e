@@ -7,11 +7,11 @@ env:
     - 192.168.56.52
     - 192.168.56.53
     k3s: off
-    k3s_token: "b92f2f94-8b58-40c2-a876-06555179b48e"
+    k3s_token: "token-dev-insecure"
   prod:
     ssh_authorized_keys:
     - "ssh-rsa PROD..."
     targets:
     - 192.168.56.51
     k3s: off
-    k3s_token: "aade443b-8628-49b8-aff3-fd5e1390b331"
+    k3s_token: "token-pro-insecure"
