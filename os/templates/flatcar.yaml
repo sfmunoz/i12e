@@ -7,7 +7,7 @@ variant: flatcar
 version: 1.0.0
 
 systemd:
-{{- if eq $e.k3s "standalone" }}
+{{- if or (eq $e.k3s "standalone") (eq $e.k3s "etcd") }}
   units:
     - name: k3s-install.service
       enabled: true
@@ -35,13 +35,18 @@ storage:
           REBOOT_STRATEGY=reboot
           REBOOT_WINDOW_START=01:30
           REBOOT_WINDOW_LENGTH=1h
-      mode: 0420
-    - path: /root/ip.txt
+      mode: 0644
+{{- if eq $e.k3s "etcd" }}
+    # https://docs.k3s.io/installation/configuration
+    - path: /etc/rancher/k3s/config.yaml
       overwrite: true
       contents:
         inline: |
-          IP="{{ .Values.target }}"
-      mode: 0420
+          token: {{ required "k3s_token missing" $e.k3s_token | quote }}
+          node-ip: {{ $target | quote }}
+          cluster-init: true
+      mode: 0600
+{{- end }}
 
 passwd:
   users:
