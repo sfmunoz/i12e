@@ -1,0 +1,32 @@
+{{- $cmd := include "os.cmd" . -}}
+{{- if eq $cmd "build-sh" -}}
+{{- $env := .Release.Name -}}
+{{- $e := index .Values.env $env -}}
+{{- $tgt_prefix := now | date "20060102-150405" | printf "os-%s" -}}
+script: |
+  #!/bin/bash
+  set -e -o pipefail
+  cd "$(dirname "$0")/.."
+  echo "================ BUILD ================"
+  for TARGET in {{ $e.targets | join " " }}
+  do
+    OS_YAML="build/os-${TARGET}.yaml"
+    OS_JSON="build/os-${TARGET}.json"
+    set -x
+    $CMD --set cmd=flatcar-yaml --set "target=${TARGET}" > "$OS_YAML"
+    docker run --rm -i quay.io/coreos/butane:latest < "$OS_YAML" > "$OS_JSON"
+    ls -l "$OS_YAML" "$OS_JSON"
+    { set +x; } 2> /dev/null
+  done
+  [ "$I12E_DIST" = "1" ] || exit 0
+  echo "================ DIST ================"
+  for TARGET in {{ $e.targets | join " " }}
+  do
+    OS_JSON_LOC="build/os-${TARGET}.json"
+    OS_JSON_REM="{{ $tgt_prefix }}-${TARGET}.json"
+    set -x
+    scp "$OS_JSON_LOC" "core@${TARGET}:${OS_JSON_REM}"
+    ssh "core@${TARGET}" "sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log -F $OS_JSON_REM && sudo systemctl reboot"
+    { set +x; } 2> /dev/null
+  done
+{{- end }}

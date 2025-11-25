@@ -1,5 +1,6 @@
-{{- $profile := include "os.profile" . -}}
-{{- if eq $profile "main" -}}
+{{- $cmd := include "os.cmd" . -}}
+{{- $target := .Values.target -}}
+{{- if and (eq $cmd "flatcar-yaml") ($target) -}}
 {{- $env := include "os.env" . -}}
 {{- $e := index .Values.env $env -}}
 variant: flatcar
@@ -34,6 +35,12 @@ storage:
           REBOOT_STRATEGY=reboot
           REBOOT_WINDOW_START=01:30
           REBOOT_WINDOW_LENGTH=1h
+      mode: 0420
+    - path: /root/ip.txt
+      overwrite: true
+      contents:
+        inline: |
+          IP="{{ .Values.target }}"
       mode: 0420
 
 passwd:
