@@ -1,13 +1,16 @@
 {{- $cmd := include "os.cmd" . -}}
 {{- $target := .Values.target -}}
-{{- if and (eq $cmd "flatcar-yaml") ($target) -}}
+{{- $position := .Values.position -}}
+{{- $k3s_url := .Values.k3s_url -}}
+{{- if and (eq $cmd "flatcar-yaml") ($target) ($position) ($k3s_url) -}}
 {{- $env := include "os.env" . -}}
+{{- $k3s_cmd := le $position 3 | ternary "server" "agent" -}}
 {{- $e := index .Values.env $env -}}
 variant: flatcar
 version: 1.0.0
 
 systemd:
-{{- if or (eq $e.k3s "standalone") (eq $e.k3s "etcd") }}
+{{- if or (eq $e.k3s "single") (eq $e.k3s "etcd") }}
   units:
     - name: k3s-install.service
       enabled: true
@@ -21,7 +24,7 @@ systemd:
         Type=oneshot
         Restart=on-failure
         RemainAfterExit=true
-        ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
+        ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -s - {{ $k3s_cmd }}'
         [Install]
         WantedBy=multi-user.target
 {{- end }}
@@ -44,7 +47,11 @@ storage:
         inline: |
           token: {{ required "k3s_token missing" $e.k3s_token | quote }}
           node-ip: {{ $target | quote }}
+{{- if eq $position 1 }}
           cluster-init: true
+{{- else }}
+          server: {{ $k3s_url | quote }}
+{{- end }}
       mode: 0600
 {{- end }}
 
