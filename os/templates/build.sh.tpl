@@ -1,6 +1,6 @@
 {{- $cmd := include "os.cmd" . -}}
 {{- if eq $cmd "build-sh" -}}
-{{- $env := .Release.Name -}}
+{{- $env := include "os.env" . -}}
 {{- $e := index .Values.env $env -}}
 {{- $tgt_prefix := now | date "20060102-150405" | printf "os-%s" -}}
 script: |
