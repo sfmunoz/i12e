@@ -1,12 +1,16 @@
-{{- $profile := include "os.profile" . -}}
-{{- if eq $profile "main" -}}
+{{- $cmd := include "os.cmd" . -}}
+{{- $target := .Values.target -}}
+{{- $position := .Values.position -}}
+{{- $k3s_url := .Values.k3s_url -}}
+{{- if and (eq $cmd "flatcar-yaml") ($target) ($position) ($k3s_url) -}}
 {{- $env := include "os.env" . -}}
+{{- $k3s_cmd := le $position 3 | ternary "server" "agent" -}}
 {{- $e := index .Values.env $env -}}
 variant: flatcar
 version: 1.0.0
 
 systemd:
-{{- if eq $e.k3s "standalone" }}
+{{- if or (eq $e.k3s "single") (eq $e.k3s "etcd") }}
   units:
     - name: k3s-install.service
       enabled: true
@@ -20,7 +24,7 @@ systemd:
         Type=oneshot
         Restart=on-failure
         RemainAfterExit=true
-        ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
+        ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -s - {{ $k3s_cmd }}'
         [Install]
         WantedBy=multi-user.target
 {{- end }}
@@ -34,7 +38,22 @@ storage:
           REBOOT_STRATEGY=reboot
           REBOOT_WINDOW_START=01:30
           REBOOT_WINDOW_LENGTH=1h
-      mode: 0420
+      mode: 0644
+{{- if eq $e.k3s "etcd" }}
+    # https://docs.k3s.io/installation/configuration
+    - path: /etc/rancher/k3s/config.yaml
+      overwrite: true
+      contents:
+        inline: |
+          token: {{ required "k3s_token missing" $e.k3s_token | quote }}
+          node-ip: {{ $target | quote }}
+{{- if eq $position 1 }}
+          cluster-init: true
+{{- else }}
+          server: {{ $k3s_url | quote }}
+{{- end }}
+      mode: 0600
+{{- end }}
 
 passwd:
   users:
