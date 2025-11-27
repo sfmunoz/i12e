@@ -30,6 +30,11 @@ systemd:
 {{- end }}
 
 storage:
+  links:
+    # https://www.flatcar.org/docs/latest/provisioning/sysext/
+    - path: /etc/extensions/containerd-flatcar.raw
+      target: /dev/null
+      overwrite: true
   files:
     - path: /etc/flatcar/update.conf
       overwrite: true
