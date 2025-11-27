@@ -57,6 +57,8 @@ storage:
 {{- if eq $k3s_cmd "server" }}
           token: {{ required "k3s_token missing" $e.k3s_token | quote }}
           agent-token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
+          secrets-encryption: true
+          secrets-encryption-provider: secretbox
 {{- else }}
           token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
 {{- end }}
