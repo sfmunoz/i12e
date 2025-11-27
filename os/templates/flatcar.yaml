@@ -40,6 +40,15 @@ storage:
           REBOOT_WINDOW_LENGTH=1h
       mode: 0644
 {{- if eq $e.k3s "etcd" }}
+    - path: /opt/bin/e
+      overwrite: true
+      contents:
+        inline: |
+          #!/bin/bash
+          # e get / --prefix -w json | jq .
+          D="/var/lib/rancher/k3s/server/tls/etcd"
+          exec etcdctl --key=${D}/client.key --cert=${D}/client.crt --cacert=${D}/server-ca.crt "$@"
+      mode: 0755
     # https://docs.k3s.io/installation/configuration
     - path: /etc/rancher/k3s/config.yaml
       overwrite: true
