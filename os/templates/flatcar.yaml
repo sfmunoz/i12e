@@ -54,13 +54,18 @@ storage:
       overwrite: true
       contents:
         inline: |
+{{- if eq $k3s_cmd "server" }}
           token: {{ required "k3s_token missing" $e.k3s_token | quote }}
-          node-ip: {{ $target | quote }}
+          agent-token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
+{{- else }}
+          token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
+{{- end }}
 {{- if eq $position 1 }}
           cluster-init: true
 {{- else }}
           server: {{ $k3s_url | quote }}
 {{- end }}
+          node-ip: {{ $target | quote }}
       mode: 0600
 {{- end }}
 
