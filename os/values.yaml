@@ -8,6 +8,7 @@ env:
     - 192.168.56.53
     k3s: off
     k3s_token: "token-dev-insecure"
+    k3s_agent_token: "agent-token-dev-insecure"
   prod:
     ssh_authorized_keys:
     - "ssh-rsa PROD..."
@@ -15,3 +16,4 @@ env:
     - 192.168.56.51
     k3s: off
     k3s_token: "token-pro-insecure"
+    k3s_agent_token: "agent-token-pro-insecure"
