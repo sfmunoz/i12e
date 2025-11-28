@@ -80,7 +80,7 @@ storage:
 {{- end }}
           node-ip: {{ $target | quote }}
       mode: 0600
-{{- if and ($vip) ($interface) ($kvversion) }}
+{{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
     - path: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
       overwrite: true
       mode: 0600
