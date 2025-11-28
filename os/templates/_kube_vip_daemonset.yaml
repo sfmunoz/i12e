@@ -4,12 +4,16 @@
 # $ export KVVERSION=v1.0.2
 # $ alias kube-vip="docker run --network host --rm ghcr.io/kube-vip/kube-vip:$KVVERSION"
 # $ kube-vip manifest daemonset --interface $INTERFACE --address $VIP --inCluster --taint --controlplane --arp --leaderElection > _kube_vip_daemonset.yaml
+{{- define "os.kube.vip.daemonset" -}}
+{{- $vip := required "vip missing" .vip -}}
+{{- $interface := required "interface missing" .interface -}}
+{{- $kvversion := required "kvversion missing" .kvversion -}}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:
     app.kubernetes.io/name: kube-vip-ds
-    app.kubernetes.io/version: v1.0.2
+    app.kubernetes.io/version: {{ $kvversion }}
   name: kube-vip-ds
   namespace: kube-system
 spec:
@@ -20,7 +24,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: kube-vip-ds
-        app.kubernetes.io/version: v1.0.2
+        app.kubernetes.io/version: {{ $kvversion }}
     spec:
       affinity:
         nodeAffinity:
@@ -45,7 +49,7 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
         - name: vip_interface
-          value: enp0s8
+          value: {{ $interface }}
         - name: vip_subnet
           value: "32"
         - name: dns_mode
@@ -65,10 +69,10 @@ spec:
         - name: vip_retryperiod
           value: "1"
         - name: address
-          value: 192.168.56.50
+          value: {{ $vip }}
         - name: prometheus_server
           value: :2112
-        image: ghcr.io/kube-vip/kube-vip:v1.0.2
+        image: ghcr.io/kube-vip/kube-vip:{{ $kvversion }}
         imagePullPolicy: IfNotPresent
         name: kube-vip
         resources: {}
@@ -87,4 +91,4 @@ spec:
       - effect: NoExecute
         operator: Exists
   updateStrategy: {}
-
+{{- end }}

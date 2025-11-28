@@ -87,6 +87,12 @@ storage:
       contents:
         inline: |
           {{- include "os.kube.vip.rbac" . | nindent 10 }}
+    - path: /var/lib/rancher/k3s/server/manifests/kube-vip-daemonset.yaml
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: |
+          {{- include "os.kube.vip.daemonset" (dict "vip" $vip "interface" $interface "kvversion" $kvversion) | nindent 10 }}
 {{- end }}
 {{- end }}
 
