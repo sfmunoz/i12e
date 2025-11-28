@@ -6,6 +6,7 @@
 {{- $env := include "os.env" . -}}
 {{- $k3s_cmd := le $position 3 | ternary "server" "agent" -}}
 {{- $e := index .Values.env $env -}}
+{{- $vip := $e | dig "kube_vip" "vip" "" -}}
 variant: flatcar
 version: 1.0.0
 
@@ -64,6 +65,9 @@ storage:
           agent-token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
           secrets-encryption: true
           secrets-encryption-provider: secretbox
+{{- if $vip }}
+          tls-san: {{ $vip | quote }}
+{{- end }}
 {{- else }}
           token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
 {{- end }}
