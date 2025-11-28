@@ -2,12 +2,13 @@
 {{- if eq $cmd "build-sh" -}}
 {{- $env := include "os.env" . -}}
 {{- $e := index .Values.env $env -}}
+{{- $vip := $e | dig "kube_vip" "vip" "" -}}
 {{- $tgt_prefix := now | date "20060102-150405" | printf "os-%s" -}}
 script: |
   #!/bin/bash
   set -e -o pipefail
   cd "$(dirname "$0")/.."
-  K3S_URL="https://{{ $e.targets | first }}:6443"
+  K3S_URL="https://{{ eq $vip "" | ternary ($e.targets | first) $vip }}:6443"
   POS=0
   echo "================ BUILD ================"
   for TARGET in {{ $e.targets | join " " }}
