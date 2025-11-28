@@ -9,6 +9,10 @@ env:
     k3s: off
     k3s_token: "token-dev-insecure"
     k3s_agent_token: "agent-token-dev-insecure"
+    kube_vip:
+      vip: 192.168.56.50
+      interface: enp0s8
+      kvversion: v1.0.2
   prod:
     ssh_authorized_keys:
     - "ssh-rsa PROD..."
