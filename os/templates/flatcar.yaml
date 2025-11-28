@@ -6,6 +6,9 @@
 {{- $env := include "os.env" . -}}
 {{- $k3s_cmd := le $position 3 | ternary "server" "agent" -}}
 {{- $e := index .Values.env $env -}}
+{{- $vip := $e | dig "kube_vip" "vip" "" -}}
+{{- $interface := $e | dig "kube_vip" "interface" "" -}}
+{{- $kvversion := $e | dig "kube_vip" "kvversion" "" -}}
 variant: flatcar
 version: 1.0.0
 
@@ -64,6 +67,9 @@ storage:
           agent-token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
           secrets-encryption: true
           secrets-encryption-provider: secretbox
+{{- if $vip }}
+          tls-san: {{ $vip | quote }}
+{{- end }}
 {{- else }}
           token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
 {{- end }}
@@ -74,6 +80,20 @@ storage:
 {{- end }}
           node-ip: {{ $target | quote }}
       mode: 0600
+{{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
+    - path: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: |
+          {{- include "os.kube.vip.rbac" . | nindent 10 }}
+    - path: /var/lib/rancher/k3s/server/manifests/kube-vip-daemonset.yaml
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: |
+          {{- include "os.kube.vip.daemonset" (dict "vip" $vip "interface" $interface "kvversion" $kvversion) | nindent 10 }}
+{{- end }}
 {{- end }}
 
 passwd:
