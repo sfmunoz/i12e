@@ -1,0 +1,11 @@
+{{- define "os.storage.files.opt.bin.e" -}}
+- path: /opt/bin/e
+  overwrite: true
+  contents:
+    inline: |
+      #!/bin/bash
+      # e get / --prefix -w json | jq .
+      D="/var/lib/rancher/k3s/server/tls/etcd"
+      exec etcdctl --key=${D}/client.key --cert=${D}/client.crt --cacert=${D}/server-ca.crt "$@"
+  mode: 0755
+{{- end }}
