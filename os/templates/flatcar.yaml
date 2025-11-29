@@ -25,29 +25,7 @@ storage:
     {{- include "os.storage.files.etc.flatcar.update.conf" . | nindent 4 }}
 {{- if eq $e.k3s "etcd" }}
     {{- include "os.storage.files.opt.bin.e" . | nindent 4 }}
-    # https://docs.k3s.io/installation/configuration
-    - path: /etc/rancher/k3s/config.yaml
-      overwrite: true
-      contents:
-        inline: |
-{{- if eq $k3s_cmd "server" }}
-          token: {{ required "k3s_token missing" $e.k3s_token | quote }}
-          agent-token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
-          secrets-encryption: true
-          secrets-encryption-provider: secretbox
-{{- if $vip }}
-          tls-san: {{ $vip | quote }}
-{{- end }}
-{{- else }}
-          token: {{ required "k3s_agent_token missing" $e.k3s_agent_token | quote }}
-{{- end }}
-{{- if eq $position 1 }}
-          cluster-init: true
-{{- else }}
-          server: {{ $k3s_url | quote }}
-{{- end }}
-          node-ip: {{ $target | quote }}
-      mode: 0600
+    {{- include "os.storage.files.etc.rancher.k3s.config.yaml" (dict "k3s_cmd" $k3s_cmd "k3s_token" $e.k3s_token "k3s_agent_token" $e.k3s_agent_token "k3s_url" $k3s_url "vip" $vip "position" $position "target" $target ) | nindent 4 }}
 {{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
     - path: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
       overwrite: true

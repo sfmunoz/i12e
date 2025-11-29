@@ -1,0 +1,32 @@
+{{- define "os.storage.files.etc.rancher.k3s.config.yaml" -}}
+{{- $k3s_cmd := required "k3s_cmd missing" .k3s_cmd -}}
+{{- $k3s_token := required "k3s_token missing" .k3s_token -}}
+{{- $k3s_agent_token := required "k3s_agent_token missing" .k3s_agent_token -}}
+{{- $k3s_url := required "k3s_url missing" .k3s_url -}}
+{{- $vip := required "vip missing" .vip -}}
+{{- $position := required "position missing" .position -}}
+{{- $target := required "target missing" .target -}}
+# https://docs.k3s.io/installation/configuration
+- path: /etc/rancher/k3s/config.yaml
+  overwrite: true
+  contents:
+    inline: |
+    {{- if eq $k3s_cmd "server" }}
+      token: {{ $k3s_token | quote }}
+      agent-token: {{ $k3s_agent_token | quote }}
+      secrets-encryption: true
+      secrets-encryption-provider: secretbox
+      {{- if $vip }}
+      tls-san: {{ $vip | quote }}
+      {{- end }}
+    {{- else }}
+      token: {{ $k3s_agent_token | quote }}
+    {{- end }}
+    {{- if eq $position 1 }}
+      cluster-init: true
+    {{- else }}
+      server: {{ $k3s_url | quote }}
+    {{- end }}
+      node-ip: {{ $target | quote }}
+  mode: 0600
+{{- end }}
