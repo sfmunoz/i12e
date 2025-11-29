@@ -1,3 +1,12 @@
+{{- define "os.storage.files.kube.vip.rbac.yaml" -}}
+- path: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
+  overwrite: true
+  mode: 0600
+  contents:
+    inline: |
+      {{- include "os.kube.vip.rbac" . | nindent 6 }}
+{{- end }}
+
 # Originally copied from 'https://kube-vip.io/manifests/rbac.yaml'
 {{- define "os.kube.vip.rbac" -}}
 apiVersion: v1

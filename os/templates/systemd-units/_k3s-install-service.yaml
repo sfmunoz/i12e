@@ -1,0 +1,18 @@
+{{- define "os.systemd.units.k3s.install.service" -}}
+{{- $k3s_cmd := required "k3s_cmd missing" .k3s_cmd -}}
+- name: k3s-install.service
+  enabled: true
+  contents: |
+    [Unit]
+    Description=K3s install
+    Wants=network-online.target
+    After=network-online.target
+    ConditionFirstBoot=yes
+    [Service]
+    Type=oneshot
+    Restart=on-failure
+    RemainAfterExit=true
+    ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -s - {{ $k3s_cmd }}'
+    [Install]
+    WantedBy=multi-user.target
+{{- end }}

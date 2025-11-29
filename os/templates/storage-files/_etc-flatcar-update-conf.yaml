@@ -1,0 +1,10 @@
+{{- define "os.storage.files.etc.flatcar.update.conf" -}}
+- path: /etc/flatcar/update.conf
+  overwrite: true
+  contents:
+    inline: |
+      REBOOT_STRATEGY=reboot
+      REBOOT_WINDOW_START=01:30
+      REBOOT_WINDOW_LENGTH=1h
+  mode: 0644
+{{- end }}

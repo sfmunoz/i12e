@@ -1,0 +1,10 @@
+{{- define "os.passwd.users.core" -}}
+{{- $ssh_authorized_keys := .ssh_authorized_keys -}}
+- name: core
+{{- with $ssh_authorized_keys }}
+  ssh_authorized_keys:
+{{- range . }}
+  - "{{ . }}"
+{{- end }}
+{{- end }}
+{{- end }}
