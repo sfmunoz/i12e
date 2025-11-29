@@ -15,21 +15,7 @@ version: 1.0.0
 systemd:
 {{- if or (eq $e.k3s "single") (eq $e.k3s "etcd") }}
   units:
-    - name: k3s-install.service
-      enabled: true
-      contents: |
-        [Unit]
-        Description=K3s install
-        Wants=network-online.target
-        After=network-online.target
-        ConditionFirstBoot=yes
-        [Service]
-        Type=oneshot
-        Restart=on-failure
-        RemainAfterExit=true
-        ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -s - {{ $k3s_cmd }}'
-        [Install]
-        WantedBy=multi-user.target
+    {{- include "os.systemd.units.k3s.install.service" (dict "k3s_cmd" $k3s_cmd) | nindent 4 }}
 {{- end }}
 
 storage:
