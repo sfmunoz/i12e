@@ -8,7 +8,6 @@ script: |
   #!/bin/bash
   set -e -o pipefail
   cd "$(dirname "$0")/.."
-  K3S_URL="https://{{ eq $vip "" | ternary ($e.targets | first) $vip }}:6443"
   POS=0
   echo "================ BUILD ================"
   for TARGET in {{ $e.targets | join " " }}
@@ -17,7 +16,7 @@ script: |
     OS_YAML="build/os-${TARGET}.yaml"
     OS_JSON="build/os-${TARGET}.json"
     set -x
-    $CMD --set "cmd=flatcar-yaml,target=${TARGET},position=${POS},k3s_url=${K3S_URL}" > "$OS_YAML"
+    $CMD --set "cmd=flatcar-yaml,target=${TARGET},position=${POS}" > "$OS_YAML"
     ls -l "$OS_YAML"
     docker run --rm -i quay.io/coreos/butane:latest < "$OS_YAML" > "$OS_JSON"
     ls -l "$OS_YAML"

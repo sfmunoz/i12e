@@ -1,11 +1,14 @@
 {{- define "os.storage.files.etc.rancher.k3s.config.yaml" -}}
-{{- $k3s_cmd := required "k3s_cmd missing" .k3s_cmd -}}
-{{- $k3s_token := required "k3s_token missing" .k3s_token -}}
-{{- $k3s_agent_token := required "k3s_agent_token missing" .k3s_agent_token -}}
-{{- $k3s_url := required "k3s_url missing" .k3s_url -}}
-{{- $vip := required "vip missing" .vip -}}
-{{- $position := required "position missing" .position -}}
+{{- $e := required "e missing" .e -}}
 {{- $target := required "target missing" .target -}}
+{{- $position := required "position missing" .position -}}
+{{- $k3s_cmd := include "os.k3s_cmd" (dict "position" $position) -}}
+{{- $k3s_token := required "k3s_token missing" $e.k3s_token -}}
+{{- $k3s_agent_token := required "k3s_agent_token missing" $e.k3s_agent_token -}}
+{{- $kube_vip := get $e "kube_vip" | default dict -}}
+{{- $vip := get $kube_vip "vip" | default "" -}}
+{{- $targets := required "targets missing" $e.targets -}}
+{{- $k3s_url := eq $vip "" | ternary ($targets | first) $vip | printf "https://%s:6443" -}}
 # https://docs.k3s.io/installation/configuration
 - path: /etc/rancher/k3s/config.yaml
   overwrite: true
