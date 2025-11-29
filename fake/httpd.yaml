@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fake
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: httpd-files
+  namespace: fake
+data:
+  index: |
+    <h1>helloooo!!</h1>
+  metrics: |
+    #!/bin/sh
+    cat << __EOF
+    Content-type: text/plain
+
+    # HELP httpd_load_fake fake load on httpd server
+    # TYPE httpd_load_fake gauge
+    httpd_load_fake $((20+RANDOM%100)).$((RANDOM%10))
+    __EOF
+  conf: |
+    # ref: busybox-1_37_0/networking/httpd.c
+    H:/www
+    I:index.html
+    P:/metrics:http://127.0.0.1:8080/cgi-bin/metrics
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-demo
+  namespace: fake
+  labels:
+    app: httpd-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpd-demo
+  template:
+    metadata:
+      labels:
+        app: httpd-demo
+    spec:
+      containers:
+      - name: busybox-httpd
+        image: busybox:1.37.0-musl
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          #!/bin/sh
+          mkdir -p /www/cgi-bin
+          cp /src/index /www/index.html
+          cp /src/metrics /www/cgi-bin/metrics
+          chmod 755 /www/cgi-bin/metrics
+          exec busybox httpd -c /src/conf -f -p 8080
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: src
+          mountPath: /src
+          readOnly: true
+      volumes:
+      - name: src
+        configMap:
+          name: httpd-files
