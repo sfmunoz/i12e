@@ -20,10 +20,7 @@ systemd:
 
 storage:
   links:
-    # https://www.flatcar.org/docs/latest/provisioning/sysext/
-    - path: /etc/extensions/containerd-flatcar.raw
-      target: /dev/null
-      overwrite: true
+    {{- include "os.storage.links.containerd.flatcar.raw" . | nindent 4 }}
   files:
     - path: /etc/flatcar/update.conf
       overwrite: true
