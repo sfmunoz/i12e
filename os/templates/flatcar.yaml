@@ -12,8 +12,8 @@
 variant: flatcar
 version: 1.0.0
 
-systemd:
 {{- if or (eq $e.k3s "single") (eq $e.k3s "etcd") }}
+systemd:
   units:
     {{- include "os.systemd.units.k3s.install.service" (dict "k3s_cmd" $k3s_cmd) | nindent 4 }}
 {{- end }}
@@ -23,14 +23,14 @@ storage:
     {{- include "os.storage.links.containerd.flatcar.raw" . | nindent 4 }}
   files:
     {{- include "os.storage.files.etc.flatcar.update.conf" . | nindent 4 }}
-{{- if eq $e.k3s "etcd" }}
-    {{- include "os.storage.files.opt.bin.e" . | nindent 4 }}
-    {{- include "os.storage.files.etc.rancher.k3s.config.yaml" (dict "k3s_cmd" $k3s_cmd "k3s_token" $e.k3s_token "k3s_agent_token" $e.k3s_agent_token "k3s_url" $k3s_url "vip" $vip "position" $position "target" $target ) | nindent 4 }}
-{{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
-    {{- include "os.storage.files.kube.vip.rbac.yaml" . | nindent 4 }}
-    {{- include "os.storage.files.kube.vip.daemonset.yaml" (dict "vip" $vip "interface" $interface "kvversion" $kvversion) | nindent 4 }}
-{{- end }}
-{{- end }}
+    {{- if eq $e.k3s "etcd" }}
+      {{- include "os.storage.files.opt.bin.e" . | nindent 4 }}
+      {{- include "os.storage.files.etc.rancher.k3s.config.yaml" (dict "k3s_cmd" $k3s_cmd "k3s_token" $e.k3s_token "k3s_agent_token" $e.k3s_agent_token "k3s_url" $k3s_url "vip" $vip "position" $position "target" $target ) | nindent 4 }}
+      {{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
+        {{- include "os.storage.files.kube.vip.rbac.yaml" . | nindent 4 }}
+        {{- include "os.storage.files.kube.vip.daemonset.yaml" (dict "vip" $vip "interface" $interface "kvversion" $kvversion) | nindent 4 }}
+      {{- end }}
+    {{- end }}
 
 passwd:
   users:
