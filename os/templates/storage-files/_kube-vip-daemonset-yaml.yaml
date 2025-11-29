@@ -1,0 +1,11 @@
+{{- define "os.storage.files.kube.vip.daemonset.yaml" -}}
+{{- $vip := required "vip missing" .vip -}}
+{{- $interface := required "interface missing" .interface -}}
+{{- $kvversion := required "kvversion missing" .kvversion -}}
+- path: /var/lib/rancher/k3s/server/manifests/kube-vip-daemonset.yaml
+  overwrite: true
+  mode: 0600
+  contents:
+    inline: |
+      {{- include "os.kube.vip.daemonset" (dict "vip" $vip "interface" $interface "kvversion" $kvversion) | nindent 6 }}
+{{- end }}
