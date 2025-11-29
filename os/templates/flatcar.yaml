@@ -66,11 +66,5 @@ storage:
 
 passwd:
   users:
-  - name: core
-{{- with $e.ssh_authorized_keys }}
-    ssh_authorized_keys:
-{{- range . }}
-    - "{{ . }}"
-{{- end }}
-{{- end }}
+  {{- include "os.passwd.users.core" (dict "ssh_authorized_keys" $e.ssh_authorized_keys) | nindent 2 }}
 {{- end }}
