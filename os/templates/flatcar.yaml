@@ -27,12 +27,7 @@ storage:
     {{- include "os.storage.files.opt.bin.e" . | nindent 4 }}
     {{- include "os.storage.files.etc.rancher.k3s.config.yaml" (dict "k3s_cmd" $k3s_cmd "k3s_token" $e.k3s_token "k3s_agent_token" $e.k3s_agent_token "k3s_url" $k3s_url "vip" $vip "position" $position "target" $target ) | nindent 4 }}
 {{- if and (eq $k3s_cmd "server") ($vip) ($interface) ($kvversion) }}
-    - path: /var/lib/rancher/k3s/server/manifests/kube-vip-rbac.yaml
-      overwrite: true
-      mode: 0600
-      contents:
-        inline: |
-          {{- include "os.kube.vip.rbac" . | nindent 10 }}
+    {{- include "os.storage.files.kube.vip.rbac.yaml" . | nindent 4 }}
     - path: /var/lib/rancher/k3s/server/manifests/kube-vip-daemonset.yaml
       overwrite: true
       mode: 0600
