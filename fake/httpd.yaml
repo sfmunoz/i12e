@@ -13,7 +13,7 @@ metadata:
   labels:
     app: httpd-demo
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: httpd-demo
@@ -21,6 +21,10 @@ spec:
     metadata:
       labels:
         app: httpd-demo
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "80"
     spec:
       containers:
       - name: busybox-httpd
@@ -36,9 +40,9 @@ spec:
           cat << __EOF
           Content-type: text/plain
 
-          # HELP httpd_load_fake fake load on httpd server
-          # TYPE httpd_load_fake gauge
-          httpd_load_fake \$((10+RANDOM%20)).\$((RANDOM%10))
+          # HELP fake_httpd_load fake load on httpd server
+          # TYPE fake_httpd_load gauge
+          fake_httpd_load \$((10+RANDOM%20)).\$((RANDOM%10))
           __EOF
           __EOF_OUTER
           chmod 755 /var/www/cgi-bin/metrics
