@@ -31,11 +31,11 @@ metadata:
 spec:
   valuesContent: |-
     alertmanager:
-      enabled: false
+      enabled: true
     kube-state-metrics:
-      enabled: false
+      enabled: true
     prometheus-node-exporter:
-      enabled: false
+      enabled: true
     prometheus-pushgateway:
-      enabled: false
+      enabled: true
 {{- end }}
