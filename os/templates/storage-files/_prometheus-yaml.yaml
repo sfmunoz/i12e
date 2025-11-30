@@ -1,0 +1,19 @@
+# https://docs.k3s.io/add-ons/helm
+# https://docs.k3s.io/installation/packaged-components
+{{- define "os.storage.files.prometheus.yaml" -}}
+{{- $namespace := required "namespace missing" .namespace -}}
+- path: /var/lib/rancher/k3s/server/manifests/prometheus.yaml
+  overwrite: true
+  mode: 0600
+  contents:
+    inline: |
+      {{- include "os.prometheus.yaml" . | nindent 6 }}
+{{- end }}
+
+{{- define "os.prometheus.yaml" -}}
+{{- $namespace := required "namespace missing" .namespace -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $namespace | quote }}
+{{- end }}
