@@ -12,8 +12,30 @@
 
 {{- define "os.prometheus.yaml" -}}
 {{- $namespace := required "namespace missing" .namespace -}}
-apiVersion: v1
-kind: Namespace
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
 metadata:
-  name: {{ $namespace | quote }}
+  name: prometheus
+  namespace: kube-system
+spec:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: prometheus
+  targetNamespace: {{ $namespace | quote }}
+  createNamespace: true
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    alertmanager:
+      enabled: false
+    kube-state-metrics:
+      enabled: false
+    prometheus-node-exporter:
+      enabled: false
+    prometheus-pushgateway:
+      enabled: false
 {{- end }}
