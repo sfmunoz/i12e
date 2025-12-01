@@ -9,6 +9,7 @@
 {{- $vip := get $kube_vip "vip" | default "" -}}
 {{- $targets := required "targets missing" $e.targets -}}
 {{- $k3s_url := eq $vip "" | ternary ($targets | first) $vip | printf "https://%s:6443" -}}
+{{- $flannel_iface := $e | dig "flannel" "interface" "" -}}
 # https://docs.k3s.io/installation/configuration
 - path: /etc/rancher/k3s/config.yaml
   overwrite: true
@@ -31,5 +32,8 @@
       server: {{ $k3s_url | quote }}
     {{- end }}
       node-ip: {{ $target | quote }}
+    {{- if $flannel_iface }}
+      flannel-iface: {{ $flannel_iface | quote }}
+    {{- end }}
   mode: 0600
 {{- end }}
