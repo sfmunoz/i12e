@@ -8,19 +8,19 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: httpd-demo
+  name: fake-httpd
   namespace: fake
   labels:
-    app: httpd-demo
+    app: fake-httpd
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
-      app: httpd-demo
+      app: fake-httpd
   template:
     metadata:
       labels:
-        app: httpd-demo
+        app: fake-httpd
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/scheme: "http"
