@@ -1,0 +1,41 @@
+# https://docs.k3s.io/add-ons/helm
+# https://docs.k3s.io/installation/packaged-components
+{{- define "os.storage.files.prometheus.yaml" -}}
+{{- $namespace := required "namespace missing" .namespace -}}
+- path: /var/lib/rancher/k3s/server/manifests/prometheus.yaml
+  overwrite: true
+  mode: 0600
+  contents:
+    inline: |
+      {{- include "os.prometheus.yaml" . | nindent 6 }}
+{{- end }}
+
+{{- define "os.prometheus.yaml" -}}
+{{- $namespace := required "namespace missing" .namespace -}}
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  repo: https://prometheus-community.github.io/helm-charts
+  chart: prometheus
+  targetNamespace: {{ $namespace | quote }}
+  createNamespace: true
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    alertmanager:
+      enabled: true
+    kube-state-metrics:
+      enabled: true
+    prometheus-node-exporter:
+      enabled: true
+    prometheus-pushgateway:
+      enabled: true
+{{- end }}
