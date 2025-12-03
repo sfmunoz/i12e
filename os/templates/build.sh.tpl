@@ -2,7 +2,6 @@
 {{- if eq $cmd "build-sh" -}}
 {{- $env := include "os.env" . -}}
 {{- $e := index .Values.env $env -}}
-{{- $vip := $e | dig "kube_vip" "vip" "" -}}
 {{- $tgt_prefix := now | date "20060102-150405" | printf "os-%s" -}}
 script: |
   #!/bin/bash
