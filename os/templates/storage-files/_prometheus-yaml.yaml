@@ -32,6 +32,22 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    serverFiles:
+      alerting_rules.yml:
+        groups:
+        - name: overload
+          labels:
+            team: ops
+          rules:
+          - alert: Overload
+            expr: node_load1 > 0.8
+            for: 30s
+            keep_firing_for: 60s
+            labels:
+              severity: page
+              env: fake
+            annotations:
+              summary: system overloaded
     alertmanager:
       enabled: true
       config:
