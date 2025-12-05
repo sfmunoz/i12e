@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-metrics-job
+  namespace: fake
+  labels:
+    app: fake-metrics-push
+data:
+  run_py: |
+    #!/usr/bin/env python3
+    from http.client import HTTPConnection
+    from random import seed, randint
+    from time import sleep
+    def body():
+        return "\n".join([
+            "# HELP fake_metrics_push fake load on job",
+            "# TYPE fake_metrics_push gauge",
+            "fake_metrics_push {0:.1f}".format(0.1 * randint(100,300)),
+    "",  # final "\n"; otherwise: HTTP 400 Bad request -> text format parsing error in line 3: unexpected end of input stream
+        ])
+    def main():
+        seed()
+        job = "fake-metrics-push"
+        slots = 6
+        slumber = 60.0 / float(slots)
+        for x in range(slots):
+            if x > 0:
+                sleep(slumber)
+            conn = HTTPConnection("prometheus-prometheus-pushgateway.mon",9091)
+            for i in range(10):
+                instance = "inst_{0}".format(i)
+                conn.request("POST",f"/metrics/job/{job}/instance/{instance}",body=body(),headers={"Content-Type":"text/plain"})
+                resp = conn.getresponse()
+                print("status =",resp.status,"reason =",resp.reason)
+                for k,v in resp.getheaders():
+                    print(k,":",v)
+                buf = resp.read()
+                if len(buf) < 1:
+                    continue
+                print(buf)
+        print("the end")
+    if __name__ == "__main__":
+        main()
+
+---
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fake-metrics-push
+  namespace: fake
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fake-metrics-push
+            image: python:3.13.10-alpine3.22
+            imagePullPolicy: IfNotPresent
+            command: ["python3","-u","/job/run.py"]
+            volumeMounts:
+              - name: job-vol
+                mountPath: /job
+          restartPolicy: OnFailure
+          volumes:
+            - name: job-vol
+              configMap:
+                name: fake-metrics-job
+                items:
+                  - key: run_py
+                    path: run.py

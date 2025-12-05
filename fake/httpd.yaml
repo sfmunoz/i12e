@@ -1,3 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: srv-files
+  namespace: fake
+  labels:
+    app: fake-httpd
+data:
+  httpd_py: |
+    #!/usr/bin/env python3
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    from http import HTTPStatus
+    from random import seed, randint
+    from time import time
+    t0 = time()
+    class MyHTTPRequestHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/metrics":
+                lines = [
+                    "# HELP fake_httpd_load fake load on httpd server",
+                    "# TYPE fake_httpd_load gauge",
+                    "fake_httpd_load {0:.1f}".format(0.1*randint(200,400)),
+                    "# HELP fake_uptime server uptime",
+                    "# TYPE fake_uptime gauge",
+                    "fake_uptime {0:.1f}".format(time()-t0),
+                    "",
+                ]
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-type","text/plain")
+                self.end_headers()
+                self.wfile.write("\n".join(lines).encode())
+                return
+            self.send_response(HTTPStatus.NOT_FOUND)
+            self.send_header("Content-type","text/plain")
+            self.end_headers()
+            self.wfile.write("{0} not found\n".format(self.path).encode())
+    if __name__ == "__main__":
+        seed()
+        HTTPServer(('',80),MyHTTPRequestHandler).serve_forever()
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,7 +48,7 @@ metadata:
   labels:
     app: fake-httpd
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: fake-httpd
@@ -21,31 +63,18 @@ spec:
         prometheus.io/path: /metrics
     spec:
       containers:
-      - name: busybox-httpd
-        image: busybox:1.37.0-musl
-        command: ["/bin/sh","-c"]
-        args:
-        - |
-          #!/bin/sh
-          mkdir -p /var/www/cgi-bin
-          echo "<h1>$(hostname -s)</h1>" > /var/www/index.html
-          cat << __EOF_OUTER > /var/www/cgi-bin/metrics
-          #!/bin/sh
-          cat << __EOF
-          Content-type: text/plain
-
-          # HELP fake_httpd_load fake load on httpd server
-          # TYPE fake_httpd_load gauge
-          fake_httpd_load \$((10+RANDOM%20)).\$((RANDOM%10))
-          __EOF
-          __EOF_OUTER
-          chmod 755 /var/www/cgi-bin/metrics
-          cat << __EOF2 > /etc/httpd.conf
-          # ref: busybox-1_37_0/networking/httpd.c
-          H:/var/www
-          I:index.html
-          P:/metrics:http://127.0.0.1/cgi-bin/metrics
-          __EOF2
-          exec busybox httpd -c /etc/httpd.conf -f -p 80
+      - name: fake-httpd
+        image: python:3.13.10-alpine3.22
+        command: ["python3","/srv/httpd.py"]
+        volumeMounts:
+          - name: srv-vol
+            mountPath: /srv
         ports:
         - containerPort: 80
+      volumes:
+        - name: srv-vol
+          configMap:
+            name: srv-files
+            items:
+              - key: httpd_py
+                path: httpd.py
