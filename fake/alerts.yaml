@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fake-alerts
+  namespace: fake
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fake-alerts
+            image: busybox:1.37.0-musl
+            imagePullPolicy: IfNotPresent
+            command: ["/bin/sh","-c"]
+            args:
+            - |
+              #!/bin/sh
+              # ref: https://prometheus.io/docs/alerting/latest/alerts_api/
+              TS_NOW=$(date +%s)
+              GEN="$(date -d @$TS_NOW +%Y-%m-%dT%H:%M:%SZ)"
+              STARTS_AT="$(date -d @$(( $TS_NOW - 180 )) +%Y-%m-%dT%H:%M:%SZ)"
+              ENDS_AT="$(date -d @$(( $TS_NOW + 900 )) +%Y-%m-%dT%H:%M:%SZ)"
+              HHMM="$(date -d @$TS_NOW +%H%M)"
+              BLOCK="$(( ( $(date -d @$TS_NOW +%s) / 60 ) % 3))"
+              cat << __EOF | wget -O /dev/null --header 'Content-Type: application/json' --post-file - "http://prometheus-alertmanager.mon:9093/api/v2/alerts"
+              [
+                {
+                  "labels": {
+                    "alertname": "fake_alert",
+                    "pod": "fake_pod",
+                    "env": "fake",
+                    "hhmm": "${HHMM}",
+                    "block": "b${BLOCK}"
+                  },
+                  "annotations": {
+                    "gen": "${GEN}",
+                    "from": "${STARTS_AT}",
+                    "to": "${ENDS_AT}"
+                  },
+                  "startsAt": "${STARTS_AT}",
+                  "endsAt": "${ENDS_AT}",
+                  "generatorURL": "http://localhost:11111/fake-alerts"
+                }
+              ]
+              __EOF
+          restartPolicy: OnFailure
+

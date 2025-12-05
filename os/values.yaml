@@ -15,6 +15,9 @@ env:
       kvversion: v1.0.2
     flannel:
       interface: enp0s8
+    #pushover:
+    #  user_key: "<pushover.user_key>"
+    #  token: "<pushover.token>"
   prod:
     ssh_authorized_keys:
     - "ssh-rsa PROD..."
@@ -23,3 +26,6 @@ env:
     k3s: off
     k3s_token: "token-pro-insecure"
     k3s_agent_token: "agent-token-pro-insecure"
+    #pushover:
+    #  user_key: "<pushover.user_key>"
+    #  token: "<pushover.token>"

@@ -26,7 +26,7 @@ storage:
       {{- if and (eq $k3s_cmd "server") ($kube_vip) }}
         {{- include "os.storage.files.kube.vip.rbac.yaml" . | nindent 4 }}
         {{- include "os.storage.files.kube.vip.daemonset.yaml" $kube_vip | nindent 4 }}
-        {{- include "os.storage.files.prometheus.yaml" (dict "namespace" "mon") | nindent 4 }}
+        {{- include "os.storage.files.prometheus.yaml" (dict "e" $e "namespace" "mon") | nindent 4 }}
       {{- end }}
     {{- end }}
 

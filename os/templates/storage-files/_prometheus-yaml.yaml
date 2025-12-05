@@ -1,7 +1,6 @@
 # https://docs.k3s.io/add-ons/helm
 # https://docs.k3s.io/installation/packaged-components
 {{- define "os.storage.files.prometheus.yaml" -}}
-{{- $namespace := required "namespace missing" .namespace -}}
 - path: /var/lib/rancher/k3s/server/manifests/prometheus.yaml
   overwrite: true
   mode: 0600
@@ -11,7 +10,10 @@
 {{- end }}
 
 {{- define "os.prometheus.yaml" -}}
+{{- $e := required "e missing" .e -}}
 {{- $namespace := required "namespace missing" .namespace -}}
+{{- $po_user_key := $e | dig "pushover" "user_key" "" -}}
+{{- $po_token := $e | dig "pushover" "token" "" -}}
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
@@ -30,8 +32,41 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    serverFiles:
+      alerting_rules.yml:
+        groups:
+        - name: overload
+          labels:
+            team: ops
+          rules:
+          - alert: Overload
+            expr: node_load1 > 0.8
+            for: 30s
+            keep_firing_for: 60s
+            labels:
+              severity: page
+              env: fake
+            annotations:
+              summary: system overloaded
     alertmanager:
       enabled: true
+      config:
+        enabled: true
+        global: {}
+        templates:
+          - '/etc/alertmanager/*.tmpl'
+        receivers:
+          - name: default-receiver
+            {{- if and ($po_user_key) ($po_token) }}
+            pushover_configs:
+              - user_key: {{ $po_user_key | quote }}
+                token: {{ $po_token | quote }}
+            {{- end }}
+        route:
+          group_wait: 10s
+          group_interval: 5m
+          receiver: default-receiver
+          repeat_interval: 3h
     kube-state-metrics:
       enabled: true
     prometheus-node-exporter:
