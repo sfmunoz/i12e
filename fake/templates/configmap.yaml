@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fake.fullname" . }}-cfg1
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+data:
+  httpd_py: |
+    #!/usr/bin/env python3
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    from http import HTTPStatus
+    from random import seed, randint
+    from time import time
+    t0 = time()
+    class MyHTTPRequestHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/metrics":
+                lines = [
+                    "# HELP fake_httpd_load fake load on httpd server",
+                    "# TYPE fake_httpd_load gauge",
+                    "fake_httpd_load {0:.1f}".format(0.1*randint(200,400)),
+                    "# HELP fake_uptime server uptime",
+                    "# TYPE fake_uptime gauge",
+                    "fake_uptime {0:.1f}".format(time()-t0),
+                    "",
+                ]
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-type","text/plain")
+                self.end_headers()
+                self.wfile.write("\n".join(lines).encode())
+                return
+            self.send_response(HTTPStatus.NOT_FOUND)
+            self.send_header("Content-type","text/plain")
+            self.end_headers()
+            self.wfile.write("{0} not found\n".format(self.path).encode())
+    if __name__ == "__main__":
+        seed()
+        HTTPServer(('',80),MyHTTPRequestHandler).serve_forever()
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fake.fullname" . }}-cfg2
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+data:
+  run_py: |
+    #!/usr/bin/env python3
+    from http.client import HTTPConnection
+    from random import seed, randint
+    from time import sleep
+    def body():
+        return "\n".join([
+            "# HELP fake_metrics_push fake load on job",
+            "# TYPE fake_metrics_push gauge",
+            "fake_metrics_push {0:.1f}".format(0.1 * randint(100,300)),
+    "",  # final "\n"; otherwise: HTTP 400 Bad request -> text format parsing error in line 3: unexpected end of input stream
+        ])
+    def main():
+        seed()
+        job = "fake-metrics-push"
+        slots = 6
+        slumber = 60.0 / float(slots)
+        for x in range(slots):
+            if x > 0:
+                sleep(slumber)
+            conn = HTTPConnection("prometheus-prometheus-pushgateway.mon",9091)
+            for i in range(10):
+                instance = "inst_{0}".format(i)
+                conn.request("POST",f"/metrics/job/{job}/instance/{instance}",body=body(),headers={"Content-Type":"text/plain"})
+                resp = conn.getresponse()
+                print("status =",resp.status,"reason =",resp.reason)
+                for k,v in resp.getheaders():
+                    print(k,":",v)
+                buf = resp.read()
+                if len(buf) < 1:
+                    continue
+                print(buf)
+        print("the end")
+    if __name__ == "__main__":
+        main()
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fake.fullname" . }}-cfg3
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+data:
+  run_py: |
+    #!/usr/bin/env python3
+    from datetime import datetime, timedelta, UTC
+    from math import floor
+    from json import dumps as json_dumps, loads as json_loads
+    from http.client import HTTPConnection
+    def main():
+        rfc3339_fmt = "%Y-%m-%dT%H:%M:%SZ"
+        ts_now = datetime.now(UTC)
+        epoch_now = floor(ts_now.timestamp())
+        block = ( epoch_now // 60 ) % 3
+        ts_starts_at = ts_now - timedelta(minutes=3)
+        ts_ends_at = ts_now + timedelta(minutes=15)
+        body = [
+          {
+            "labels": {
+              "alertname": "fake_alert",
+              "pod": "fake_pod",
+              "env": "fake",
+              "hhmm": ts_now.strftime("%H%M"),
+              "block": "b{0}".format(block),
+            },
+            "annotations": {
+              "from": ts_starts_at.strftime(rfc3339_fmt),
+              "gen": ts_now.strftime(rfc3339_fmt),
+              "to": ts_ends_at.strftime(rfc3339_fmt),
+            },
+            "startsAt": ts_starts_at.strftime(rfc3339_fmt),
+            "endsAt": ts_ends_at.strftime(rfc3339_fmt),
+            "generatorURL": "http://localhost:11111/fake-alerts",
+          },
+        ]
+        headers = {"Content-Type":"application/json"}
+        conn = HTTPConnection("prometheus-alertmanager.mon",9093)
+        conn.request("POST","/api/v2/alerts",body=json_dumps(body),headers=headers)
+        resp = conn.getresponse()
+        print("status =",resp.status,"reason =",resp.reason)
+        for k,v in resp.getheaders():
+            print(k,":",v)
+        buf = resp.read()
+        if len(buf) < 1:
+            return
+        js = json_loads(buf.decode())
+        print(json_dumps(js,sort_keys=True,indent=2))
+    if __name__ == "__main__":
+        main()
+
