@@ -29,6 +29,28 @@ spec:
         args:
         - |
           #!/bin/sh
+          THE_BASE="/spark"
+          #python3 -u << __EOF
+          #from time import sleep,time
+          #for i in range(10):
+          #    print(i,time())
+          #    sleep(0.1)
+          #__EOF
+          cat > ${THE_BASE}/etc/rancher/k3s/config.yaml << __EOF
+          token: SOME_TOKEN
+          agent-token: ANOTHER_TOKEN
+          #token: ANOTHER_TOKEN
+          secrets-encryption: true
+          secrets-encryption-provider: secretbox
+          #tls-san: ???
+          flannel-backend: "wireguard-native"
+          cluster-init: true
+          #server: {{ $k3s_url | quote }}
+          node-ip: "192.168.56.51"
+          flannel-iface: "enp0s8"
+          __EOF
+          chmod 600 ${THE_BASE}/etc/rancher/k3s/config.yaml
+          chroot $THE_BASE systemctl reboot
           exec tail -f /dev/null
         volumeMounts:
         - mountPath: /spark
