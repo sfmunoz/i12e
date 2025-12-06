@@ -9,11 +9,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fake-httpd
+      {{- include "fake.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: fake-httpd
+        {{- include "fake.labels" . | nindent 8 }}
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/scheme: "http"
