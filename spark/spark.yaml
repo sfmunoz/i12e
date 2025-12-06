@@ -50,7 +50,9 @@ spec:
           flannel-iface: "enp0s8"
           __EOF
           chmod 600 ${THE_BASE}/etc/rancher/k3s/config.yaml
-          chroot $THE_BASE systemctl reboot
+          #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+          # Failed to connect to system scope bus via local transport: No data available
+          #chroot $THE_BASE systemctl reboot
           exec tail -f /dev/null
         volumeMounts:
         - mountPath: /spark
