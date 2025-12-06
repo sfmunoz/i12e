@@ -3,6 +3,9 @@
 **i12e** (infrastructure) **os** (Operating System)
 
 - [Usage](#usage)
+  - [I12E_ENV](#i12e_env)
+  - [I12E_DEBUG](#i12e_debug)
+  - [I12E_DIST](#i12e_dist)
 
 ## Usage
 
@@ -14,7 +17,7 @@ $ ./os/build.sh
 + ls -l os.json
 -rw------- 1 sfm sfm 1105 Nov 22 07:28 os.json
 ```
-Production:
+### I12E_ENV
 ```
 $ I12E_ENV=prod ./os/build.sh
 + helm template prod . -f secrets://secrets.yaml
@@ -22,7 +25,7 @@ $ I12E_ENV=prod ./os/build.sh
 + ls -l os.json
 -rw------- 1 sfm sfm 1106 Nov 22 07:28 os.json
 ```
-Debug:
+### I12E_DEBUG
 ```
 $ I12E_DEBUG=1 ./os/build.sh
 + exec helm template --debug dev . -f secrets://secrets.yaml
@@ -39,4 +42,13 @@ systemd:
   units:
     - name: k3s-install.service
 (...)
+```
+### I12E_DIST
+- To every target:
+```
+$ I12E_DIST=1 ./os/build.sh
+```
+- To some targets:
+```
+$ I12E_DIST="192.168.56.51:192.168.56.54" ./os/build.sh
 ```
