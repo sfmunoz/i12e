@@ -12,5 +12,4 @@ FNAME="spark.yaml.$(date +%Y%m%d_%H%M%S)"
 
 scp spark.yaml core@${IP}:$FNAME
 
-ssh core@${IP} "set -e -x -o pipefail ; sudo chown -v 0:0 $FNAME ; sudo mv -v $FNAME /var/lib/rancher/k3s/server/manifests/spark.yaml"
-
+ssh core@${IP} "set -e -x -o pipefail ; sudo chown -v 0:0 $FNAME ; sudo mv -v $FNAME /var/lib/rancher/k3s/server/manifests/spark.yaml ; sudo rm -fv /var/lib/rancher/k3s/server/manifests/spark.yaml.skip"
