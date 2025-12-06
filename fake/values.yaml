@@ -2,6 +2,8 @@ httpd_enabled: true
 metrics_push_enabled: true
 alerts_enabled: true
 
+prometheus_namespace: "mon"
+
 httpd_py: |
   #!/usr/bin/env python3
   from http.server import HTTPServer, BaseHTTPRequestHandler

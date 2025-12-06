@@ -40,7 +40,7 @@ data:
         for x in range(slots):
             if x > 0:
                 sleep(slumber)
-            conn = HTTPConnection("prometheus-prometheus-pushgateway.mon",9091)
+            conn = HTTPConnection("prometheus-prometheus-pushgateway.{{ .Values.prometheus_namespace | default "mon" }}",9091)
             for i in range(10):
                 instance = "inst_{0}".format(i)
                 conn.request("POST",f"/metrics/job/{job}/instance/{instance}",body=body(),headers={"Content-Type":"text/plain"})
@@ -100,7 +100,7 @@ data:
           },
         ]
         headers = {"Content-Type":"application/json"}
-        conn = HTTPConnection("prometheus-alertmanager.mon",9093)
+        conn = HTTPConnection("prometheus-alertmanager.{{ .Values.prometheus_namespace | default "mon" }}",9093)
         conn.request("POST","/api/v2/alerts",body=json_dumps(body),headers=headers)
         resp = conn.getresponse()
         print("status =",resp.status,"reason =",resp.reason)
