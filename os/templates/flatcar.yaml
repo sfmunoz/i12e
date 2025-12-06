@@ -18,6 +18,7 @@ systemd:
 storage:
   links:
     {{- include "os.storage.links.containerd.flatcar.raw" . | nindent 4 }}
+    {{- include "os.storage.links.docker.flatcar.raw" . | nindent 4 }}
   files:
     {{- include "os.storage.files.etc.flatcar.update.conf" . | nindent 4 }}
     {{- if eq $e.k3s "etcd" }}
