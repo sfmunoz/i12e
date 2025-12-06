@@ -13,7 +13,7 @@ spec:
         spec:
           containers:
           - name: fake-metrics-push
-            image: python:3.13.10-alpine3.22
+            image: {{ .Values.image | quote }}
             imagePullPolicy: IfNotPresent
             command: ["python3","-u","/job/run.py"]
             volumeMounts:
@@ -46,7 +46,7 @@ spec:
         spec:
           containers:
           - name: fake-alerts
-            image: python:3.13.10-alpine3.22
+            image: {{ .Values.image | quote }}
             imagePullPolicy: IfNotPresent
             command: ["python3","-u","/job/run.py"]
             volumeMounts:

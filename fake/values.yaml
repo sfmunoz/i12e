@@ -4,6 +4,8 @@ alerts_enabled: true
 
 prometheus_namespace: "mon"
 
+image: "python:3.13.10-alpine3.22"
+
 httpd_py: |
   #!/usr/bin/env python3
   from http.server import HTTPServer, BaseHTTPRequestHandler
