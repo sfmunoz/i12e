@@ -1,3 +1,4 @@
+{{- if ( .Values.httpd_enabled | default false ) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -36,9 +37,11 @@ data:
     if __name__ == "__main__":
         seed()
         HTTPServer(('',80),MyHTTPRequestHandler).serve_forever()
+{{- end }}
 
 ---
 
+{{- if ( .Values.metrics_push_enabled | default false ) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -81,9 +84,11 @@ data:
         print("the end")
     if __name__ == "__main__":
         main()
+{{- end }}
 
 ---
 
+{{- if ( .Values.alerts_enabled | default false ) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -137,4 +142,4 @@ data:
         print(json_dumps(js,sort_keys=True,indent=2))
     if __name__ == "__main__":
         main()
-
+{{- end }}

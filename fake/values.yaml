@@ -1,0 +1,3 @@
+httpd_enabled: true
+metrics_push_enabled: true
+alerts_enabled: true

@@ -1,3 +1,4 @@
+{{- if ( .Values.metrics_push_enabled | default false ) }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -26,9 +27,11 @@ spec:
                 items:
                   - key: run_py
                     path: run.py
+{{- end }}
 
 ---
 
+{{- if ( .Values.alerts_enabled | default false ) }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -57,4 +60,4 @@ spec:
                 items:
                   - key: run_py
                     path: run.py
-
+{{- end }}
