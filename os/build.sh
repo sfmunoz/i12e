@@ -21,7 +21,9 @@ then
   exit 0
 fi
 
-if [ "$I12E_DIST" = "1" ]
+[ "$I12E_DIST" = "0" ] && I12E_DIST=""
+
+if [ "$I12E_DIST" != "" ]
 then
   REPLY_OK="$(uuidgen | awk -F "-" '{ print $2 }')"
   if [ "$REPLY_OK" = "" ] ; then echo "error creating 'REPLY_OK'" ; exit 1 ; fi

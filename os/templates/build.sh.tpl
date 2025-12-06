@@ -21,16 +21,22 @@ script: |
     ls -l "$OS_YAML"
     { set +x; } 2> /dev/null
   done
-  [ "$I12E_DIST" = "1" ] || exit 0
+  [ "$I12E_DIST" = "" ] && exit 0
   echo "================ DIST ================"
   for TARGET in {{ $e.targets | join " " }}
   do
-    OS_JSON_LOC="build/os-${TARGET}.json"
-    OS_JSON_REM="{{ $tgt_prefix }}-${TARGET}.json"
-    set -x
-    scp "$OS_JSON_LOC" "core@${TARGET}:${OS_JSON_REM}"
-    # systemd-run usage: avoid "ssh connection closed by remote host" error
-    ssh "core@${TARGET}" "sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log -F $OS_JSON_REM && sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'"
-    { set +x; } 2> /dev/null
+    if [[ "$I12E_DIST" == "1" || ":$I12E_DIST:" == *":$TARGET:"* ]]
+    then
+      echo "==== ${TARGET}: ON ===="
+      OS_JSON_LOC="build/os-${TARGET}.json"
+      OS_JSON_REM="{{ $tgt_prefix }}-${TARGET}.json"
+      set -x
+      scp "$OS_JSON_LOC" "core@${TARGET}:${OS_JSON_REM}"
+      # systemd-run usage: avoid "ssh connection closed by remote host" error
+      ssh "core@${TARGET}" "sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log -F $OS_JSON_REM && sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'"
+      { set +x; } 2> /dev/null
+    else
+      echo "==== ${TARGET}: OFF ===="
+    fi
   done
 {{- end }}
