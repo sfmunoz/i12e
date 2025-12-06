@@ -1,0 +1,63 @@
+{{- if ( .Values.metrics_push_enabled | default false ) }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fake.fullname" . }}-metrics-push
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fake-metrics-push
+            image: {{ .Values.image | quote }}
+            imagePullPolicy: IfNotPresent
+            command: ["python3","-u","/job/run.py"]
+            volumeMounts:
+              - name: job-vol
+                mountPath: /job
+          restartPolicy: OnFailure
+          volumes:
+            - name: job-vol
+              configMap:
+                name: {{ include "fake.fullname" . }}-cfg2
+                items:
+                  - key: run_py
+                    path: run.py
+{{- end }}
+
+---
+
+{{- if ( .Values.alerts_enabled | default false ) }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "fake.fullname" . }}-alerts
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: fake-alerts
+            image: {{ .Values.image | quote }}
+            imagePullPolicy: IfNotPresent
+            command: ["python3","-u","/job/run.py"]
+            volumeMounts:
+              - name: job-vol
+                mountPath: /job
+          restartPolicy: OnFailure
+          volumes:
+            - name: job-vol
+              configMap:
+                name: {{ include "fake.fullname" . }}-cfg3
+                items:
+                  - key: run_py
+                    path: run.py
+{{- end }}

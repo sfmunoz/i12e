@@ -1,0 +1,10 @@
+Install/upgrade (example: namespace=fake, name=fake)
+  $ helm upgrade --install -n <namespace> --create-namespace <name> .
+Test (once deployed using release-name="{{ .Release.Name }}"):
+  $ helm test -n {{ .Release.Namespace }} --logs --timeout 5s {{ .Release.Name }}
+Uninstall/cleanup:
+  $ helm uninstall -n {{ .Release.Namespace }} {{ .Release.Name }}
+  $ kubectl delete namespaces {{ .Release.Namespace }}
+Template:
+  $ helm install --dry-run --debug --disable-openapi-validation -n {{ .Release.Namespace }} {{ .Release.Name }} .
+  $ helm template .

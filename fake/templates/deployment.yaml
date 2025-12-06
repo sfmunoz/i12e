@@ -1,0 +1,44 @@
+{{- if ( .Values.httpd_enabled | default false ) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fake.fullname" . }}-httpd
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "fake.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "fake.labels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "http"
+        prometheus.io/port: "80"
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+      - name: fake-httpd
+        image: {{ .Values.image | quote }}
+        imagePullPolicy: IfNotPresent
+        env:
+        # enforce code changes -> container restarted (devel environment)
+        - name: CODE_SHA256SUM
+          value: {{ .Values.httpd_py | sha256sum }}
+        command: ["python3","-u","/srv/httpd.py"]
+        volumeMounts:
+          - name: srv-vol
+            mountPath: /srv
+        ports:
+        - containerPort: 80
+      volumes:
+        - name: srv-vol
+          configMap:
+            name: {{ include "fake.fullname" . }}-cfg1
+            items:
+              - key: httpd_py
+                path: httpd.py
+{{- end }}

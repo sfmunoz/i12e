@@ -1,0 +1,51 @@
+{{- if ( .Values.httpd_enabled | default false ) }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "fake.fullname" . }}-test-connection"
+  labels:
+    {{- include "fake.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: http-client
+      image: {{ .Values.image | quote }}
+      imagePullPolicy: IfNotPresent
+      command: ["python3","-u","-c"]
+      args:
+      - |
+        #!/usr/bin/env python3
+        from http.client import HTTPConnection
+        import sys
+        def fail(msg):
+            print(msg)
+            sys.exit(1)
+        def main():
+            conn = HTTPConnection("fake",80)
+            conn.request("GET","/metrics")
+            resp = conn.getresponse()
+            print("status =",resp.status,"reason =",resp.reason)
+            if resp.status != 200:
+                conn.close()
+                fail("error: resp.status = {0} (200 expected)".format(resp.status))
+            for k,v in resp.getheaders():
+                print(k,":",v)
+            buf = resp.read()
+            if len(buf) < 1:
+                fail("error: empty body returned")
+            lines = [x for x in buf.decode().split("\n") if x.strip() != ""]
+            for i,line in enumerate(lines):
+                print(i,line)
+                if i % 3 == 2:
+                    if line.startswith("#"):
+                        fail("error: line '{0}' starts with '#' but it shouldn't".format(line))
+                    continue
+                if not line.startswith("#"):
+                    fail("error: line '{0}' doesn't start with '#' but it should".format(line))
+
+        if __name__ == "__main__":
+            main()
+            sys.exit(0)
+  restartPolicy: Never
+{{- end }}
