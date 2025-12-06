@@ -24,7 +24,7 @@ spec:
     spec:
       containers:
       - name: spark
-        image: busybox:1.37.0-musl
+        image: python:3.13.10-alpine3.22
         command: ["/bin/sh","-c"]
         args:
         - |
