@@ -23,6 +23,10 @@ spec:
       containers:
       - name: fake-httpd
         image: python:3.13.10-alpine3.22
+        env:
+        # enforce code changes -> container restarted (devel environment)
+        - name: CODE_SHA256SUM
+          value: {{ .Values.httpd_py | sha256sum }}
         command: ["python3","-u","/srv/httpd.py"]
         volumeMounts:
           - name: srv-vol

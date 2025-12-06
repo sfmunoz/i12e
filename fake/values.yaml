@@ -1,3 +1,35 @@
 httpd_enabled: true
 metrics_push_enabled: true
 alerts_enabled: true
+
+httpd_py: |
+  #!/usr/bin/env python3
+  from http.server import HTTPServer, BaseHTTPRequestHandler
+  from http import HTTPStatus
+  from random import seed, randint
+  from time import time
+  t0 = time()
+  class MyHTTPRequestHandler(BaseHTTPRequestHandler):
+      def do_GET(self):
+          if self.path == "/metrics":
+              lines = [
+                  "# HELP fake_httpd_load fake load on httpd server",
+                  "# TYPE fake_httpd_load gauge",
+                  "fake_httpd_load {0:.1f}".format(0.1*randint(200,400)),
+                  "# HELP fake_uptime server uptime",
+                  "# TYPE fake_uptime gauge",
+                  "fake_uptime {0:.1f}".format(time()-t0),
+                  "",
+              ]
+              self.send_response(HTTPStatus.OK)
+              self.send_header("Content-type","text/plain")
+              self.end_headers()
+              self.wfile.write("\n".join(lines).encode())
+              return
+          self.send_response(HTTPStatus.NOT_FOUND)
+          self.send_header("Content-type","text/plain")
+          self.end_headers()
+          self.wfile.write("{0} not found\n".format(self.path).encode())
+  if __name__ == "__main__":
+      seed()
+      HTTPServer(('',80),MyHTTPRequestHandler).serve_forever()
