@@ -1,0 +1,6 @@
+{{- define "os.storage.links.docker.flatcar.raw" -}}
+# https://www.flatcar.org/docs/latest/provisioning/sysext/
+- path: /etc/extensions/docker-flatcar.raw
+  target: /dev/null
+  overwrite: true
+{{- end }}
