@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spark
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark
+  namespace: spark
+  labels:
+    app: spark
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark
+  template:
+    metadata:
+      labels:
+        app: spark
+    spec:
+      containers:
+      - name: spark
+        image: busybox:1.37.0-musl
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          #!/bin/sh
+          exec tail -f /dev/null
+        volumeMounts:
+        - mountPath: /spark
+          name: vol-host
+          readOnly: false
+      volumes:
+      - name: vol-host
+        hostPath:
+          path: /
+          type: Directory
