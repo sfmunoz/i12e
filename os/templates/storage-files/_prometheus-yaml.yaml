@@ -32,6 +32,12 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    server:
+      global:
+        # default: scrape_interval/scrape_timeout/evaluation_interval=1m/10s/1m
+        scrape_interval: 30s
+        scrape_timeout: 10s
+        evaluation_interval: 30s
     serverFiles:
       alerting_rules.yml:
         groups:
