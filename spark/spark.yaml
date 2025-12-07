@@ -4,17 +4,26 @@ metadata:
   name: spark
 spec:
   restartPolicy: Never
+  # https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  # https://github.com/torvalds/linux/blob/master/include/uapi/linux/capability.h
+  securityContext:
+    runAsUser: 0
+    runAsGroup: 0
   containers:
   - name: spark
     image: python:3.13.10-alpine3.22
     imagePullPolicy: IfNotPresent
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
+      capabilities:
+        add: ["SYS_ADMIN"]
     command: ["python3","-u","-c"]
     args:
     - |
       #!/usr/bin/env python3
       from os import fchmod
       from sys import stderr
-      from time import time,sleep
       from logging import getLogger, basicConfig, INFO
       basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
       log = getLogger(__name__)
