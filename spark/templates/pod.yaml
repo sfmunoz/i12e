@@ -1,3 +1,4 @@
+{{- $k3s_url := "https://192.168.56.50:6443" -}}
 apiVersion: v1
 kind: Pod
 metadata:
