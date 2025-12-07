@@ -9,11 +9,7 @@ basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(mes
 log = getLogger(__name__)
 SPARK_BASE = "/spark"
 UPDATE_CONF = f"{SPARK_BASE}/etc/flatcar/update.conf"
-UPDATE_CONF_BUF = """
-REBOOT_STRATEGY=reboot
-REBOOT_WINDOW_START=01:30
-REBOOT_WINDOW_LENGTH=1h
-"""
+UPDATE_CONF_BUF = """{{ include "spark.etc.flatcar.update.conf" . }}"""
 SPARK_YAML = f"{SPARK_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml"
 SPARK_SKIP = f"{SPARK_YAML}.skip"
 CONFIG_YAML = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
