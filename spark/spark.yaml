@@ -1,72 +1,59 @@
 apiVersion: v1
-kind: Namespace
+kind: Pod
 metadata:
   name: spark
-
----
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: spark
-  namespace: spark
-  labels:
-    app: spark
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: spark
-  template:
-    metadata:
-      labels:
-        app: spark
-    spec:
-      containers:
-      - name: spark
-        image: python:3.13.10-alpine3.22
-        command: ["/bin/sh","-c"]
-        args:
-        - |
-          #!/bin/sh
-          THE_BASE="/spark"
-          LOCK="${THE_BASE}/.spark.lock"
-          set -e -x -o pipefail
-          [ -f "$LOCK" ] && exec tail -f /dev/null
-          touch "$LOCK"
-          # https://docs.k3s.io/installation/packaged-components
-          # don't let spark.yaml run on k3s(etcd)
-          touch "${THE_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip"
-          #python3 -u << __EOF
-          #from time import sleep,time
-          #for i in range(10):
-          #    print(i,time())
-          #    sleep(0.1)
-          #__EOF
-          cat > "${THE_BASE}/etc/rancher/k3s/config.yaml" << __EOF
-          token: SOME_TOKEN
-          agent-token: ANOTHER_TOKEN
-          #token: ANOTHER_TOKEN
-          secrets-encryption: true
-          secrets-encryption-provider: secretbox
-          #tls-san: ???
-          flannel-backend: "wireguard-native"
-          cluster-init: true
-          #server: {{ $k3s_url | quote }}
-          node-ip: "192.168.56.51"
-          flannel-iface: "enp0s8"
-          __EOF
-          chmod 600 "${THE_BASE}/etc/rancher/k3s/config.yaml"
-          #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
-          # Failed to connect to system scope bus via local transport: No data available
-          chroot "${THE_BASE}" systemctl reboot
-          exec tail -f /dev/null
-        volumeMounts:
-        - mountPath: /spark
-          name: vol-host
-          readOnly: false
-      volumes:
-      - name: vol-host
-        hostPath:
-          path: /
-          type: Directory
+  restartPolicy: Never
+  containers:
+  - name: spark
+    image: python:3.13.10-alpine3.22
+    command: ["/bin/sh","-c"]
+    args:
+    - |
+      #!/bin/sh
+      echo "$(date): starting..."
+      sleep 10
+      echo "$(date): finishing..."
+      exit 0
+      exec tail -f /dev/null
+      THE_BASE="/spark"
+      LOCK="${THE_BASE}/.spark.lock"
+      set -e -x -o pipefail
+      [ -f "$LOCK" ] && exec tail -f /dev/null
+      touch "$LOCK"
+      # https://docs.k3s.io/installation/packaged-components
+      # don't let spark.yaml run on k3s(etcd)
+      touch "${THE_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip"
+      #python3 -u << __EOF
+      #from time import sleep,time
+      #for i in range(10):
+      #    print(i,time())
+      #    sleep(0.1)
+      #__EOF
+      cat > "${THE_BASE}/etc/rancher/k3s/config.yaml" << __EOF
+      token: SOME_TOKEN
+      agent-token: ANOTHER_TOKEN
+      #token: ANOTHER_TOKEN
+      secrets-encryption: true
+      secrets-encryption-provider: secretbox
+      #tls-san: ???
+      flannel-backend: "wireguard-native"
+      cluster-init: true
+      #server: {{ $k3s_url | quote }}
+      node-ip: "192.168.56.51"
+      flannel-iface: "enp0s8"
+      __EOF
+      chmod 600 "${THE_BASE}/etc/rancher/k3s/config.yaml"
+      #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+      # Failed to connect to system scope bus via local transport: No data available
+      chroot "${THE_BASE}" systemctl reboot
+      exec tail -f /dev/null
+    volumeMounts:
+    - mountPath: /spark
+      name: vol-host
+      readOnly: false
+  volumes:
+  - name: vol-host
+    hostPath:
+      path: /
+      type: Directory
