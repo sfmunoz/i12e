@@ -11,19 +11,7 @@ SPARK_BASE = "/spark"
 SPARK_YAML = f"{SPARK_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml"
 SPARK_SKIP = f"{SPARK_YAML}.skip"
 CONFIG_YAML = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
-CONFIG_YAML_BUF = """
-token: SOME_TOKEN
-agent-token: ANOTHER_TOKEN
-#token: ANOTHER_TOKEN
-secrets-encryption: true
-secrets-encryption-provider: secretbox
-#tls-san: ???
-flannel-backend: "wireguard-native"
-cluster-init: true
-#server: {{ $k3s_url | quote }}
-node-ip: "192.168.56.51"
-flannel-iface: "enp0s8"
-"""
+CONFIG_YAML_BUF = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
 def etc_extensions():
     for entry in ["containerd","docker"]:
         fname = "{0}/etc/extensions/{1}-flatcar.raw".format(SPARK_BASE,entry)
