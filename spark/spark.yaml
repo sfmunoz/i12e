@@ -7,30 +7,18 @@ spec:
   containers:
   - name: spark
     image: python:3.13.10-alpine3.22
-    command: ["/bin/sh","-c"]
+    imagePullPolicy: IfNotPresent
+    command: ["python3","-u","-c"]
     args:
     - |
-      #!/bin/sh
-      echo "$(date): starting..."
-      sleep 10
-      echo "$(date): finishing..."
-      exit 0
-      exec tail -f /dev/null
-      THE_BASE="/spark"
-      LOCK="${THE_BASE}/.spark.lock"
-      set -e -x -o pipefail
-      [ -f "$LOCK" ] && exec tail -f /dev/null
-      touch "$LOCK"
-      # https://docs.k3s.io/installation/packaged-components
-      # don't let spark.yaml run on k3s(etcd)
-      touch "${THE_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip"
-      #python3 -u << __EOF
-      #from time import sleep,time
-      #for i in range(10):
-      #    print(i,time())
-      #    sleep(0.1)
-      #__EOF
-      cat > "${THE_BASE}/etc/rancher/k3s/config.yaml" << __EOF
+      #!/usr/bin/env python3
+      from os import fchmod
+      from time import time,sleep
+      SPARK_BASE = "/spark"
+      SPARK_YAML = f"{SPARK_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml"
+      SPARK_SKIP = f"{SPARK_YAML}.skip"
+      CONFIG_YAML = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
+      CONFIG_BUF = """
       token: SOME_TOKEN
       agent-token: ANOTHER_TOKEN
       #token: ANOTHER_TOKEN
@@ -42,12 +30,22 @@ spec:
       #server: {{ $k3s_url | quote }}
       node-ip: "192.168.56.51"
       flannel-iface: "enp0s8"
-      __EOF
-      chmod 600 "${THE_BASE}/etc/rancher/k3s/config.yaml"
-      #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
-      # Failed to connect to system scope bus via local transport: No data available
-      chroot "${THE_BASE}" systemctl reboot
-      exec tail -f /dev/null
+      """
+      def main():
+          print(time(),"begin")
+          # https://docs.k3s.io/installation/packaged-components
+          # don't let spark.yaml run on k3s(etcd)
+          with open(SPARK_SKIP,"w") as fp:
+              fchmod(fp.fileno(),0o600)
+          with open(CONFIG_YAML,"w") as fp:
+              fp.write(CONFIG_BUF.strip() + "\n")
+              fchmod(fp.fileno(),0o600)
+          print(time(),"end")
+          # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+          # # Failed to connect to system scope bus via local transport: No data available
+          # chroot "${SPARK_BASE}" systemctl reboot
+      if __name__ == "__main__":
+          main()
     volumeMounts:
     - mountPath: /spark
       name: vol-host
