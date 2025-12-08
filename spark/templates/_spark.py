@@ -11,32 +11,6 @@ log = getLogger(__name__)
 class Spark(object):
     def __init__(self):
         self.__base = "/spark"
-    def __manifest_skip(self):
-        # https://docs.k3s.io/installation/packaged-components
-        # don't let spark.yaml run on k3s(etcd)
-        fname = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip".format(self.__base)
-        with open(fname,"w") as fp:
-            fchmod(fp.fileno(),0o600)
-        log.info("empty '{0}' created".format(fname))
-    def __k3s_override_conf(self):
-        dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
-        fname = "{0}/override.conf".format(dname)
-        buf = """{{ include "spark.k3s.override.conf" . }}"""
-        if not isdir(dname):
-            mkdir(dname)
-        if not isdir(dname):
-            raise Exception("error: couldn't create '{0}' folder".format(dname))
-        chmod(dname,0o755)
-        with open(fname,"w") as fp:
-            fp.write(buf.strip() + "\n")
-            fchmod(fp.fileno(),0o644)
-    def __k3s_config_yaml(self):
-        fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
-        buf = """{{ include "spark.k3s.config.yaml" . }}"""
-        with open(fname,"w") as fp:
-            fp.write(buf.strip() + "\n")
-            fchmod(fp.fileno(),0o600)
-        log.info("'{0}' created".format(fname))
     def __flatcar_extensions(self):
         for entry in ["containerd","docker"]:
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
@@ -44,10 +18,10 @@ class Spark(object):
                 if not islink(fname):
                     log.warning("skipping '{0}': it's not a symlink".format(fname))
                     continue
-                log.info("(before) {0}: {1}".format(fname,readlink(fname)))
+                log.info("(bef) {0}: {1}".format(fname,readlink(fname)))
                 unlink(fname)
                 symlink("/dev/null",fname)
-                log.info(" (after) {0}: {1}".format(fname,readlink(fname)))
+                log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
             except FileNotFoundError as e:
                 log.warning("skipping '{0}': {1}".format(fname,str(e)))
     def __flatcar_update_conf(self):
@@ -60,6 +34,33 @@ class Spark(object):
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
+    def __k3s_config_yaml(self):
+        fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
+        buf = """{{ include "spark.k3s.config.yaml" . }}"""
+        with open(fname,"w") as fp:
+            fp.write(buf.strip() + "\n")
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created".format(fname))
+    def __k3s_override_conf(self):
+        dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
+        fname = "{0}/override.conf".format(dname)
+        buf = """{{ include "spark.k3s.override.conf" . }}"""
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)
+        with open(fname,"w") as fp:
+            fp.write(buf.strip() + "\n")
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' created".format(fname))
+    def __manifest_skip(self):
+        # https://docs.k3s.io/installation/packaged-components
+        # don't let spark.yaml run on k3s(etcd)
+        fname = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip".format(self.__base)
+        with open(fname,"w") as fp:
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created".format(fname))
     def __reboot(self):
         # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
         # # Failed to connect to system scope bus via local transport: No data available
@@ -67,12 +68,12 @@ class Spark(object):
         call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
         log.info("==== spark begin ====")
-        self.__manifest_skip()
-        self.__k3s_override_conf()
-        self.__k3s_config_yaml()
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
-        self.__reboot()
+        self.__k3s_config_yaml()
+        self.__k3s_override_conf()
+        self.__manifest_skip()
+        #self.__reboot()
         log.info("---- spark end ----")  # never reached
 if __name__ == "__main__":
     Spark().run()
