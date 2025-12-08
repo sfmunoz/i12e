@@ -4,20 +4,10 @@ metadata:
   name: spark
 spec:
   restartPolicy: Never
-  # https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
-  # https://github.com/torvalds/linux/blob/master/include/uapi/linux/capability.h
-  securityContext:
-    runAsUser: 0
-    runAsGroup: 0
   containers:
   - name: spark
     image: python:3.13.10-alpine3.22
     imagePullPolicy: IfNotPresent
-    securityContext:
-      runAsUser: 0
-      runAsGroup: 0
-      capabilities:
-        add: ["SYS_ADMIN"]
     command: ["python3","-u","-c"]
     args:
     - |
