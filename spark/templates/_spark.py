@@ -10,8 +10,13 @@ log = getLogger(__name__)
 SPARK_BASE = "/spark"
 SPARK_YAML = f"{SPARK_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml"
 SPARK_SKIP = f"{SPARK_YAML}.skip"
-CONFIG_YAML = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
-CONFIG_YAML_BUF = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
+def etc_rancher_k3s_config_yaml():
+    fname = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
+    buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
+    with open(fname,"w") as fp:
+        fp.write(buf.strip() + "\n")
+        fchmod(fp.fileno(),0o600)
+    log.info("'{0}' created".format(fname))
 def etc_extensions():
     for entry in ["containerd","docker"]:
         fname = "{0}/etc/extensions/{1}-flatcar.raw".format(SPARK_BASE,entry)
@@ -42,10 +47,7 @@ def main():
     with open(SPARK_SKIP,"w") as fp:
         fchmod(fp.fileno(),0o600)
     log.info("empty '{0}' created".format(SPARK_SKIP))
-    with open(CONFIG_YAML,"w") as fp:
-        fp.write(CONFIG_YAML_BUF.strip() + "\n")
-        fchmod(fp.fileno(),0o600)
-    log.info("'{0}' created".format(CONFIG_YAML))
+    etc_rancher_k3s_config_yaml()
     etc_extensions()
     etc_flatcar_update_conf()
     log.info("---- spark end ----")
