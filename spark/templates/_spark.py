@@ -7,53 +7,55 @@ from sys import stderr
 from logging import getLogger, basicConfig, INFO
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
 log = getLogger(__name__)
-SPARK_BASE = "/spark"
-SPARK_YAML = f"{SPARK_BASE}/var/lib/rancher/k3s/server/manifests/spark.yaml"
-SPARK_SKIP = f"{SPARK_YAML}.skip"
-def etc_rancher_k3s_config_yaml():
-    fname = f"{SPARK_BASE}/etc/rancher/k3s/config.yaml"
-    buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
-    with open(fname,"w") as fp:
-        fp.write(buf.strip() + "\n")
-        fchmod(fp.fileno(),0o600)
-    log.info("'{0}' created".format(fname))
-def etc_extensions():
-    for entry in ["containerd","docker"]:
-        fname = "{0}/etc/extensions/{1}-flatcar.raw".format(SPARK_BASE,entry)
-        try:
-            if not islink(fname):
-                log.warning("skipping '{0}': it's not a symlink".format(fname))
-                continue
-            log.info("(before) {0}: {1}".format(fname,readlink(fname)))
-            unlink(fname)
-            symlink("/dev/null",fname)
-            log.info(" (after) {0}: {1}".format(fname,readlink(fname)))
-        except FileNotFoundError as e:
-            log.warning("skipping '{0}': {1}".format(fname,str(e)))
-def etc_flatcar_update_conf():
-    fname = f"{SPARK_BASE}/etc/flatcar/update.conf"
-    if not isfile(fname):
-        log.warning("skipping '{0}': it's not a regular file".format(fname))
-        return
-    buf = """{{ include "spark.etc.flatcar.update.conf" . }}"""
-    with open(fname,"w") as fp:
-        fp.write(buf.strip() + "\n")
-        fchmod(fp.fileno(),0o644)
-    log.info("'{0}' updated".format(fname))
-def main():
-    log.info("==== spark begin ====")
-    # https://docs.k3s.io/installation/packaged-components
-    # don't let spark.yaml run on k3s(etcd)
-    with open(SPARK_SKIP,"w") as fp:
-        fchmod(fp.fileno(),0o600)
-    log.info("empty '{0}' created".format(SPARK_SKIP))
-    etc_rancher_k3s_config_yaml()
-    etc_extensions()
-    etc_flatcar_update_conf()
-    log.info("---- spark end ----")
-    # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
-    # # Failed to connect to system scope bus via local transport: No data available
-    # chroot "${SPARK_BASE}" systemctl reboot
+class Spark(object):
+    def __init__(self):
+        self.__base = "/spark"
+        self.__yaml = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml".format(self.__base)
+        self.__skip = "{0}.skip".format(self.__yaml)
+    def __etc_rancher_k3s_config_yaml(self):
+        fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
+        buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
+        with open(fname,"w") as fp:
+            fp.write(buf.strip() + "\n")
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created".format(fname))
+    def __etc_extensions(self):
+        for entry in ["containerd","docker"]:
+            fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
+            try:
+                if not islink(fname):
+                    log.warning("skipping '{0}': it's not a symlink".format(fname))
+                    continue
+                log.info("(before) {0}: {1}".format(fname,readlink(fname)))
+                unlink(fname)
+                symlink("/dev/null",fname)
+                log.info(" (after) {0}: {1}".format(fname,readlink(fname)))
+            except FileNotFoundError as e:
+                log.warning("skipping '{0}': {1}".format(fname,str(e)))
+    def __etc_flatcar_update_conf(self):
+        fname = "{0}/etc/flatcar/update.conf".format(self.__base)
+        if not isfile(fname):
+            log.warning("skipping '{0}': it's not a regular file".format(fname))
+            return
+        buf = """{{ include "spark.etc.flatcar.update.conf" . }}"""
+        with open(fname,"w") as fp:
+            fp.write(buf.strip() + "\n")
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' updated".format(fname))
+    def run(self):
+        log.info("==== spark begin ====")
+        # https://docs.k3s.io/installation/packaged-components
+        # don't let spark.yaml run on k3s(etcd)
+        with open(self.__skip,"w") as fp:
+            fchmod(fp.fileno(),0o600)
+        log.info("empty '{0}' created".format(self.__skip))
+        self.__etc_rancher_k3s_config_yaml()
+        self.__etc_extensions()
+        self.__etc_flatcar_update_conf()
+        log.info("---- spark end ----")
+        # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+        # # Failed to connect to system scope bus via local transport: No data available
+        # chroot "${SPARK_BASE}" systemctl reboot
 if __name__ == "__main__":
-    main()
+    Spark().run()
 {{- end }}
