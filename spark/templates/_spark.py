@@ -73,7 +73,7 @@ class Spark(object):
         self.__k3s_config_yaml()
         self.__k3s_override_conf()
         self.__manifest_skip()
-        #self.__reboot()
+        self.__reboot()
         log.info("---- spark end ----")  # never reached
 if __name__ == "__main__":
     Spark().run()
