@@ -1,8 +1,8 @@
 {{- define "spark.py" -}}
 {{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
-from os import fchmod,readlink,symlink,unlink
-from os.path import islink,isfile
+from os import chmod,fchmod,readlink,symlink,unlink,mkdir
+from os.path import islink,isfile,isdir
 from sys import stderr
 from subprocess import call
 from logging import getLogger, basicConfig, INFO
@@ -18,6 +18,18 @@ class Spark(object):
         with open(fname,"w") as fp:
             fchmod(fp.fileno(),0o600)
         log.info("empty '{0}' created".format(fname))
+    def __k3s_override_conf(self):
+        dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
+        fname = "{0}/override.conf".format(dname)
+        buf = """{{ include "spark.k3s.override.conf" . }}"""
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)
+        with open(fname,"w") as fp:
+            fp.write(buf.strip() + "\n")
+            fchmod(fp.fileno(),0o644)
     def __etc_rancher_k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
         buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
@@ -56,6 +68,7 @@ class Spark(object):
     def run(self):
         log.info("==== spark begin ====")
         self.__manifest_skip()
+        self.__k3s_override_conf()
         self.__etc_rancher_k3s_config_yaml()
         self.__etc_extensions()
         self.__etc_flatcar_update_conf()
