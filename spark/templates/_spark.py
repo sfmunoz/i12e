@@ -10,8 +10,13 @@ log = getLogger(__name__)
 class Spark(object):
     def __init__(self):
         self.__base = "/spark"
-        self.__yaml = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml".format(self.__base)
-        self.__skip = "{0}.skip".format(self.__yaml)
+    def __manifest_skip(self):
+        # https://docs.k3s.io/installation/packaged-components
+        # don't let spark.yaml run on k3s(etcd)
+        fname = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip".format(self.__base)
+        with open(fname,"w") as fp:
+            fchmod(fp.fileno(),0o600)
+        log.info("empty '{0}' created".format(fname))
     def __etc_rancher_k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
         buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
@@ -44,11 +49,7 @@ class Spark(object):
         log.info("'{0}' updated".format(fname))
     def run(self):
         log.info("==== spark begin ====")
-        # https://docs.k3s.io/installation/packaged-components
-        # don't let spark.yaml run on k3s(etcd)
-        with open(self.__skip,"w") as fp:
-            fchmod(fp.fileno(),0o600)
-        log.info("empty '{0}' created".format(self.__skip))
+        self.__manifest_skip()
         self.__etc_rancher_k3s_config_yaml()
         self.__etc_extensions()
         self.__etc_flatcar_update_conf()
