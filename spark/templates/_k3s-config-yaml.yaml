@@ -1,4 +1,4 @@
-{{- define "spark.etc.rancher.k3s.config.yaml" -}}
+{{- define "spark.k3s.config.yaml" -}}
 {{- $position := 1 -}}
 {{- $k3s_cmd := "server" -}}
 {{- $k3s_token := "main-token" -}}

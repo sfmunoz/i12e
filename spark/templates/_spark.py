@@ -30,14 +30,14 @@ class Spark(object):
         with open(fname,"w") as fp:
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
-    def __etc_rancher_k3s_config_yaml(self):
+    def __k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
-        buf = """{{ include "spark.etc.rancher.k3s.config.yaml" . }}"""
+        buf = """{{ include "spark.k3s.config.yaml" . }}"""
         with open(fname,"w") as fp:
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created".format(fname))
-    def __etc_extensions(self):
+    def __flatcar_extensions(self):
         for entry in ["containerd","docker"]:
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
             try:
@@ -50,12 +50,12 @@ class Spark(object):
                 log.info(" (after) {0}: {1}".format(fname,readlink(fname)))
             except FileNotFoundError as e:
                 log.warning("skipping '{0}': {1}".format(fname,str(e)))
-    def __etc_flatcar_update_conf(self):
+    def __flatcar_update_conf(self):
         fname = "{0}/etc/flatcar/update.conf".format(self.__base)
         if not isfile(fname):
             log.warning("skipping '{0}': it's not a regular file".format(fname))
             return
-        buf = """{{ include "spark.etc.flatcar.update.conf" . }}"""
+        buf = """{{ include "spark.flatcar.update.conf" . }}"""
         with open(fname,"w") as fp:
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
@@ -69,9 +69,9 @@ class Spark(object):
         log.info("==== spark begin ====")
         self.__manifest_skip()
         self.__k3s_override_conf()
-        self.__etc_rancher_k3s_config_yaml()
-        self.__etc_extensions()
-        self.__etc_flatcar_update_conf()
+        self.__k3s_config_yaml()
+        self.__flatcar_extensions()
+        self.__flatcar_update_conf()
         self.__reboot()
         log.info("---- spark end ----")  # never reached
 if __name__ == "__main__":
