@@ -4,6 +4,7 @@
 from os import fchmod,readlink,symlink,unlink
 from os.path import islink,isfile
 from sys import stderr
+from subprocess import call
 from logging import getLogger, basicConfig, INFO
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
 log = getLogger(__name__)
@@ -47,16 +48,19 @@ class Spark(object):
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
+    def __reboot(self):
+        # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+        # # Failed to connect to system scope bus via local transport: No data available
+        # chroot "${SPARK_BASE}" systemctl reboot
+        call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
         log.info("==== spark begin ====")
         self.__manifest_skip()
         self.__etc_rancher_k3s_config_yaml()
         self.__etc_extensions()
         self.__etc_flatcar_update_conf()
-        log.info("---- spark end ----")
-        # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
-        # # Failed to connect to system scope bus via local transport: No data available
-        # chroot "${SPARK_BASE}" systemctl reboot
+        self.__reboot()
+        log.info("---- spark end ----")  # never reached
 if __name__ == "__main__":
     Spark().run()
 {{- end }}
