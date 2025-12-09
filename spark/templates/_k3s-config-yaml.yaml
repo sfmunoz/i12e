@@ -1,0 +1,33 @@
+{{- define "spark.k3s.config.yaml" -}}
+{{- $position := 1 -}}
+{{- $k3s_cmd := "server" -}}
+{{- $k3s_token := "main-token" -}}
+{{- $k3s_agent_token := "agent-token" -}}
+{{- $tls_san := "192.168.56.50" -}}
+{{- $k3s_url := $tls_san | printf "https://%s:6443" -}}
+{{- $flannel_iface := "enp0s8" -}}
+{{- $node_ip := "192.168.56.51" -}}
+# https://docs.k3s.io/installation/configuration
+{{- if eq $k3s_cmd "server" }}
+token: {{ $k3s_token | quote }}
+agent-token: {{ $k3s_agent_token | quote }}
+secrets-encryption: true
+secrets-encryption-provider: secretbox
+{{- if $tls_san }}
+tls-san: {{ $tls_san | quote }}
+{{- end }}
+flannel-backend: "wireguard-native"
+{{- else }}
+token: {{ $k3s_agent_token | quote }}
+{{- end }}
+{{- if eq $position 1 }}
+cluster-init: true
+{{- else }}
+server: {{ $k3s_url | quote }}
+{{- end }}
+node-ip: {{ $node_ip | quote }}
+{{- if $flannel_iface }}
+flannel-iface: {{ $flannel_iface | quote }}
+{{- end }}
+# end-of-file
+{{- end }}
