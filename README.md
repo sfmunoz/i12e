@@ -15,7 +15,7 @@
 
 ## Architecture
 
-**Notice**: be aware that this is an over-simplified architectured. Details will be provided as they are defined
+**Notice**: be aware that this is an over-simplified architecture. Details will be provided as they are defined
 
 ```mermaid
 flowchart LR
