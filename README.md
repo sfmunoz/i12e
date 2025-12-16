@@ -26,6 +26,7 @@ flowchart LR
     ke3["K3S etcd<br/>server-3"]
     ke4["K3S etcd<br/>agent-1"]
     ke5["K3S etcd<br/>agent-2"]
+    dns{{"DNS server"}} 
     fs[("fileserver<br/>s3, gcs, ...")] 
     d{"Deploy"}
     u -->|"kubectl<br/>helm<br/>..."| d
@@ -36,6 +37,7 @@ flowchart LR
     ke1 -.->|cloud API<br/>+<br/>ignition| ke3
     ke1 -.->|cloud API<br/>+<br/>ignition| ke4
     ke1 -.->|cloud API<br/>+<br/>ignition| ke5
+    ke1 -.->|"tls-san IP update<br/>(load balancer free)"| dns
     ks -.-|"restore<br/>(rclone)"| fs -.-|"backup<br/>(rclone)"| ke1
 ```
 
