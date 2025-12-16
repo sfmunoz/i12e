@@ -2,6 +2,7 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
+- [Guidelines](#guidelines)
 - [Architecture](#architecture)
 - [Requirements](#requirements)
   - [helm](#helm)
@@ -12,6 +13,20 @@
 - Modules (not in this page)
   - [os](os/README.md)
   - [dhcpd](dhcpd/README.md)
+
+## Guidelines
+
+Simple outline:
+
+- Cluster API inspired but...
+  - Opinionated
+  - Smaller
+  - Flatcar OS
+  - k3s for k8s
+- Volatile: always pulls recent data from stable storage
+- rclone is the tool to push-to/pull-from storage
+- Nomad: easily move from one cloud provider to another
+- backup-centric: it's the pillar of the system
 
 ## Architecture
 
