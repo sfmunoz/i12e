@@ -2,6 +2,7 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
+- [Architecture](#architecture)
 - [Requirements](#requirements)
   - [helm](#helm)
   - [age](#age)
@@ -11,6 +12,28 @@
 - Modules (not in this page)
   - [os](os/README.md)
   - [dhcpd](dhcpd/README.md)
+
+## Architecture
+
+```mermaid
+flowchart LR
+    u(["User"])
+    ks["K3S<br/>SQLite3"]
+    ke1["K3S etcd<br/>master<br/>server-1"]
+    ke2["K3S etcd<br/>server-2"]
+    ke3["K3S etcd<br/>server-3"]
+    ke4["K3S etcd<br/>agent-1"]
+    ke5["K3S etcd<br/>agent-2"]
+    d{"Deploy"}
+    u -->|"helm"| d
+    d -->|"spark<br/>+<br/>restore"| ks
+    ks -->|"ignition<br/>+<br/>reboot"| ke1
+    d -->|"os<br/>deploy"| ke1
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke2
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke3
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke4
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke5
+```
 
 ## Requirements
 
