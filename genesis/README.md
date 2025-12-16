@@ -19,7 +19,7 @@ helm upgrade --install -n genesis --create-namespace genesis genesis
 
 ## Uninstall
 
-[https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted
+[https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted by Helm
 
 ```
 helm uninstall -n genesis genesis
