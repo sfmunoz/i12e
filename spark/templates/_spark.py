@@ -1,11 +1,12 @@
 {{- define "spark.py" -}}
 {{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
-from os import chmod,fchmod,readlink,symlink,unlink,mkdir
+from os import chmod,fchmod,readlink,symlink,unlink,mkdir,getenv
 from os.path import islink,isfile,isdir
 from sys import stderr
 from subprocess import call
 from logging import getLogger, basicConfig, INFO
+from time import sleep
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
 log = getLogger(__name__)
 class Spark(object):
@@ -67,6 +68,10 @@ class Spark(object):
         # chroot "${SPARK_BASE}" systemctl reboot
         call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
+        if getenv("SPARK_RUN") != "1":
+            log.warning("spark disabled: sleeping forever...")
+            while True:
+                sleep(3600)
         log.info("==== spark begin ====")
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
