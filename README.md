@@ -15,6 +15,8 @@
 
 ## Architecture
 
+**Notice**: be aware that this is an over-simplified architectured. Details will be provided as they are defined
+
 ```mermaid
 flowchart LR
     u(["User"])
@@ -36,6 +38,18 @@ flowchart LR
     ke1 -.->|cloud API<br/>+<br/>ignition| ke5
     ks -.-|"restore<br/>(rclone)"| fs -.-|"backup<br/>(rclone)"| ke1
 ```
+
+Details:
+
+- User can start 2 procedures
+  - **(1)** os-deploy to generate k3s-etcd master node
+  - **(2)** spark-deploy to generate k3s-sqlite3 node
+    - this now will become k3s-etcd using rclone-saved data and self-ignition + reboot
+- k3s etcd server node (anyone, but just one)
+  - can generate/delete other server nodes
+  - can generate/delete other agent nodes
+  - must perform regular backups
+  - must update tls-san DNS register
 
 ## Requirements
 
