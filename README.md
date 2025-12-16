@@ -24,8 +24,9 @@ flowchart LR
     ke3["K3S etcd<br/>server-3"]
     ke4["K3S etcd<br/>agent-1"]
     ke5["K3S etcd<br/>agent-2"]
+    fs[("fileserver<br/>s3, gcs, ...")] 
     d{"Deploy"}
-    u -->|"helm"| d
+    u -->|"kubectl<br/>helm<br/>..."| d
     d -->|"spark<br/>+<br/>restore"| ks
     ks -->|"ignition<br/>+<br/>reboot"| ke1
     d -->|"os<br/>deploy"| ke1
@@ -33,6 +34,7 @@ flowchart LR
     ke1 -.->|cloud API<br/>+<br/>ignition| ke3
     ke1 -.->|cloud API<br/>+<br/>ignition| ke4
     ke1 -.->|cloud API<br/>+<br/>ignition| ke5
+    ks -.-|"restore<br/>(rclone)"| fs -.-|"backup<br/>(rclone)"| ke1
 ```
 
 ## Requirements
