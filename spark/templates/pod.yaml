@@ -3,6 +3,7 @@ kind: Pod
 metadata:
   name: spark
 spec:
+  hostPID: true
   restartPolicy: Never
   containers:
   - name: spark
