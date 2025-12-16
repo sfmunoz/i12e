@@ -1,0 +1,11 @@
+# Install:
+#   $ helm upgrade --install -n genesis --create-namespace genesis genesis
+# Uninstall:
+#   $ helm uninstall -n genesis genesis
+#   $ kubectl delete namespaces genesis
+apiVersion: v2
+name: genesis
+description: Genesis chart
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
