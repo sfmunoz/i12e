@@ -2,6 +2,8 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
+- [Guidelines](#guidelines)
+- [Architecture](#architecture)
 - [Requirements](#requirements)
   - [helm](#helm)
   - [age](#age)
@@ -11,6 +13,60 @@
 - Modules (not in this page)
   - [os](os/README.md)
   - [dhcpd](dhcpd/README.md)
+
+## Guidelines
+
+Simple outline:
+
+- Cluster API inspired but...
+  - Opinionated
+  - Smaller
+  - Flatcar OS
+  - k3s for k8s
+- Volatile: always pulls recent data from stable storage
+- rclone is the tool to push-to/pull-from storage
+- Nomad: easily move from one cloud provider to another
+- backup-centric: it's the pillar of the system
+
+## Architecture
+
+**Notice**: be aware that this is an over-simplified architecture. Details will be provided as they are defined
+
+```mermaid
+flowchart LR
+    u(["User"])
+    ks["K3S<br/>SQLite3"]
+    ke1["K3S etcd<br/>master<br/>server-1"]
+    ke2["K3S etcd<br/>server-2"]
+    ke3["K3S etcd<br/>server-3"]
+    ke4["K3S etcd<br/>agent-1"]
+    ke5["K3S etcd<br/>agent-2"]
+    dns{{"DNS server"}} 
+    fs[("fileserver<br/>s3, gcs, ...")] 
+    d{"Deploy"}
+    u -->|"kubectl<br/>helm<br/>..."| d
+    d -->|"spark<br/>+<br/>restore"| ks
+    ks -->|"ignition<br/>+<br/>reboot"| ke1
+    d -->|"os<br/>deploy"| ke1
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke2
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke3
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke4
+    ke1 -.->|cloud API<br/>+<br/>ignition| ke5
+    ke1 -.->|"tls-san IP update<br/>(load balancer free)"| dns
+    ks -.-|"restore<br/>(rclone)"| fs -.-|"backup<br/>(rclone)"| ke1
+```
+
+Details:
+
+- User can start 2 procedures
+  - **(1)** os-deploy to generate k3s-etcd master node
+  - **(2)** spark-deploy to generate k3s-sqlite3 node
+    - this now will become k3s-etcd using rclone-saved data and self-ignition + reboot
+- k3s etcd server node (anyone, but just one)
+  - can generate/delete other server nodes
+  - can generate/delete other agent nodes
+  - must perform regular backups
+  - must update tls-san DNS register
 
 ## Requirements
 
