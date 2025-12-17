@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "genesis.fullname" . }}
+  labels:
+    {{- include "genesis.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "genesis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "genesis.labels" . | nindent 8 }}
+    spec:
+      hostPID: true
+      containers:
+      - name: {{ .Chart.Name }}
+        image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
+        imagePullPolicy: IfNotPresent
+        command: ["python3","-u","/app/genesis.py"]
+        volumeMounts:
+        - mountPath: /genesis
+          name: vol-host
+          readOnly: false
+        - mountPath: /app
+          name: app-vol
+      volumes:
+      - name: vol-host
+        hostPath:
+          path: /
+          type: Directory
+      - name: app-vol
+        configMap:
+          name: genesis
+          items:
+          - key: genesis-py
+            path: genesis.py
