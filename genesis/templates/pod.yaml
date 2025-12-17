@@ -1,20 +1,20 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: spark
+  name: genesis
 spec:
   hostPID: true
   restartPolicy: Never
   containers:
-  - name: spark
+  - name: genesis
     image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
     imagePullPolicy: IfNotPresent
     command: ["python3","-u","-c"]
     args:
     - |
-      {{- include "spark.py" . | nindent 6 }}
+      {{- include "genesis.py" . | nindent 6 }}
     volumeMounts:
-    - mountPath: /spark
+    - mountPath: /genesis
       name: vol-host
       readOnly: false
   volumes:
