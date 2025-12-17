@@ -19,6 +19,10 @@ spec:
       - name: {{ .Chart.Name }}
         image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
         imagePullPolicy: IfNotPresent
+        env:
+        # enforce code changes -> container restarted (devel environment)
+        - name: CODE_SHA256SUM
+          value: {{ include "genesis.py" . | sha256sum }}
         command: ["python3","-u","/app/genesis.py"]
         volumeMounts:
         - mountPath: /genesis
