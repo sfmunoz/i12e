@@ -82,4 +82,4 @@ class Genesis(object):
         log.info("---- genesis end ----")  # never reached
 if __name__ == "__main__":
     Genesis().run()
-{{- end }}
+{{ end }}
