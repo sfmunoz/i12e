@@ -17,7 +17,7 @@ spec:
         {{- include "genesis.labels" . | nindent 8 }}
     spec:
       hostPID: true
-      serviceAccountName: genesis
+      serviceAccountName: genesis-account
       containers:
       - name: {{ .Chart.Name }}
         image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
