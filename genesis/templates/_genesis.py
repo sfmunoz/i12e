@@ -83,7 +83,7 @@ class Genesis(object):
         call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
         log.info("kopf.run()")
-        kopf.run(namespace="{{ .Release.Namespace }}")
+        kopf.run(namespace="{{ .Release.Namespace }}",peering_name="default")  # peering_name=default -> the name of the YAML object
         if getenv("GENESIS_RUN") != "1":
             log.warning("genesis disabled: sleeping forever...")
             while True:
