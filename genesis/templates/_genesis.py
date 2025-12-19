@@ -8,7 +8,7 @@ from subprocess import call
 from logging import getLogger, basicConfig, INFO
 from time import sleep
 import kopf
-@kopf.timer('kopfexamples', interval=1.0)
+@kopf.timer('gdeployments', interval=1.0)
 def loop(spec, **kwargs):
     log.info("loop()")
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
@@ -72,8 +72,8 @@ class Genesis(object):
         # chroot "${GENESIS_BASE}" systemctl reboot
         call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
-        #log.info("kopf.run()")
-        #kopf.run(standalone=True)
+        log.info("kopf.run()")
+        kopf.run(standalone=True)
         if getenv("GENESIS_RUN") != "1":
             log.warning("genesis disabled: sleeping forever...")
             while True:
