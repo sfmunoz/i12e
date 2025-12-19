@@ -1,14 +1,14 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: gmachines.sfmunoz.com
+  name: gdeployments.sfmunoz.com
 spec:
   group: sfmunoz.com
   scope: Namespaced
   names:
-    plural: gmachines
-    singular: gmachine
-    kind: Gmachine
+    plural: gdeployments
+    singular: gdeployment
+    kind: Gdeployment
     shortNames:
       - gm
   versions:
@@ -22,24 +22,24 @@ spec:
           spec:
             type: object
             properties:
-              count:
+              machines:
                 type: integer
                 minimum: 1
               provider:
                 type: string
                 enum: ["ssh","vultr"]
-            required: ["count","provider"]
+            required: ["machines","provider"]
           status:
             type: object
             properties:
               phase:
                 type: string
     selectableFields:
-    - jsonPath: .spec.count
+    - jsonPath: .spec.machines
     - jsonPath: .spec.provider
     additionalPrinterColumns:
-    - jsonPath: .spec.count
-      name: count
+    - jsonPath: .spec.machines
+      name: Machines
       type: integer
     - jsonPath: .spec.provider
       name: Provider

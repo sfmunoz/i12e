@@ -1,7 +1,7 @@
 apiVersion: sfmunoz.com/v1alpha1
-kind: Gmachine
+kind: Gdeployment
 metadata:
-  name: gmachine
+  name: gdeployment
 spec:
-  count: 1
+  machines: 1
   provider: ssh
