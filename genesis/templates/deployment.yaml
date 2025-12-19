@@ -18,7 +18,7 @@ spec:
     spec:
       hostPID: true
       serviceAccountName: genesis-account
-      terminationGracePeriodSeconds: 0
+      terminationGracePeriodSeconds: 10
       containers:
       - name: {{ .Chart.Name }}
         image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
