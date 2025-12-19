@@ -26,4 +26,5 @@ helm uninstall -n genesis genesis
 kubectl delete namespaces genesis
 kubectl delete crd kopfpeerings.kopf.dev
 kubectl delete crd clusterkopfpeerings.kopf.dev
+kubectl delete crd gdeployments.sfmunoz.com
 ```
