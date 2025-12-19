@@ -1,0 +1,7 @@
+apiVersion: sfmunoz.com/v1alpha1
+kind: Gmachine
+metadata:
+  name: gmachine
+spec:
+  count: 1
+  provider: ssh
