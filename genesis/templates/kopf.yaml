@@ -1,0 +1,11 @@
+# Orig: https://raw.githubusercontent.com/nolar/kopf/main/peering.yaml
+
+apiVersion: kopf.dev/v1
+kind: ClusterKopfPeering
+metadata:
+  name: {{ .Values.peering_name | quote }}
+---
+apiVersion: kopf.dev/v1
+kind: KopfPeering
+metadata:
+  name: {{ .Values.peering_name | quote }}

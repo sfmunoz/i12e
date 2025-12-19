@@ -1,16 +1,40 @@
-{{- define "spark.py" -}}
+{{- define "genesis.py" -}}
 {{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
-from os import chmod,fchmod,readlink,symlink,unlink,mkdir
+from os import chmod,fchmod,readlink,symlink,unlink,mkdir,getenv
 from os.path import islink,isfile,isdir
 from sys import stderr
 from subprocess import call
 from logging import getLogger, basicConfig, INFO
+from time import sleep
+import kopf
+from kubernetes import client, config
+@kopf.on.create('gdeployments')
+def on_create(*args,**kwargs):
+    log.info("on_create(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.on.update('gdeployments')
+def on_update(*args,**kwargs):
+    log.info("on_update(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.on.delete('gdeployments')
+def on_delete(*args,**kwargs):
+    log.info("on_delete(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.timer('gdeployments', interval=5.0)
+def loop(spec, **kwargs):
+    log.info("loop()")
+    #config.load_kube_config()
+    config.load_incluster_config()
+    api = client.CoreV1Api()
+    try:
+        pods = api.list_namespaced_pod("{{ .Release.Namespace }}")
+        for i,pod in enumerate(pods.items):
+            log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
+    except Exception as e:
+        log.error("error: " + str(e))
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
 log = getLogger(__name__)
-class Spark(object):
+class Genesis(object):
     def __init__(self):
-        self.__base = "/spark"
+        self.__base = "/genesis"
     def __flatcar_extensions(self):
         for entry in ["containerd","docker"]:
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
@@ -29,14 +53,14 @@ class Spark(object):
         if not isfile(fname):
             log.warning("skipping '{0}': it's not a regular file".format(fname))
             return
-        buf = """{{ include "spark.flatcar.update.conf" . }}"""
+        buf = """{{ include "genesis.flatcar.update.conf" . }}"""
         with open(fname,"w") as fp:
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
     def __k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
-        buf = """{{ include "spark.k3s.config.yaml" . }}"""
+        buf = """{{ include "genesis.k3s.config.yaml" . }}"""
         with open(fname,"w") as fp:
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o600)
@@ -44,7 +68,7 @@ class Spark(object):
     def __k3s_override_conf(self):
         dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
         fname = "{0}/override.conf".format(dname)
-        buf = """{{ include "spark.k3s.override.conf" . }}"""
+        buf = """{{ include "genesis.k3s.override.conf" . }}"""
         if not isdir(dname):
             mkdir(dname)
         if not isdir(dname):
@@ -56,25 +80,31 @@ class Spark(object):
         log.info("'{0}' created".format(fname))
     def __manifest_skip(self):
         # https://docs.k3s.io/installation/packaged-components
-        # don't let spark.yaml run on k3s(etcd)
-        fname = "{0}/var/lib/rancher/k3s/server/manifests/spark.yaml.skip".format(self.__base)
+        # don't let genesis.yaml run on k3s(etcd)
+        fname = "{0}/var/lib/rancher/k3s/server/manifests/genesis.yaml.skip".format(self.__base)
         with open(fname,"w") as fp:
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created".format(fname))
     def __reboot(self):
-        # #chroot /spark systemd-run bash -c 'sleep 1 ; systemctl reboot'
+        # #chroot /genesis systemd-run bash -c 'sleep 1 ; systemctl reboot'
         # # Failed to connect to system scope bus via local transport: No data available
-        # chroot "${SPARK_BASE}" systemctl reboot
+        # chroot "${GENESIS_BASE}" systemctl reboot
         call(["chroot",self.__base,"systemctl","reboot"])
     def run(self):
-        log.info("==== spark begin ====")
+        log.info("kopf.run()")
+        kopf.run(namespace="{{ .Release.Namespace }}",peering_name="{{ .Values.peering_name }}")
+        if getenv("GENESIS_RUN") != "1":
+            log.warning("genesis disabled: sleeping forever...")
+            while True:
+                sleep(3600)
+        log.info("==== genesis begin ====")
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
         self.__k3s_config_yaml()
         self.__k3s_override_conf()
         self.__manifest_skip()
         self.__reboot()
-        log.info("---- spark end ----")  # never reached
+        log.info("---- genesis end ----")  # never reached
 if __name__ == "__main__":
-    Spark().run()
-{{- end }}
+    Genesis().run()
+{{ end }}

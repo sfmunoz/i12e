@@ -1,0 +1,7 @@
+apiVersion: sfmunoz.com/v1alpha1
+kind: Gdeployment
+metadata:
+  name: gdeployment
+spec:
+  machines: 1
+  provider: ssh

@@ -9,6 +9,7 @@
 variant: flatcar
 version: 1.0.0
 
+{{- if not ( $e.raw_mode | default true ) }}
 {{- if or (eq $e.k3s "single") (eq $e.k3s "etcd") }}
 systemd:
   units:
@@ -30,6 +31,7 @@ storage:
         {{- include "os.storage.files.prometheus.yaml" (dict "e" $e "namespace" "mon") | nindent 4 }}
       {{- end }}
     {{- end }}
+{{- end }}
 
 passwd:
   users:

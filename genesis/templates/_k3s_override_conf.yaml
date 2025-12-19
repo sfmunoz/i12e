@@ -1,4 +1,4 @@
-{{- define "spark.k3s.override.conf" -}}
+{{- define "genesis.k3s.override.conf" -}}
 [Service]
 ExecStartPre=-/usr/bin/sh -c 'rm -f /var/lib/rancher/k3s/server/db/state.db*'
 ExecStart=
