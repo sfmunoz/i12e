@@ -8,9 +8,19 @@ from subprocess import call
 from logging import getLogger, basicConfig, INFO
 from time import sleep
 import kopf
+from kubernetes import client, config
 @kopf.timer('gdeployments', interval=1.0)
 def loop(spec, **kwargs):
     log.info("loop()")
+    #config.load_kube_config()
+    config.load_incluster_config()
+    api = client.CoreV1Api()
+    try:
+        pods = api.list_namespaced_pod("{{ .Release.Namespace }}")
+        for i,pod in enumerate(pods.items):
+            log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
+    except Exception as e:
+        log.error("error: " + str(e))
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s',level=INFO,stream=stderr)
 log = getLogger(__name__)
 class Genesis(object):
