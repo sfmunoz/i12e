@@ -9,7 +9,16 @@ from logging import getLogger, basicConfig, INFO
 from time import sleep
 import kopf
 from kubernetes import client, config
-@kopf.timer('gdeployments', interval=1.0)
+@kopf.on.create('gdeployments')
+def on_create(*args,**kwargs):
+    log.info("on_create(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.on.update('gdeployments')
+def on_update(*args,**kwargs):
+    log.info("on_update(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.on.delete('gdeployments')
+def on_delete(*args,**kwargs):
+    log.info("on_delete(): args=" + str(args) + " kwargs=" + str(kwargs))
+@kopf.timer('gdeployments', interval=5.0)
 def loop(spec, **kwargs):
     log.info("loop()")
     #config.load_kube_config()
