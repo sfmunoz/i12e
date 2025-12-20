@@ -1,4 +1,4 @@
-{{- define "genesis.py" -}}
+{{- define "__main__.py" -}}
 {{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
 from os import chmod,fchmod,readlink,symlink,unlink,mkdir,getenv

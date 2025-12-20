@@ -5,4 +5,4 @@ metadata:
 data:
   init-py: ""
   main-py: |
-    {{- include "genesis.py" . | nindent 4 }}
+    {{- include "__main__.py" . | nindent 4 }}

@@ -28,7 +28,7 @@ spec:
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
-          value: {{ include "genesis.py" . | sha256sum }}
+          value: {{ include "__main__.py" . | sha256sum }}
         command: ["python3","-u","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
