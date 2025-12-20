@@ -14,7 +14,7 @@ Default (I12E_ENV=dev and I12_DEBUG=0):
 ```
 $ ./os/build.sh
 + helm template dev . -f secrets://secrets.yaml
-+ docker run --rm -i quay.io/coreos/butane:latest
++ docker run --rm -i quay.io/coreos/butane:v0.25.1
 + ls -l os.json
 -rw------- 1 sfm sfm 1105 Nov 22 07:28 os.json
 ```
@@ -22,7 +22,7 @@ $ ./os/build.sh
 ```
 $ I12E_ENV=prod ./os/build.sh
 + helm template prod . -f secrets://secrets.yaml
-+ docker run --rm -i quay.io/coreos/butane:latest
++ docker run --rm -i quay.io/coreos/butane:v0.25.1
 + ls -l os.json
 -rw------- 1 sfm sfm 1106 Nov 22 07:28 os.json
 ```
