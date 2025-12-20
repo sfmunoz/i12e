@@ -18,7 +18,7 @@ spec:
     spec:
       hostPID: true
       serviceAccountName: genesis-account
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 5
       containers:
       - name: {{ .Chart.Name }}
         image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
@@ -30,7 +30,7 @@ spec:
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
-          value: "{{ cat ( include "__init__.py" . ) ( include "__main__.py" . ) | sha256sum }}"
+          value: "{{ cat ( include "__init__.py" . ) ( include "__main__.py" . ) ( include "install.py" . ) | sha256sum }}"
         command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
@@ -51,3 +51,5 @@ spec:
             path: genesis/__init__.py
           - key: main-py
             path: genesis/__main__.py
+          - key: install-py
+            path: genesis/install.py

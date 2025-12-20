@@ -7,3 +7,5 @@ data:
     {{- include "__init__.py" . | nindent 4 }}
   main-py: |
     {{- include "__main__.py" . | nindent 4 }}
+  install-py: |
+    {{- include "install.py" . | nindent 4 }}
