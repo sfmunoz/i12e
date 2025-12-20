@@ -3,5 +3,6 @@ kind: ConfigMap
 metadata:
   name: genesis
 data:
-  genesis-py: |
+  init-py: ""
+  main-py: |
     {{- include "genesis.py" . | nindent 4 }}

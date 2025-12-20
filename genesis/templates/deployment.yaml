@@ -25,9 +25,11 @@ spec:
         imagePullPolicy: IfNotPresent
         env:
         # enforce code changes -> container restarted (devel environment)
+        - name: PYTHONPATH
+          value: /app
         - name: CODE_SHA256SUM
           value: {{ include "genesis.py" . | sha256sum }}
-        command: ["python3","-u","/app/genesis.py"]
+        command: ["python3","-u","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
           name: vol-host
@@ -43,5 +45,7 @@ spec:
         configMap:
           name: genesis
           items:
-          - key: genesis-py
-            path: genesis.py
+          - key: init-py
+            path: genesis/__init__.py
+          - key: main-py
+            path: genesis/__main__.py
