@@ -24,12 +24,14 @@ spec:
         image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
         imagePullPolicy: IfNotPresent
         env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
         # enforce code changes -> container restarted (devel environment)
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
           value: {{ include "__main__.py" . | sha256sum }}
-        command: ["python3","-u","-m","genesis"]
+        command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
           name: vol-host
