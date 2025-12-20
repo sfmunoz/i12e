@@ -40,7 +40,10 @@ class GenesisInstall(object):
         with open(fname,"w") as fp:
             fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
-        call(["chroot",self.__base,"systemctl","restart","update-engine"])
+        cmd = ["chroot",self.__base,"systemctl","restart","update-engine"]
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
         log.info("'{0}' updated and update-engine restarted".format(fname))
 
     def __k3s_config_yaml(self):
