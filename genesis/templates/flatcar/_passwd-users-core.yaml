@@ -1,0 +1,8 @@
+{{- define "genesis.flatcar.passwd.users" -}}
+passwd:
+  users:
+  - name: core
+    ssh_authorized_keys:
+    - "{{ required "ssh_authorized_key missing" .ssh_authorized_key }}"
+{{- end }}
+
