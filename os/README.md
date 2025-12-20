@@ -6,6 +6,7 @@
   - [I12E_ENV](#i12e_env)
   - [I12E_DEBUG](#i12e_debug)
   - [I12E_DIST](#i12e_dist)
+  - [I12E_KEEP_IMAGES](#i12e_keep_images)
 
 ## Usage
 
@@ -52,3 +53,5 @@ $ I12E_DIST=1 ./os/build.sh
 ```
 $ I12E_DIST="192.168.56.51:192.168.56.54" ./os/build.sh
 ```
+### I12E_KEEP_IMAGES
+Use `I12E_KEEP_IMAGES=1` if you want to preserve **/var/lib/rancher/k3s/agent/containerd** folder
