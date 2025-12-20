@@ -21,7 +21,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: {{ .Chart.Name }}
-        image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
+        image: ghcr.io/sfmunoz/k8s-bulk:v1.5.0
         imagePullPolicy: IfNotPresent
         env:
         - name: PYTHONUNBUFFERED
