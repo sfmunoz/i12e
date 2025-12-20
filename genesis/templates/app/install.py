@@ -108,7 +108,7 @@ version: 1.0.0
             fp.write(config_ign_new)
         cmds = [
             ["chroot",self.__base,"flatcar-reset","--keep-machine-id","--keep-paths","/etc/ssh/ssh_host_.*","/var/log","-F","/root/config.ign"],
-            ["chroot",self.__base,"systemd-run","bash","-c","sleep 1 ; systemctl reboot"],
+            #["chroot",self.__base,"systemd-run","bash","-c","sleep 1 ; systemctl reboot"],
         ]
         for cmd in cmds:
             ret = call(cmd)
