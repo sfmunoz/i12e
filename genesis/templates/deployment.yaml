@@ -38,6 +38,8 @@ spec:
           readOnly: false
         - mountPath: /app
           name: app-vol
+        - mountPath: /sec
+          name: secret-vol
       volumes:
       - name: vol-host
         hostPath:
@@ -53,3 +55,6 @@ spec:
             path: genesis/__main__.py
           - key: install-py
             path: genesis/install.py
+      - name: secret-vol
+        secret:
+          secretName: genesis

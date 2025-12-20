@@ -83,10 +83,17 @@ class GenesisInstall(object):
         call(["chroot",self.__base,"systemctl","reboot"])
 
     def __butane(self):
+        fname = "/sec/ssh_authorized_key"
+        with open(fname,"r") as fp:
+            ssh_authorized_key = fp.read()
         buf_yaml = """variant: flatcar
 version: 1.0.0
-{{ include "genesis.flatcar.passwd.users" ( dict "ssh_authorized_key" (first .Values.env.dev.ssh_authorized_keys) ) }}
-"""
+passwd:
+  users:
+  - name: core
+    ssh_authorized_keys:
+    - "{0}"
+""".format(ssh_authorized_key)
         _data = yaml.safe_load(buf_yaml)  # check it is valid
         cmd = ['butane']
         p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
