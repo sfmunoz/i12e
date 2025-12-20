@@ -9,8 +9,8 @@ from .install import GenesisInstall
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=stderr)
 log = getLogger(__name__)
 @kopf.timer('gdeployments', interval=5.0)
-def loop(spec, **kwargs):
-    log.info("loop()")
+def on_timer(spec, **kwargs):
+    log.info("on_timer()")
     #config.load_kube_config()
     config.load_incluster_config()
     api = client.CoreV1Api()
