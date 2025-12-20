@@ -31,11 +31,17 @@ class GenesisInstall(object):
         if not isfile(fname):
             log.warning("skipping '{0}': it's not a regular file".format(fname))
             return
-        buf = """{{ include "genesis.flatcar.update.conf" . }}"""
+        with open(fname,"r") as fp:
+            buf_old = fp.read()
+        buf_new = """{{ include "genesis.flatcar.update.conf" . }}"""
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up-to-date".format(fname))
+            return
         with open(fname,"w") as fp:
-            fp.write(buf.strip() + "\n")
+            fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
-        log.info("'{0}' updated".format(fname))
+        call(["chroot",self.__base,"systemctl","restart","update-engine"])
+        log.info("'{0}' updated and update-engine restarted".format(fname))
 
     def __k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
@@ -74,15 +80,12 @@ class GenesisInstall(object):
         call(["chroot",self.__base,"systemctl","reboot"])
 
     def run(self):
-        if getenv("GENESIS_INSTALL") != "1":
-            log.warning("genesis install disabled")
-            return
         log.info("==== genesis install begin ====")
-        self.__flatcar_extensions()
+        #self.__flatcar_extensions()
         self.__flatcar_update_conf()
-        self.__k3s_config_yaml()
-        self.__k3s_override_conf()
-        self.__manifest_skip()
-        self.__reboot()
+        #self.__k3s_config_yaml()
+        #self.__k3s_override_conf()
+        #self.__manifest_skip()
+        #self.__reboot()
         log.info("---- genesis install end ----")  # never reached
 {{ end }}
