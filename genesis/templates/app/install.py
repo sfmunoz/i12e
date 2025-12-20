@@ -5,10 +5,13 @@ from os import chmod,fchmod,readlink,symlink,unlink,mkdir,getenv
 from os.path import islink,isfile,isdir
 from subprocess import call
 from logging import getLogger
+
 log = getLogger(__name__)
+
 class GenesisInstall(object):
     def __init__(self):
         self.__base = "/genesis"
+
     def __flatcar_extensions(self):
         for entry in ["containerd","docker"]:
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
@@ -22,6 +25,7 @@ class GenesisInstall(object):
                 log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
             except FileNotFoundError as e:
                 log.warning("skipping '{0}': {1}".format(fname,str(e)))
+
     def __flatcar_update_conf(self):
         fname = "{0}/etc/flatcar/update.conf".format(self.__base)
         if not isfile(fname):
@@ -32,6 +36,7 @@ class GenesisInstall(object):
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
+
     def __k3s_config_yaml(self):
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
         buf = """{{ include "genesis.k3s.config.yaml" . }}"""
@@ -39,6 +44,7 @@ class GenesisInstall(object):
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created".format(fname))
+
     def __k3s_override_conf(self):
         dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
         fname = "{0}/override.conf".format(dname)
@@ -52,6 +58,7 @@ class GenesisInstall(object):
             fp.write(buf.strip() + "\n")
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' created".format(fname))
+
     def __manifest_skip(self):
         # https://docs.k3s.io/installation/packaged-components
         # don't let genesis.yaml run on k3s(etcd)
@@ -59,11 +66,13 @@ class GenesisInstall(object):
         with open(fname,"w") as fp:
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created".format(fname))
+
     def __reboot(self):
         # #chroot /genesis systemd-run bash -c 'sleep 1 ; systemctl reboot'
         # # Failed to connect to system scope bus via local transport: No data available
         # chroot "${GENESIS_BASE}" systemctl reboot
         call(["chroot",self.__base,"systemctl","reboot"])
+
     def run(self):
         if getenv("GENESIS_INSTALL") != "1":
             log.warning("genesis install disabled")
