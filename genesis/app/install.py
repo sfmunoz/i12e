@@ -151,6 +151,30 @@ class GenesisInstall(object):
         log.info("'{0}' created/update".format(fname))
         # TODO: trigger daemon-reload of host-restart
 
+    def __etc_crictl_yaml_buf(self):
+        lines = [
+            "runtime-endpoint: unix:///run/k3s/containerd/containerd.sock",
+            "image-endpoint: unix:///run/k3s/containerd/containerd.sock",
+            "timeout: 10",
+            "#debug: true",
+        ]
+        return "\n".join(lines) + "\n"
+
+    def __etc_crictl_yaml(self):
+        buf_new = self.__etc_crictl_yaml_buf()
+        fname = "{0}/etc/crictl.yaml".format(self.__base)
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created/updated".format(fname))
+
     # def __manifest_skip(self):
     #     # https://docs.k3s.io/installation/packaged-components
     #     # don't let genesis.yaml run on k3s(etcd)
@@ -225,6 +249,7 @@ class GenesisInstall(object):
         self.__restart_update_engine()
         self.__k3s_config_yaml()
         self.__k3s_override_conf()
+        self.__etc_crictl_yaml()
         #self.__butane()
         self.__reboot()
         log.info("---- genesis install end ----")
