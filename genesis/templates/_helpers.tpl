@@ -60,3 +60,16 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{- define "genesis.code_sha256sum" -}}
+{{-
+cat
+  ( .Files.Get "app/__init__.py" )
+  ( .Files.Get "app/__main__.py" )
+  ( .Files.Get "app/butane.py" )
+  ( .Files.Get "app/install.py" )
+  ( .Files.Get "app/templates/flatcar.yaml" )
+  ( include "genesis.flatcar.update.conf" . )
+  | sha256sum
+-}}
+{{- end -}}

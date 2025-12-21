@@ -1,13 +1,3 @@
-{{-
-$code_sha256sum := cat
-  ( .Files.Get "app/__init__.py" )
-  ( .Files.Get "app/__main__.py" )
-  ( .Files.Get "app/butane.py" )
-  ( .Files.Get "app/install.py" )
-  ( .Files.Get "app/templates/flatcar.yaml" )
-  ( include "genesis.flatcar.update.conf" . )
-  | sha256sum
--}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,7 +30,7 @@ spec:
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
-          value: {{ $code_sha256sum | quote }}
+          value: {{ include "genesis.code_sha256sum" . | quote }}
         - name: VALUES_PEERING_NAME
           value: {{ .Values.peering_name | quote }}
         command: ["python3","-m","genesis"]
