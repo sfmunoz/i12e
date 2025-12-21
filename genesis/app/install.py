@@ -84,12 +84,6 @@ class GenesisInstall(object):
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created".format(fname))
 
-    def __reboot(self):
-        # #chroot /genesis systemd-run bash -c 'sleep 1 ; systemctl reboot'
-        # # Failed to connect to system scope bus via local transport: No data available
-        # chroot "${GENESIS_BASE}" systemctl reboot
-        call(["chroot",self.__base,"systemctl","reboot"])
-
     def __butane(self):
         fname = "/sec/ssh_authorized_key"
         with open(fname,"r") as fp:
@@ -109,38 +103,46 @@ class GenesisInstall(object):
             buf = fp.read()
         js_old = json.loads(buf)
         if js_new == js_old:
-            log.info("nothing to do: butane config did not change")
+            log.info("nothing to do: '{0}' butane config did not change".format(fname))
             return
         log.info("upgrading flatcar...")
         fname = "{0}/root/config.ign".format(self.__base)
         with open(fname,"w") as fp:
             fp.write(config_ign_new)
-        cmds = [
-            [
-                "chroot",
-                self.__base,
-                "flatcar-reset",
-                "--keep-machine-id",
-                "--keep-paths",
-                "/etc/ssh/ssh_host_.*",
-                "/var/log",
-                "/var/lib/rancher/k3s/agent/containerd",
-                "-F",
-                "/root/config.ign",
-            ],
-            #[
-            #    "chroot",
-            #    self.__base,
-            #    "systemd-run",
-            #    "bash",
-            #    "-c",
-            #    "sleep 1 ; systemctl reboot",
-            #],
+        cmd = [
+            "chroot",
+            self.__base,
+            "flatcar-reset",
+            "--keep-machine-id",
+            "--keep-paths",
+            "/etc/ssh/ssh_host_.*",
+            "/var/log",
+            "/var/lib/rancher/k3s/agent/containerd",
+            "-F",
+            "/root/config.ign",
         ]
-        for cmd in cmds:
-            ret = call(cmd)
-            if ret != 0:
-                raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+
+    def __reboot(self):
+        fname = "{0}/boot/flatcar/first_boot".format(self.__base)
+        if not isfile(fname):
+            log.info("reboot not required: '{0}' file doesn't exist".format(fname))
+            return
+        log.warning("triggering reboot: '{0}' file exists...".format(fname))
+        cmd = [
+            "chroot",
+            self.__base,
+            "systemd-run",
+            "bash",
+            "-c",
+            "sleep 1 ; systemctl reboot",
+        ]
+        log.info("$ {0}".format(" ".join(cmd)))
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
     def run(self):
         log.info("==== genesis install begin ====")
@@ -149,6 +151,6 @@ class GenesisInstall(object):
         #self.__k3s_config_yaml()
         #self.__k3s_override_conf()
         #self.__manifest_skip()
-        #self.__reboot()
         self.__butane()
-        log.info("---- genesis install end ----")  # never reached
+        self.__reboot()
+        log.info("---- genesis install end ----")
