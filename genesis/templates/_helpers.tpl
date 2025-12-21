@@ -70,6 +70,7 @@ cat
   ( .Files.Get "app/install.py" )
   ( .Files.Get "app/templates/flatcar-update.conf" )
   ( .Files.Get "app/templates/flatcar.yaml" )
+  ( .Files.Get "app/templates/k3s-config.yaml" )
   | sha256sum
 -}}
 {{- end -}}

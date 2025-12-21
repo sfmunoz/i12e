@@ -15,3 +15,5 @@ data:
     {{- .Files.Get "app/templates/flatcar-update.conf" | nindent 4 }}
   flatcar-yaml: |
     {{- .Files.Get "app/templates/flatcar.yaml" | nindent 4 }}
+  k3s-config-yaml: |
+    {{- .Files.Get "app/templates/k3s-config.yaml" | nindent 4 }}

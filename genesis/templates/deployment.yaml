@@ -63,6 +63,8 @@ spec:
             path: genesis/templates/flatcar-update.conf
           - key: flatcar-yaml
             path: genesis/templates/flatcar.yaml
+          - key: k3s-config-yaml
+            path: genesis/templates/k3s-config.yaml
       - name: secret-vol
         secret:
           secretName: genesis

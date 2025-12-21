@@ -3,7 +3,7 @@ from os.path import isfile, islink, isdir
 from os import unlink, symlink, readlink, fchmod, mkdir, chmod
 from subprocess import call
 import json
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 log = getLogger(__name__)
 from .butane import Butane
@@ -16,9 +16,11 @@ class GenesisInstall(object):
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
         self.__env = Environment(
             loader = PackageLoader("genesis"),
+            undefined = StrictUndefined,
             autoescape = select_autoescape(),
         )
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
+        self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
 
     def __trigger(self,fname,enable=None):
         if enable is None:
@@ -77,40 +79,19 @@ class GenesisInstall(object):
         log.info("update-engine restarted")
         self.__trigger(self.__genesis_restart_update_engine,False)
 
-    def __k3s_config_yaml_buf(self):
-        position = 1
-        k3s_cmd = "server"
-        k3s_token = "main-token"
-        k3s_agent_token = "agent-token"
-        tls_san = "192.168.56.50"
-        k3s_url = "https://{0}:6443".format(tls_san)
-        flannel_iface = "enp0s8"
-        node_ip = "192.168.56.51"
-        # https://docs.k3s.io/installation/configuration
-        lines = []
-        if k3s_cmd == "server":
-            lines.extend([
-                f'token: "{k3s_token}"',
-                f'agent-token: "{k3s_agent_token}"',
-                "secrets-encryption: true",
-                "secrets-encryption-provider: secretbox",
-                'flannel-backend: "wireguard-native"',
-            ])
-            if len(tls_san) > 0:
-                lines.append(f'tls-san: "{tls_san}"')
-        else:
-            lines.append(f'token: "{k3s_agent_token}"')
-        if position == 1:
-            lines.append("cluster-init: true")
-        else:
-            lines.append(f'server: "{k3s_url}"')
-        lines.append(f'node-ip: "{node_ip}"')
-        if len(flannel_iface) > 0:
-            lines.append(f'flannel-iface: "{flannel_iface}"')
-        return "\n".join(lines) + "\n"
-
     def __k3s_config_yaml(self):
-        buf_new = self.__k3s_config_yaml_buf()
+        # https://docs.k3s.io/installation/configuration
+        tls_san = "192.168.56.50"
+        buf_new = self.__tpl_k3s_config_yaml.render(
+            position = 1,
+            k3s_cmd = "server",
+            k3s_token = "main-token",
+            k3s_agent_token = "agent-token",
+            tls_san = tls_san,
+            k3s_url = "https://{0}:6443".format(tls_san),
+            flannel_iface = "enp0s8",
+            node_ip = "192.168.56.51",
+        ) + "\n"
         fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
         buf_old = ""
         if isfile(fname):
