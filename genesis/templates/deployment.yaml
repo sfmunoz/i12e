@@ -30,7 +30,7 @@ spec:
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
-          value: "{{ cat ( include "__init__.py" . ) ( include "__main__.py" . ) ( include "install.py" . ) | sha256sum }}"
+          value: "{{ cat ( .Files.Get "app/__init__.py" ) ( .Files.Get "app/__main__.py" ) ( .Files.Get "app/install.py" ) | sha256sum }}"
         command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis

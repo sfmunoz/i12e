@@ -4,8 +4,8 @@ metadata:
   name: genesis
 data:
   init-py: |
-    {{- include "__init__.py" . | nindent 4 }}
+    {{- .Files.Get "app/__init__.py" | nindent 4 }}
   main-py: |
-    {{- include "__main__.py" . | nindent 4 }}
+    {{- .Files.Get "app/__main__.py" | nindent 4 }}
   install-py: |
-    {{- include "install.py" . | nindent 4 }}
+    {{- .Files.Get "app/install.py" | nindent 4 }}

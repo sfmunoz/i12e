@@ -1,5 +1,3 @@
-{{- define "install.py" -}}
-{{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
 from os import chmod,fchmod,readlink,symlink,unlink,mkdir
 from os.path import islink,isfile,isdir
@@ -139,4 +137,3 @@ class GenesisInstall(object):
         #self.__reboot()
         self.__butane()
         log.info("---- genesis install end ----")  # never reached
-{{ end }}

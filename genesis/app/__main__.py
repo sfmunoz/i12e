@@ -1,5 +1,3 @@
-{{- define "__main__.py" -}}
-{{- $k3s_url := "https://192.168.56.50:6443" -}}
 #!/usr/bin/env python3
 from sys import stderr
 from logging import getLogger, basicConfig, INFO
@@ -31,4 +29,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-{{ end }}
