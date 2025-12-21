@@ -72,13 +72,52 @@ class GenesisInstall(object):
         log.info("update-engine restarted")
         self.__trigger(self.__genesis_restart_update_engine,False)
 
-    # def __k3s_config_yaml(self):
-    #     fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
-    #     buf = """{{ include "genesis.k3s.config.yaml" . }}"""
-    #     with open(fname,"w") as fp:
-    #         fp.write(buf.strip() + "\n")
-    #         fchmod(fp.fileno(),0o600)
-    #     log.info("'{0}' created".format(fname))
+    def __k3s_config_yaml_buf(self):
+        position = 1
+        k3s_cmd = "server"
+        k3s_token = "main-token"
+        k3s_agent_token = "agent-token"
+        tls_san = "192.168.56.50"
+        k3s_url = "https://{0}:6443".format(tls_san)
+        flannel_iface = "enp0s8"
+        node_ip = "192.168.56.51"
+        # https://docs.k3s.io/installation/configuration
+        lines = []
+        if k3s_cmd == "server":
+            lines.extend([
+                f'token: "{k3s_token}"',
+                f'agent-token: "{k3s_agent_token}"',
+                "secrets-encryption: true",
+                "secrets-encryption-provider: secretbox",
+                'flannel-backend: "wireguard-native"',
+            ])
+            if len(tls_san) > 0:
+                lines.append(f'tls-san: "{tls_san}"')
+        else:
+            lines.append(f'token: "{k3s_agent_token}"')
+        if position == 1:
+            lines.append("cluster-init: true")
+        else:
+            lines.append(f'server: "{k3s_url}"')
+        lines.append(f'node-ip: "{node_ip}"')
+        if len(flannel_iface) > 0:
+            lines.append(f'flannel-iface: "{flannel_iface}"')
+        return "\n".join(lines) + "\n"
+
+    def __k3s_config_yaml(self):
+        buf_new = self.__k3s_config_yaml_buf()
+        fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created/updated".format(fname))
 
     # def __k3s_override_conf(self):
     #     dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
@@ -166,6 +205,7 @@ class GenesisInstall(object):
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
         self.__restart_update_engine()
+        self.__k3s_config_yaml()
         #self.__butane()
         self.__reboot()
         log.info("---- genesis install end ----")
