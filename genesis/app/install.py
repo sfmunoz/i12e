@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-from os.path import isfile, islink
-from os import unlink, symlink, readlink, fchmod
+from os.path import isfile, islink, isdir
+from os import unlink, symlink, readlink, fchmod, mkdir, chmod
 from subprocess import call
 import json
 from logging import getLogger
@@ -118,20 +118,38 @@ class GenesisInstall(object):
             fp.write(buf_new)
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created/updated".format(fname))
+        # TODO: trigger host-restart
 
-    # def __k3s_override_conf(self):
-    #     dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
-    #     fname = "{0}/override.conf".format(dname)
-    #     buf = """{{ include "genesis.k3s.override.conf" . }}"""
-    #     if not isdir(dname):
-    #         mkdir(dname)
-    #     if not isdir(dname):
-    #         raise Exception("error: couldn't create '{0}' folder".format(dname))
-    #     chmod(dname,0o755)
-    #     with open(fname,"w") as fp:
-    #         fp.write(buf.strip() + "\n")
-    #         fchmod(fp.fileno(),0o644)
-    #     log.info("'{0}' created".format(fname))
+    def __k3s_override_conf_buf(self):
+        lines = [
+            "[Service]",
+            "ExecStartPre=-/usr/bin/sh -c 'rm -f /var/lib/rancher/k3s/server/db/state.db*'",
+            "ExecStart="
+            "ExecStart=/opt/bin/k3s server",
+        ]
+        return "\n".join(lines) + "\n"
+
+    def __k3s_override_conf(self):
+        buf_new = self.__k3s_override_conf_buf()
+        dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
+        fname = "{0}/override.conf".format(dname)
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)  # avoid doing this on every iteration
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new.strip() + "\n")
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' created/update".format(fname))
+        # TODO: trigger daemon-reload of host-restart
 
     # def __manifest_skip(self):
     #     # https://docs.k3s.io/installation/packaged-components
@@ -206,6 +224,7 @@ class GenesisInstall(object):
         self.__flatcar_update_conf()
         self.__restart_update_engine()
         self.__k3s_config_yaml()
+        self.__k3s_override_conf()
         #self.__butane()
         self.__reboot()
         log.info("---- genesis install end ----")
