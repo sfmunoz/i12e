@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from os.path import isfile
+from os.path import isfile, islink
+from os import unlink, symlink, readlink, fchmod
 from subprocess import call
 import json
 from logging import getLogger
@@ -12,19 +13,27 @@ class GenesisInstall(object):
         self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
 
-    # def __flatcar_extensions(self):
-    #     for entry in ["containerd","docker"]:
-    #         fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
-    #         try:
-    #             if not islink(fname):
-    #                 log.warning("skipping '{0}': it's not a symlink".format(fname))
-    #                 continue
-    #             log.info("(bef) {0}: {1}".format(fname,readlink(fname)))
-    #             unlink(fname)
-    #             symlink("/dev/null",fname)
-    #             log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
-    #         except FileNotFoundError as e:
-    #             log.warning("skipping '{0}': {1}".format(fname,str(e)))
+    def __flatcar_extensions(self):
+        reboot_trigger = False
+        for entry in ["containerd","docker"]:
+            fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
+            try:
+                if not islink(fname):
+                    continue
+                lname = readlink(fname)
+                if lname == "/dev/null":
+                    continue
+                log.info("(bef) {0}: {1}".format(fname,lname))
+                unlink(fname)
+                symlink("/dev/null",fname)
+                log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
+                reboot_trigger = True
+            except FileNotFoundError as e:
+                log.warning("skipping '{0}': {1}".format(fname,str(e)))
+        if not reboot_trigger:
+            return
+        log.info("triggering reboot: extensions configuration changed")
+        self.__reboot_trigger()
 
     # def __flatcar_update_conf(self):
     #     fname = "{0}/etc/flatcar/update.conf".format(self.__base)
@@ -109,11 +118,18 @@ class GenesisInstall(object):
         if ret != 0:
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
+    def __reboot_trigger(self):
+         with open(self.__genesis_reboot,"w") as fp:
+             fchmod(fp.fileno(),0o600)
+         log.info("'{0}' created".format(self.__genesis_reboot))
+
     def __reboot_required(self):
         for fname in [self.__genesis_reboot,self.__flatcar_first_boot]:
             if not isfile(fname):
                 continue
             log.warning("triggering reboot: '{0}' file exists...".format(fname))
+            if fname == self.__genesis_reboot:
+                unlink(fname)
             return True
         return False
 
@@ -135,6 +151,7 @@ class GenesisInstall(object):
 
     def run(self):
         log.info("==== genesis install begin ====")
+        self.__flatcar_extensions()
         #self.__butane()
         self.__reboot()
         log.info("---- genesis install end ----")
