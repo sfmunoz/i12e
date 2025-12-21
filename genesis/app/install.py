@@ -9,6 +9,8 @@ from .butane import Butane
 class GenesisInstall(object):
     def __init__(self):
         self.__base = "/genesis"
+        self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
+        self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
 
     # def __flatcar_extensions(self):
     #     for entry in ["containerd","docker"]:
@@ -107,12 +109,17 @@ class GenesisInstall(object):
         if ret != 0:
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
+    def __reboot_required(self):
+        for fname in [self.__genesis_reboot,self.__flatcar_first_boot]:
+            if not isfile(fname):
+                continue
+            log.warning("triggering reboot: '{0}' file exists...".format(fname))
+            return True
+        return False
+
     def __reboot(self):
-        fname = "{0}/boot/flatcar/first_boot".format(self.__base)
-        if not isfile(fname):
-            log.info("reboot not required: '{0}' file doesn't exist".format(fname))
+        if not self.__reboot_required():
             return
-        log.warning("triggering reboot: '{0}' file exists...".format(fname))
         cmd = [
             "chroot",
             self.__base,
@@ -129,5 +136,5 @@ class GenesisInstall(object):
     def run(self):
         log.info("==== genesis install begin ====")
         #self.__butane()
-        #self.__reboot()
+        self.__reboot()
         log.info("---- genesis install end ----")
