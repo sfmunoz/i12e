@@ -21,6 +21,7 @@ class GenesisInstall(object):
         )
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
+        self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
 
     def __trigger(self,fname,enable=None):
         if enable is None:
@@ -106,17 +107,8 @@ class GenesisInstall(object):
         log.info("'{0}' created/updated".format(fname))
         # TODO: trigger host-restart
 
-    def __k3s_override_conf_buf(self):
-        lines = [
-            "[Service]",
-            "ExecStartPre=-/usr/bin/sh -c 'rm -f /var/lib/rancher/k3s/server/db/state.db*'",
-            "ExecStart="
-            "ExecStart=/opt/bin/k3s server",
-        ]
-        return "\n".join(lines) + "\n"
-
     def __k3s_override_conf(self):
-        buf_new = self.__k3s_override_conf_buf()
+        buf_new = self.__tpl_k3s_override_conf.render() + "\n"
         dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
         fname = "{0}/override.conf".format(dname)
         if not isdir(dname):
@@ -132,7 +124,7 @@ class GenesisInstall(object):
             log.info("nothing to do: '{0}' is up to date".format(fname))
             return
         with open(fname,"w") as fp:
-            fp.write(buf_new.strip() + "\n")
+            fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' created/update".format(fname))
         # TODO: trigger daemon-reload of host-restart

@@ -65,6 +65,8 @@ spec:
             path: genesis/templates/flatcar.yaml
           - key: k3s-config-yaml
             path: genesis/templates/k3s-config.yaml
+          - key: k3s-override-conf
+            path: genesis/templates/k3s-override.conf
       - name: secret-vol
         secret:
           secretName: genesis
