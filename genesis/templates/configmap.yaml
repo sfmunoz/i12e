@@ -7,5 +7,7 @@ data:
     {{- .Files.Get "app/__init__.py" | nindent 4 }}
   main-py: |
     {{- .Files.Get "app/__main__.py" | nindent 4 }}
+  butane-py: |
+    {{- .Files.Get "app/butane.py" | nindent 4 }}
   install-py: |
     {{- .Files.Get "app/install.py" | nindent 4 }}
