@@ -3,6 +3,7 @@ from os.path import isfile, islink, isdir
 from os import unlink, symlink, readlink, fchmod, mkdir, chmod
 from subprocess import call
 import json
+from jinja2 import Environment, PackageLoader, select_autoescape
 from logging import getLogger
 log = getLogger(__name__)
 from .butane import Butane
@@ -13,6 +14,11 @@ class GenesisInstall(object):
         self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
         self.__genesis_restart_update_engine = "{0}/genesis_restart_update_engine".format(self.__base)
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
+        self.__env = Environment(
+            loader = PackageLoader("genesis"),
+            autoescape = select_autoescape(),
+        )
+        self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
 
     def __trigger(self,fname,enable=None):
         if enable is None:
@@ -49,8 +55,7 @@ class GenesisInstall(object):
         if not isfile(fname):
             log.info("skipping '{0}': it's not a regular file".format(fname))
             return
-        with open("/app/conf/flatcar-update.conf","r") as fp:
-            buf_new = fp.read()
+        buf_new = self.__tpl_flatcar_update_conf.render() + "\n"
         with open(fname,"r") as fp:
             buf_old = fp.read()
         if buf_old == buf_new:

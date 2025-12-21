@@ -11,7 +11,7 @@ data:
     {{- .Files.Get "app/butane.py" | nindent 4 }}
   install-py: |
     {{- .Files.Get "app/install.py" | nindent 4 }}
+  flatcar-update-conf: |
+    {{- .Files.Get "app/templates/flatcar-update.conf" | nindent 4 }}
   flatcar-yaml: |
     {{- .Files.Get "app/templates/flatcar.yaml" | nindent 4 }}
-  flatcar-update-conf: |
-    {{- include "genesis.flatcar.update.conf" . | nindent 4 }}
