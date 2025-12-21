@@ -49,10 +49,8 @@ class GenesisInstall(object):
         if not isfile(fname):
             log.info("skipping '{0}': it's not a regular file".format(fname))
             return
-        buf_new = """REBOOT_STRATEGY=reboot
-REBOOT_WINDOW_START=01:30
-REBOOT_WINDOW_LENGTH=1h
-"""
+        with open("/app/conf/flatcar-update.conf","r") as fp:
+            buf_new = fp.read()
         with open(fname,"r") as fp:
             buf_old = fp.read()
         if buf_old == buf_new:
