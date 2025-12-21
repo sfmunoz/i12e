@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from sys import stderr
+from os import getenv
 from logging import getLogger, basicConfig, INFO
 import kopf
 from kubernetes import client, config
@@ -10,12 +11,24 @@ log = getLogger(__name__)
 #config.load_kube_config()
 config.load_incluster_config()
 
+class Namespace(object):
+    __ns = None
+    @classmethod
+    def get(cls):
+        fname = "/run/secrets/kubernetes.io/serviceaccount/namespace"
+        if cls.__ns is None:
+            with open(fname,"r") as fp:
+                cls.__ns = fp.read()
+        if cls.__ns is None:
+            raise Exception(f"cannot get namespace from '{fname}'")
+        return cls.__ns
+
 @kopf.timer('gdeployments', interval=5.0)
 def on_timer(spec, **kwargs):
     try:
         log.info("on_timer()")
         api = client.CoreV1Api()
-        pods = api.list_namespaced_pod("{{ .Release.Namespace }}")
+        pods = api.list_namespaced_pod(Namespace.get())
         for i,pod in enumerate(pods.items):
             log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
         GenesisInstall().run()
@@ -24,7 +37,7 @@ def on_timer(spec, **kwargs):
 
 def main():
     log.info("==== genesis begin ====")
-    kopf.run(namespace="{{ .Release.Namespace }}",peering_name="{{ .Values.peering_name }}")
+    kopf.run(namespace=Namespace.get(),peering_name=getenv("VALUES_PEERING_NAME"))
     log.info("---- genesis end ----")
 
 if __name__ == "__main__":

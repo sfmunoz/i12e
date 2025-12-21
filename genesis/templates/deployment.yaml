@@ -31,6 +31,8 @@ spec:
           value: /app
         - name: CODE_SHA256SUM
           value: "{{ cat ( .Files.Get "app/__init__.py" ) ( .Files.Get "app/__main__.py" ) ( .Files.Get "app/install.py" ) | sha256sum }}"
+        - name: VALUES_PEERING_NAME
+          value: {{ .Values.peering_name | quote }}
         command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
