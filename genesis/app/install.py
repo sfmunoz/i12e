@@ -7,16 +7,13 @@ import yaml,json
 from logging import getLogger
 log = getLogger(__name__)
 
-_open = "{"+"{"
-_close = "}"+"}"
-
-FLATCAR_TPL = f"""variant: flatcar
+FLATCAR_TPL = """variant: flatcar
 version: 1.0.0
 passwd:
   users:
   - name: core
     ssh_authorized_keys:
-    - "{_open} ssh_authorized_key {_close}"
+    - "{{ ssh_authorized_key }}"
 """
 
 class GenesisInstall(object):
