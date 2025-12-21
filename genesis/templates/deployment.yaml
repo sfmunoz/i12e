@@ -59,6 +59,8 @@ spec:
             path: genesis/butane.py
           - key: install-py
             path: genesis/install.py
+          - key: crictl-yaml
+            path: genesis/templates/crictl.yaml
           - key: flatcar-update-conf
             path: genesis/templates/flatcar-update.conf
           - key: flatcar-yaml

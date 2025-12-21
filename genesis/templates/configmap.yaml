@@ -11,6 +11,8 @@ data:
     {{- .Files.Get "app/butane.py" | nindent 4 }}
   install-py: |
     {{- .Files.Get "app/install.py" | nindent 4 }}
+  crictl-yaml: |
+    {{- .Files.Get "app/templates/crictl.yaml" | nindent 4 }}
   flatcar-update-conf: |
     {{- .Files.Get "app/templates/flatcar-update.conf" | nindent 4 }}
   flatcar-yaml: |

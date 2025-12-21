@@ -19,6 +19,7 @@ class GenesisInstall(object):
             undefined = StrictUndefined,
             autoescape = select_autoescape(),
         )
+        self.__tpl_critcl_yaml = self.__env.get_template("crictl.yaml")
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
@@ -129,17 +130,8 @@ class GenesisInstall(object):
         log.info("'{0}' created/update".format(fname))
         # TODO: trigger daemon-reload of host-restart
 
-    def __etc_crictl_yaml_buf(self):
-        lines = [
-            "runtime-endpoint: unix:///run/k3s/containerd/containerd.sock",
-            "image-endpoint: unix:///run/k3s/containerd/containerd.sock",
-            "timeout: 10",
-            "#debug: true",
-        ]
-        return "\n".join(lines) + "\n"
-
     def __etc_crictl_yaml(self):
-        buf_new = self.__etc_crictl_yaml_buf()
+        buf_new = self.__tpl_critcl_yaml.render() + "\n"
         fname = "{0}/etc/crictl.yaml".format(self.__base)
         buf_old = ""
         if isfile(fname):

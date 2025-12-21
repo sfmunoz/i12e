@@ -68,6 +68,7 @@ cat
   ( .Files.Get "app/__main__.py" )
   ( .Files.Get "app/butane.py" )
   ( .Files.Get "app/install.py" )
+  ( .Files.Get "app/templates/crictl.yaml" )
   ( .Files.Get "app/templates/flatcar-update.conf" )
   ( .Files.Get "app/templates/flatcar.yaml" )
   ( .Files.Get "app/templates/k3s-config.yaml" )
