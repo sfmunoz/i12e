@@ -30,7 +30,7 @@ spec:
         - name: PYTHONPATH
           value: /app
         - name: CODE_SHA256SUM
-          value: "{{ cat ( .Files.Get "app/__init__.py" ) ( .Files.Get "app/__main__.py" ) ( .Files.Get "app/butane.py" ) ( .Files.Get "app/install.py" ) ( include "genesis.flatcar.update.conf" . ) | sha256sum }}"
+          value: "{{ cat ( .Files.Get "app/__init__.py" ) ( .Files.Get "app/__main__.py" ) ( .Files.Get "app/butane.py" ) ( .Files.Get "app/install.py" ) ( .Files.Get "app/templates/flatcar.yaml" ) ( include "genesis.flatcar.update.conf" . ) | sha256sum }}"
         - name: VALUES_PEERING_NAME
           value: {{ .Values.peering_name | quote }}
         command: ["python3","-m","genesis"]
@@ -59,6 +59,8 @@ spec:
             path: genesis/butane.py
           - key: install-py
             path: genesis/install.py
+          - key: flatcar-yaml
+            path: genesis/templates/flatcar.yaml
           - key: flatcar-update-conf
             path: conf/flatcar-update.conf
       - name: secret-vol
