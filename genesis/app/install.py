@@ -14,8 +14,19 @@ class GenesisInstall(object):
         self.__genesis_restart_update_engine = "{0}/genesis_restart_update_engine".format(self.__base)
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
 
+    def __trigger(self,fname,enable=None):
+        if enable is None:
+            return isfile(fname)
+        if enable:
+            with open(fname,"w") as fp:
+                fchmod(fp.fileno(),0o600)
+            log.info("'{0}' created".format(fname))
+            return True
+        unlink(fname)
+        log.info("'{0}' deleted".format(fname))
+        return False
+
     def __flatcar_extensions(self):
-        reboot_trigger = False
         for entry in ["containerd","docker"]:
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
             try:
@@ -29,13 +40,9 @@ class GenesisInstall(object):
                 unlink(fname)
                 symlink("/dev/null",fname)
                 log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
-                reboot_trigger = True
+                self.__trigger(self.__genesis_reboot,True)
             except FileNotFoundError as e:
                 log.warning("skipping '{0}': {1}".format(fname,str(e)))
-        if not reboot_trigger:
-            return
-        log.info("triggering reboot: extensions configuration changed")
-        self.__reboot_trigger()
 
     def __flatcar_update_conf(self):
         fname = "{0}/etc/flatcar/update.conf".format(self.__base)
@@ -55,19 +62,17 @@ REBOOT_WINDOW_LENGTH=1h
             fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
-        with open(self.__genesis_restart_update_engine,"w") as fp:
-            fchmod(fp.fileno(),0o600)
-        log.info("'{0}' created".format(self.__genesis_restart_update_engine))
+        self.__trigger(self.__genesis_restart_update_engine,True)
 
     def __restart_update_engine(self):
-        if not isfile(self.__genesis_restart_update_engine):
+        if not self.__trigger(self.__genesis_restart_update_engine):
             return
         cmd = ["chroot",self.__base,"systemctl","restart","update-engine"]
         ret = call(cmd)
         if ret != 0:
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
         log.info("update-engine restarted")
-        unlink(self.__genesis_restart_update_engine)
+        self.__trigger(self.__genesis_restart_update_engine,False)
 
     # def __k3s_config_yaml(self):
     #     fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
@@ -132,18 +137,13 @@ REBOOT_WINDOW_LENGTH=1h
         if ret != 0:
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
-    def __reboot_trigger(self):
-         with open(self.__genesis_reboot,"w") as fp:
-             fchmod(fp.fileno(),0o600)
-         log.info("'{0}' created".format(self.__genesis_reboot))
-
     def __reboot_required(self):
         for fname in [self.__genesis_reboot,self.__flatcar_first_boot]:
-            if not isfile(fname):
+            if not self.__trigger(fname):
                 continue
             log.warning("triggering reboot: '{0}' file exists...".format(fname))
             if fname == self.__genesis_reboot:
-                unlink(fname)
+                self.__trigger(fname,False)
             return True
         return False
 
