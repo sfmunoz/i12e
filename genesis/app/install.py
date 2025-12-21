@@ -11,6 +11,7 @@ class GenesisInstall(object):
     def __init__(self):
         self.__base = "/genesis"
         self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
+        self.__genesis_restart_update_engine = "{0}/genesis_restart_update_engine".format(self.__base)
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
 
     def __flatcar_extensions(self):
@@ -19,6 +20,7 @@ class GenesisInstall(object):
             fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
             try:
                 if not islink(fname):
+                    log.info("skipping '{0}': it's not a symbolic link".format(fname))
                     continue
                 lname = readlink(fname)
                 if lname == "/dev/null":
@@ -35,25 +37,37 @@ class GenesisInstall(object):
         log.info("triggering reboot: extensions configuration changed")
         self.__reboot_trigger()
 
-    # def __flatcar_update_conf(self):
-    #     fname = "{0}/etc/flatcar/update.conf".format(self.__base)
-    #     if not isfile(fname):
-    #         log.warning("skipping '{0}': it's not a regular file".format(fname))
-    #         return
-    #     with open(fname,"r") as fp:
-    #         buf_old = fp.read()
-    #     buf_new = """{{ include "genesis.flatcar.update.conf" . }}"""
-    #     if buf_old == buf_new:
-    #         log.info("nothing to do: '{0}' is up-to-date".format(fname))
-    #         return
-    #     with open(fname,"w") as fp:
-    #         fp.write(buf_new)
-    #         fchmod(fp.fileno(),0o644)
-    #     cmd = ["chroot",self.__base,"systemctl","restart","update-engine"]
-    #     ret = call(cmd)
-    #     if ret != 0:
-    #         raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
-    #     log.info("'{0}' updated and update-engine restarted".format(fname))
+    def __flatcar_update_conf(self):
+        fname = "{0}/etc/flatcar/update.conf".format(self.__base)
+        if not isfile(fname):
+            log.info("skipping '{0}': it's not a regular file".format(fname))
+            return
+        buf_new = """REBOOT_STRATEGY=reboot
+REBOOT_WINDOW_START=01:30
+REBOOT_WINDOW_LENGTH=1h
+"""
+        with open(fname,"r") as fp:
+            buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up-to-date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' updated".format(fname))
+        with open(self.__genesis_restart_update_engine,"w") as fp:
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created".format(self.__genesis_restart_update_engine))
+
+    def __restart_update_engine(self):
+        if not isfile(self.__genesis_restart_update_engine):
+            return
+        cmd = ["chroot",self.__base,"systemctl","restart","update-engine"]
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+        log.info("update-engine restarted")
+        unlink(self.__genesis_restart_update_engine)
 
     # def __k3s_config_yaml(self):
     #     fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
@@ -152,6 +166,8 @@ class GenesisInstall(object):
     def run(self):
         log.info("==== genesis install begin ====")
         self.__flatcar_extensions()
+        self.__flatcar_update_conf()
+        self.__restart_update_engine()
         #self.__butane()
         self.__reboot()
         log.info("---- genesis install end ----")
