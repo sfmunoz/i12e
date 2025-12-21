@@ -13,6 +13,7 @@ class GenesisInstall(object):
         self.__base = "/genesis"
         self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
         self.__genesis_restart_update_engine = "{0}/genesis_restart_update_engine".format(self.__base)
+        self.__genesis_systemctl_daemon_reload = "{0}/genesis_systemctl_daemon_reload".format(self.__base)
         self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
         self.__env = Environment(
             loader = PackageLoader("genesis"),
@@ -106,7 +107,7 @@ class GenesisInstall(object):
             fp.write(buf_new)
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created/updated".format(fname))
-        # TODO: trigger host-restart
+        self.__trigger(self.__genesis_reboot,True)
 
     def __k3s_override_conf(self):
         buf_new = self.__tpl_k3s_override_conf.render() + "\n"
@@ -128,7 +129,8 @@ class GenesisInstall(object):
             fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' created/update".format(fname))
-        # TODO: trigger daemon-reload of host-restart
+        self.__trigger(self.__genesis_systemctl_daemon_reload,True)
+        self.__trigger(self.__genesis_reboot,True)
 
     def __etc_crictl_yaml(self):
         buf_new = self.__tpl_critcl_yaml.render() + "\n"
@@ -196,6 +198,21 @@ class GenesisInstall(object):
             return True
         return False
 
+    def __systemctl_daemon_reload(self):
+        if not self.__trigger(self.__genesis_systemctl_daemon_reload):
+            return
+        cmd = [
+            "chroot",
+            self.__base,
+            "systemctl",
+            "daemon-reload",
+        ]
+        log.info("$ {0}".format(" ".join(cmd)))
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+        self.__trigger(self.__genesis_systemctl_daemon_reload,False)
+
     def __reboot(self):
         if not self.__reboot_required():
             return
@@ -221,5 +238,6 @@ class GenesisInstall(object):
         self.__k3s_override_conf()
         self.__etc_crictl_yaml()
         #self.__butane()
+        self.__systemctl_daemon_reload()
         self.__reboot()
         log.info("---- genesis install end ----")
