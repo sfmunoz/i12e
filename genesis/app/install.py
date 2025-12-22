@@ -261,15 +261,14 @@ class GenesisInstall(object):
 
     def run(self):
         k3s_mode = self.__get_k3s_mode()
-        if k3s_mode != K3S_SQLITE3_MODE:
-            log.info("genesis blocked: cannot run in '{0}' (it must be '{1}')".format(k3s_mode,K3S_SQLITE3_MODE))
-            return
+        sqlite3_mode = k3s_mode == K3S_SQLITE3_MODE
         log.info("==== genesis install begin ({0}) ====".format(k3s_mode))
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
         self.__restart_update_engine()
-        self.__k3s_config_yaml()
-        self.__k3s_override_conf()
+        if sqlite3_mode:
+            self.__k3s_config_yaml()
+            self.__k3s_override_conf()
         self.__systemd_genesis_conf()
         self.__etc_crictl_yaml()
         #self.__butane()
