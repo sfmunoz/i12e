@@ -5,6 +5,8 @@ function error_and_exit {
   exit 1
 }
 
+[ "$GENESIS_TARGET" = "" ] && GENESIS_TARGET="192.168.56.51"
+
 set -e -o pipefail
 
 [ "$SSH_PUBKEY_FILE" = "" ] && SSH_PUBKEY_FILE="${HOME}/.ssh/id_rsa.pub"
@@ -22,6 +24,6 @@ exec docker run -it --rm \
   -v ./app:/app/genesis:ro \
   -e PYTHONUNBUFFERED=1 \
   -e PYTHONPATH=/app \
-  -e GENESIS_LOCAL=1 \
+  -e "GENESIS_TARGET=$GENESIS_TARGET" \
   ghcr.io/sfmunoz/k8s-bulk:v1.6.0 \
   "$@"

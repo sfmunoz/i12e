@@ -10,8 +10,10 @@ from .butane import Butane
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
-if getenv("GENESIS_LOCAL") == "1":
-    Butane().run()
+genesis_target = getenv("GENESIS_TARGET")
+
+if genesis_target is not None and genesis_target != "":
+    Butane(genesis_target).run()
     sys.exit(0)
 
 #config.load_kube_config()
