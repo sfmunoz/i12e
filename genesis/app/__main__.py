@@ -5,12 +5,13 @@ from logging import getLogger, basicConfig, INFO
 import kopf
 from kubernetes import client, config
 from .install import GenesisInstall
+from .butane import Butane
 
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
 if getenv("GENESIS_LOCAL") == "1":
-    log.warning("GENESIS_LOCAL=1: local execution mode not implemented yet")
+    Butane().run()
     sys.exit(0)
 
 #config.load_kube_config()
