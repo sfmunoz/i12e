@@ -8,6 +8,9 @@ from logging import getLogger
 log = getLogger(__name__)
 from .butane import Butane
 
+K3S_SQLITE3_MODE = "k3s-sqlite3-mode"
+K3S_ETCD_MODE = "k3s-etcd-mode"
+
 class GenesisInstall(object):
     def __init__(self):
         self.__base = "/genesis"
@@ -24,6 +27,10 @@ class GenesisInstall(object):
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
+
+    def __get_k3s_mode(self):
+        fname = "{0}/var/lib/rancher/k3s/server/db/state.db".format(self.__base)
+        return K3S_SQLITE3_MODE if isfile(fname) else K3S_ETCD_MODE
 
     def __trigger(self,fname,enable=None):
         if enable is None:
@@ -230,7 +237,11 @@ class GenesisInstall(object):
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
     def run(self):
-        log.info("==== genesis install begin ====")
+        k3s_mode = self.__get_k3s_mode()
+        if k3s_mode != K3S_SQLITE3_MODE:
+            log.info("genesis blocked: cannot run in '{0}' (it must be '{1}')".format(k3s_mode,K3S_SQLITE3_MODE))
+            return
+        log.info("==== genesis install begin ({0}) ====".format(k3s_mode))
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
         self.__restart_update_engine()
@@ -240,4 +251,4 @@ class GenesisInstall(object):
         #self.__butane()
         self.__systemctl_daemon_reload()
         self.__reboot()
-        log.info("---- genesis install end ----")
+        log.info("---- genesis install end ({0}) ----".format(k3s_mode))
