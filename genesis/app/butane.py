@@ -12,7 +12,8 @@ class Butane(object):
             autoescape = select_autoescape(),
         )
         self.__tpl = self.__env.get_template("flatcar.yaml")
-        self.__ssh_authorized_key = "<ssh-authorized-key>"  # TODO: set real file here
+        with open("/ssh_authorized_key","r") as fp:
+            self.__ssh_authorized_key = fp.read().strip()
 
     def __buf_print(self,buf,prefix=""):
         for line in buf.strip().split("\n"):
