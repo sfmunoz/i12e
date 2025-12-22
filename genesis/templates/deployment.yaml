@@ -69,6 +69,8 @@ spec:
             path: genesis/templates/k3s-config.yaml
           - key: k3s-override-conf
             path: genesis/templates/k3s-override.conf
+          - key: systemd-genesis-conf
+            path: genesis/templates/systemd-genesis.conf
       - name: secret-vol
         secret:
           secretName: genesis

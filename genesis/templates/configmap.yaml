@@ -21,3 +21,5 @@ data:
     {{- .Files.Get "app/templates/k3s-config.yaml" | nindent 4 }}
   k3s-override-conf: |
     {{- .Files.Get "app/templates/k3s-override.conf" | nindent 4 }}
+  systemd-genesis-conf: |
+    {{- .Files.Get "app/templates/systemd-genesis.conf" | nindent 4 }}

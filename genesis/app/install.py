@@ -27,6 +27,7 @@ class GenesisInstall(object):
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
+        self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
 
     def __get_k3s_mode(self):
         fname = "{0}/var/lib/rancher/k3s/server/db/state.db".format(self.__base)
@@ -124,7 +125,7 @@ class GenesisInstall(object):
             mkdir(dname)
         if not isdir(dname):
             raise Exception("error: couldn't create '{0}' folder".format(dname))
-        chmod(dname,0o755)  # avoid doing this on every iteration
+        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
         buf_old = ""
         if isfile(fname):
             with open(fname,"r") as fp:
@@ -135,9 +136,31 @@ class GenesisInstall(object):
         with open(fname,"w") as fp:
             fp.write(buf_new)
             fchmod(fp.fileno(),0o644)
-        log.info("'{0}' created/update".format(fname))
+        log.info("'{0}' created/updated".format(fname))
         self.__trigger(self.__genesis_systemctl_daemon_reload,True)
         self.__trigger(self.__genesis_reboot,True)
+
+    def __systemd_genesis_conf(self):
+        buf_new = self.__tpl_systemd_genesis_conf.render() + "\n"
+        dname = "{0}/etc/systemd/system.conf.d".format(self.__base)
+        fname = "{0}/genesis.conf".format(dname)
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' created/updated".format(fname))
+        self.__trigger(self.__genesis_systemctl_daemon_reload,True)
 
     def __etc_crictl_yaml(self):
         buf_new = self.__tpl_critcl_yaml.render() + "\n"
@@ -247,6 +270,7 @@ class GenesisInstall(object):
         self.__restart_update_engine()
         self.__k3s_config_yaml()
         self.__k3s_override_conf()
+        self.__systemd_genesis_conf()
         self.__etc_crictl_yaml()
         #self.__butane()
         self.__systemctl_daemon_reload()

@@ -73,6 +73,7 @@ cat
   ( .Files.Get "app/templates/flatcar.yaml" )
   ( .Files.Get "app/templates/k3s-config.yaml" )
   ( .Files.Get "app/templates/k3s-override.conf" )
+  ( .Files.Get "app/templates/systemd-genesis.conf" )
   | sha256sum
 -}}
 {{- end -}}
