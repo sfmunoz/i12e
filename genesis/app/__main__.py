@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-from sys import stderr
+import sys
 from os import getenv
 from logging import getLogger, basicConfig, INFO
 import kopf
 from kubernetes import client, config
 from .install import GenesisInstall
 
-basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=stderr)
+basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
+
+if getenv("GENESIS_LOCAL") == "1":
+    log.warning("GENESIS_LOCAL=1: local execution mode not implemented yet")
+    sys.exit(0)
+
 #config.load_kube_config()
 config.load_incluster_config()
 
