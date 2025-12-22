@@ -1,0 +1,28 @@
+{%- if k3s_cmd == "server" -%}
+token: "{{ k3s_token }}"
+agent-token: "{{ k3s_agent_token }}"
+secrets-encryption: true
+secrets-encryption-provider: secretbox
+flannel-backend: "wireguard-native"
+
+{%- if tls_san is defined %}
+tls-san: "{{ tls_san }}"
+{%- endif -%}
+
+{%- else %}
+token: {{ k3s_agent_token }}
+{%- endif -%}
+
+{%- if position == 1 %}
+cluster-init: true
+{%- else %}
+server: "{{ k3s_url }}"
+{%- endif -%}
+
+{%- if node_ip is defined %}
+node-ip: "{{ node_ip }}"
+{%- endif -%}
+
+{%- if flannel_iface is defined %}
+flannel-iface: "{{ flannel_iface }}"
+{%- endif -%}

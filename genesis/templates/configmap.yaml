@@ -3,5 +3,23 @@ kind: ConfigMap
 metadata:
   name: genesis
 data:
-  genesis-py: |
-    {{- include "genesis.py" . | nindent 4 }}
+  init-py: |
+    {{- .Files.Get "app/__init__.py" | nindent 4 }}
+  main-py: |
+    {{- .Files.Get "app/__main__.py" | nindent 4 }}
+  butane-py: |
+    {{- .Files.Get "app/butane.py" | nindent 4 }}
+  install-py: |
+    {{- .Files.Get "app/install.py" | nindent 4 }}
+  crictl-yaml: |
+    {{- .Files.Get "app/templates/crictl.yaml" | nindent 4 }}
+  flatcar-update-conf: |
+    {{- .Files.Get "app/templates/flatcar-update.conf" | nindent 4 }}
+  flatcar-yaml: |
+    {{- .Files.Get "app/templates/flatcar.yaml" | nindent 4 }}
+  k3s-config-yaml: |
+    {{- .Files.Get "app/templates/k3s-config.yaml" | nindent 4 }}
+  k3s-override-conf: |
+    {{- .Files.Get "app/templates/k3s-override.conf" | nindent 4 }}
+  systemd-genesis-conf: |
+    {{- .Files.Get "app/templates/systemd-genesis.conf" | nindent 4 }}

@@ -18,22 +18,30 @@ spec:
     spec:
       hostPID: true
       serviceAccountName: genesis-account
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 5
       containers:
       - name: {{ .Chart.Name }}
-        image: ghcr.io/sfmunoz/k8s-bulk:v1.3.0
+        image: ghcr.io/sfmunoz/k8s-bulk:v1.6.0
         imagePullPolicy: IfNotPresent
         env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
         # enforce code changes -> container restarted (devel environment)
+        - name: PYTHONPATH
+          value: /app
         - name: CODE_SHA256SUM
-          value: {{ include "genesis.py" . | sha256sum }}
-        command: ["python3","-u","/app/genesis.py"]
+          value: {{ include "genesis.code_sha256sum" . | quote }}
+        - name: VALUES_PEERING_NAME
+          value: {{ .Values.peering_name | quote }}
+        command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
           name: vol-host
           readOnly: false
         - mountPath: /app
           name: app-vol
+        - mountPath: /sec
+          name: secret-vol
       volumes:
       - name: vol-host
         hostPath:
@@ -43,5 +51,26 @@ spec:
         configMap:
           name: genesis
           items:
-          - key: genesis-py
-            path: genesis.py
+          - key: init-py
+            path: genesis/__init__.py
+          - key: main-py
+            path: genesis/__main__.py
+          - key: butane-py
+            path: genesis/butane.py
+          - key: install-py
+            path: genesis/install.py
+          - key: crictl-yaml
+            path: genesis/templates/crictl.yaml
+          - key: flatcar-update-conf
+            path: genesis/templates/flatcar-update.conf
+          - key: flatcar-yaml
+            path: genesis/templates/flatcar.yaml
+          - key: k3s-config-yaml
+            path: genesis/templates/k3s-config.yaml
+          - key: k3s-override-conf
+            path: genesis/templates/k3s-override.conf
+          - key: systemd-genesis-conf
+            path: genesis/templates/systemd-genesis.conf
+      - name: secret-vol
+        secret:
+          secretName: genesis

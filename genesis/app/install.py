@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+from os.path import isfile, islink, isdir
+from os import unlink, symlink, readlink, fchmod, mkdir, chmod
+from subprocess import call
+import json
+from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
+from logging import getLogger
+log = getLogger(__name__)
+from .butane import Butane
+
+K3S_SQLITE3_MODE = "k3s-sqlite3-mode"
+K3S_ETCD_MODE = "k3s-etcd-mode"
+
+class GenesisInstall(object):
+    def __init__(self):
+        self.__base = "/genesis"
+        self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
+        self.__genesis_restart_update_engine = "{0}/genesis_restart_update_engine".format(self.__base)
+        self.__genesis_systemctl_daemon_reload = "{0}/genesis_systemctl_daemon_reload".format(self.__base)
+        self.__flatcar_first_boot = "{0}/boot/flatcar/first_boot".format(self.__base)
+        self.__env = Environment(
+            loader = PackageLoader("genesis"),
+            undefined = StrictUndefined,
+            autoescape = select_autoescape(),
+        )
+        self.__tpl_critcl_yaml = self.__env.get_template("crictl.yaml")
+        self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
+        self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
+        self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
+        self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
+
+    def __get_k3s_mode(self):
+        fname = "{0}/var/lib/rancher/k3s/server/db/state.db".format(self.__base)
+        return K3S_SQLITE3_MODE if isfile(fname) else K3S_ETCD_MODE
+
+    def __trigger(self,fname,enable=None):
+        if enable is None:
+            return isfile(fname)
+        if enable:
+            with open(fname,"w") as fp:
+                fchmod(fp.fileno(),0o600)
+            log.info("'{0}' created".format(fname))
+            return True
+        unlink(fname)
+        log.info("'{0}' deleted".format(fname))
+        return False
+
+    def __flatcar_extensions(self):
+        for entry in ["containerd","docker"]:
+            fname = "{0}/etc/extensions/{1}-flatcar.raw".format(self.__base,entry)
+            try:
+                if not islink(fname):
+                    log.info("skipping '{0}': it's not a symbolic link".format(fname))
+                    continue
+                lname = readlink(fname)
+                if lname == "/dev/null":
+                    continue
+                log.info("(bef) {0}: {1}".format(fname,lname))
+                unlink(fname)
+                symlink("/dev/null",fname)
+                log.info("(aft) {0}: {1}".format(fname,readlink(fname)))
+                self.__trigger(self.__genesis_reboot,True)
+            except FileNotFoundError as e:
+                log.warning("skipping '{0}': {1}".format(fname,str(e)))
+
+    def __flatcar_update_conf(self):
+        fname = "{0}/etc/flatcar/update.conf".format(self.__base)
+        if not isfile(fname):
+            log.info("skipping '{0}': it's not a regular file".format(fname))
+            return
+        buf_new = self.__tpl_flatcar_update_conf.render() + "\n"
+        with open(fname,"r") as fp:
+            buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up-to-date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' updated".format(fname))
+        self.__trigger(self.__genesis_restart_update_engine,True)
+
+    def __restart_update_engine(self):
+        if not self.__trigger(self.__genesis_restart_update_engine):
+            return
+        cmd = ["chroot",self.__base,"systemctl","restart","update-engine"]
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+        log.info("update-engine restarted")
+        self.__trigger(self.__genesis_restart_update_engine,False)
+
+    def __k3s_config_yaml(self):
+        # https://docs.k3s.io/installation/configuration
+        tls_san = "192.168.56.50"
+        buf_new = self.__tpl_k3s_config_yaml.render(
+            position = 1,
+            k3s_cmd = "server",
+            k3s_token = "main-token",
+            k3s_agent_token = "agent-token",
+            tls_san = tls_san,
+            k3s_url = "https://{0}:6443".format(tls_san),
+            flannel_iface = "enp0s8",
+            node_ip = "192.168.56.51",
+        ) + "\n"
+        fname = "{0}/etc/rancher/k3s/config.yaml".format(self.__base)
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created/updated".format(fname))
+        self.__trigger(self.__genesis_reboot,True)
+
+    def __k3s_override_conf(self):
+        buf_new = self.__tpl_k3s_override_conf.render() + "\n"
+        dname = "{0}/etc/systemd/system/k3s.service.d".format(self.__base)
+        fname = "{0}/override.conf".format(dname)
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' created/updated".format(fname))
+        self.__trigger(self.__genesis_systemctl_daemon_reload,True)
+        self.__trigger(self.__genesis_reboot,True)
+
+    def __systemd_genesis_conf(self):
+        buf_new = self.__tpl_systemd_genesis_conf.render() + "\n"
+        dname = "{0}/etc/systemd/system.conf.d".format(self.__base)
+        fname = "{0}/genesis.conf".format(dname)
+        if not isdir(dname):
+            mkdir(dname)
+        if not isdir(dname):
+            raise Exception("error: couldn't create '{0}' folder".format(dname))
+        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o644)
+        log.info("'{0}' created/updated".format(fname))
+        self.__trigger(self.__genesis_systemctl_daemon_reload,True)
+
+    def __etc_crictl_yaml(self):
+        buf_new = self.__tpl_critcl_yaml.render() + "\n"
+        fname = "{0}/etc/crictl.yaml".format(self.__base)
+        buf_old = ""
+        if isfile(fname):
+            with open(fname,"r") as fp:
+                buf_old = fp.read()
+        if buf_old == buf_new:
+            log.info("nothing to do: '{0}' is up to date".format(fname))
+            return
+        with open(fname,"w") as fp:
+            fp.write(buf_new)
+            fchmod(fp.fileno(),0o600)
+        log.info("'{0}' created/updated".format(fname))
+
+    # def __manifest_skip(self):
+    #     # https://docs.k3s.io/installation/packaged-components
+    #     # don't let genesis.yaml run on k3s(etcd)
+    #     fname = "{0}/var/lib/rancher/k3s/server/manifests/genesis.yaml.skip".format(self.__base)
+    #     with open(fname,"w") as fp:
+    #         fchmod(fp.fileno(),0o600)
+    #     log.info("'{0}' created".format(fname))
+
+    def __butane(self):
+        fname = "/sec/ssh_authorized_key"
+        with open(fname,"r") as fp:
+            ssh_authorized_key = fp.read()
+        config_ign_new = Butane(ssh_authorized_key).ignition()
+        js_new = json.loads(config_ign_new)
+        fname = "{0}/oem/config.ign".format(self.__base)
+        with open(fname,"r") as fp:
+            buf = fp.read()
+        js_old = json.loads(buf)
+        if js_new == js_old:
+            log.info("nothing to do: '{0}' butane config did not change".format(fname))
+            return
+        log.info("upgrading flatcar...")
+        fname = "{0}/root/config.ign".format(self.__base)
+        with open(fname,"w") as fp:
+            fp.write(config_ign_new)
+        cmd = [
+            "chroot",
+            self.__base,
+            "flatcar-reset",
+            "--keep-machine-id",
+            "--keep-paths",
+            "/etc/ssh/ssh_host_.*",
+            "/var/log",
+            "/var/lib/rancher/k3s/agent/containerd",
+            "-F",
+            "/root/config.ign",
+        ]
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+
+    def __reboot_required(self):
+        for fname in [self.__genesis_reboot,self.__flatcar_first_boot]:
+            if not self.__trigger(fname):
+                continue
+            log.warning("triggering reboot: '{0}' file exists...".format(fname))
+            if fname == self.__genesis_reboot:
+                self.__trigger(fname,False)
+            return True
+        return False
+
+    def __systemctl_daemon_reload(self):
+        if not self.__trigger(self.__genesis_systemctl_daemon_reload):
+            return
+        cmd = [
+            "chroot",
+            self.__base,
+            "systemctl",
+            "daemon-reload",
+        ]
+        log.info("$ {0}".format(" ".join(cmd)))
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+        self.__trigger(self.__genesis_systemctl_daemon_reload,False)
+
+    def __reboot(self):
+        if not self.__reboot_required():
+            return
+        cmd = [
+            "chroot",
+            self.__base,
+            "systemd-run",
+            "bash",
+            "-c",
+            "sleep 1 ; systemctl reboot",
+        ]
+        log.info("$ {0}".format(" ".join(cmd)))
+        ret = call(cmd)
+        if ret != 0:
+            raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
+
+    def run(self):
+        k3s_mode = self.__get_k3s_mode()
+        sqlite3_mode = k3s_mode == K3S_SQLITE3_MODE
+        log.info("==== genesis install begin ({0}) ====".format(k3s_mode))
+        self.__flatcar_extensions()
+        self.__flatcar_update_conf()
+        self.__restart_update_engine()
+        if sqlite3_mode:
+            self.__k3s_config_yaml()
+            self.__k3s_override_conf()
+        self.__systemd_genesis_conf()
+        self.__etc_crictl_yaml()
+        #self.__butane()
+        self.__systemctl_daemon_reload()
+        self.__reboot()
+        log.info("---- genesis install end ({0}) ----".format(k3s_mode))

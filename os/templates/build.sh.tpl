@@ -17,7 +17,7 @@ script: |
     set -x
     $CMD --set "cmd=flatcar-yaml,target=${TARGET},position=${POS}" > "$OS_YAML"
     ls -l "$OS_YAML"
-    docker run --rm -i quay.io/coreos/butane:latest < "$OS_YAML" > "$OS_JSON"
+    docker run --rm -i quay.io/coreos/butane:v0.25.1 < "$OS_YAML" > "$OS_JSON"
     ls -l "$OS_YAML"
     { set +x; } 2> /dev/null
   done
@@ -32,8 +32,12 @@ script: |
       OS_JSON_REM="{{ $tgt_prefix }}-${TARGET}.json"
       set -x
       scp "$OS_JSON_LOC" "core@${TARGET}:${OS_JSON_REM}"
+      { set +x; } 2> /dev/null
       # systemd-run usage: avoid "ssh connection closed by remote host" error
-      ssh "core@${TARGET}" "sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log -F $OS_JSON_REM && sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'"
+      KEEP_PATHS_EXTRA=""
+      [ "$I12E_KEEP_IMAGES" = "1" ] && KEEP_PATHS_EXTRA="/var/lib/rancher/k3s/agent/containerd"
+      set -x
+      ssh "core@${TARGET}" "sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log $KEEP_PATHS_EXTRA -F $OS_JSON_REM && sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'"
       { set +x; } 2> /dev/null
     else
       echo "==== ${TARGET}: OFF ===="

@@ -14,7 +14,7 @@
 
 ## Install
 ```
-helm upgrade --install -n genesis --create-namespace genesis genesis
+helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
 ```
 
 ## Uninstall
