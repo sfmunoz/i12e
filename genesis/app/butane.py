@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from os import getenv
+from sys import stdout
 from jinja2 import Environment, PackageLoader, select_autoescape
 import yaml, json
 from subprocess import Popen, PIPE
@@ -25,12 +26,13 @@ class Butane(object):
         self.__tpl = self.__env.get_template("flatcar.yaml")
         with open("/ssh_authorized_key","r") as fp:
             self.__ssh_authorized_key = fp.read().strip()
+        self.__fp = stdout
 
     def __buf_print(self,buf,prefix=""):
         if self.__output != O_DEBUG:
             return
         for line in buf.strip().split("\n"):
-            print("{0}{1}".format(prefix,line))
+            self.__fp.write("{0}{1}\n".format(prefix,line))
 
     def __ignition(self):
         buf = self.__tpl.render(
@@ -49,12 +51,14 @@ class Butane(object):
         buf2 = b64encode(compress(buf.encode())).decode()
         cmd = "set -x -e -o pipefail ; flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F <(base64 -d <<< \"" + buf2 + "\" | gunzip) ; systemd-run bash -c 'sleep 1 ; systemctl reboot'"
         cmd2 = b64encode(compress(cmd.encode())).decode()
-        print("base64 -d <<< \"" + cmd2 + "\" | gunzip | sudo bash")
+        self.__fp.write("base64 -d <<< \"" + cmd2 + "\" | gunzip | sudo bash")
+        self.__fp.flush()
 
     def __inject(self):
         buf1 = self.__ignition()
         if self.__output == O_IGNITION:
-            print(buf1)
+            self.__fp.write(buf1)
+            self.__fp.flush()
             return
         if self.__output == O_BASH:
             self.__bash(buf1)
