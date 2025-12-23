@@ -48,9 +48,10 @@ class Butane(object):
         return odata.decode().strip()
 
     def __bash(self,buf):
+        config_ign = "/oem/config.ign"
         cmd = " ; ".join([
             "set -x -e -o pipefail",
-            "rm -fv /oem/config.ign",
+            "rm -fv {0}".format(config_ign),
             " | ".join([
                 "base64 -d <<< \"" + b64encode(compress(buf.encode())).decode() + "\"",
                 "gunzip",
@@ -65,7 +66,8 @@ class Butane(object):
                     "/dev/stdin",
                 ]),
             ]),
-            "jq < /oem/config.ign",
+            "test -s {0}".format(config_ign),
+            "jq < {0}".format(config_ign),
             "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
         ])
         cmd2 = " | ".join([
