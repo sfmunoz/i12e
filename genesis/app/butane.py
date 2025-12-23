@@ -52,7 +52,11 @@ class Butane(object):
         cmd = " ; ".join([
             "set -x -e -o pipefail",
             "rm -fv /oem/config.ign",
-            "base64 -d <<< \"" + buf2 + "\" | gunzip | flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F /dev/stdin",
+            " | ".join([
+                "base64 -d <<< \"" + buf2 + "\"",
+                "gunzip",
+                "flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F /dev/stdin",
+            ]),
             "jq < /oem/config.ign",
             "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
         ])
