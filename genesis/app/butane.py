@@ -49,7 +49,13 @@ class Butane(object):
 
     def __bash(self,buf):
         buf2 = b64encode(compress(buf.encode())).decode()
-        cmd = "set -x -e -o pipefail ; flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F <(base64 -d <<< \"" + buf2 + "\" | gunzip) ; systemd-run bash -c 'sleep 1 ; systemctl reboot'"
+        cmd = " ; ".join([
+            "set -x -e -o pipefail",
+            "rm -fv /oem/config.ign",
+            "base64 -d <<< \"" + buf2 + "\" | gunzip | flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F /dev/stdin",
+            "jq < /oem/config.ign",
+            "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
+        ])
         cmd2 = b64encode(compress(cmd.encode())).decode()
         self.__fp.write("base64 -d <<< \"" + cmd2 + "\" | gunzip | sudo bash")
         self.__fp.flush()
