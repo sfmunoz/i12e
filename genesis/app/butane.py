@@ -68,8 +68,12 @@ class Butane(object):
             "jq < /oem/config.ign",
             "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
         ])
-        cmd2 = b64encode(compress(cmd.encode())).decode()
-        self.__fp.write("base64 -d <<< \"" + cmd2 + "\" | gunzip | sudo bash")
+        cmd2 = " | ".join([
+            "base64 -d <<< \"" + b64encode(compress(cmd.encode())).decode() + "\"",
+            "gunzip",
+            "sudo bash",
+        ])
+        self.__fp.write(cmd2)
         self.__fp.flush()
 
     def __inject(self):
