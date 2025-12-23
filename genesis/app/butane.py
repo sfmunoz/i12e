@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
+from os import getenv
 from jinja2 import Environment, PackageLoader, select_autoescape
 import yaml, json
 from subprocess import Popen, PIPE
 from logging import getLogger
 from datetime import datetime, timedelta, UTC
+from base64 import b64encode
+from gzip import compress
 log = getLogger(__name__)
+
+O_BASH = 0
+O_IGNITION = 1
+O_DEBUG = 2
 
 class Butane(object):
     def __init__(self,target):
         self.__target = target
+        e = getenv("GENESIS_OUTPUT")
+        self.__output = O_IGNITION if e == "ignition" else O_DEBUG if e == "debug" else O_BASH
         self.__env = Environment(
             loader = PackageLoader("genesis"),
             autoescape = select_autoescape(),
@@ -18,6 +27,8 @@ class Butane(object):
             self.__ssh_authorized_key = fp.read().strip()
 
     def __buf_print(self,buf,prefix=""):
+        if self.__output != O_DEBUG:
+            return
         for line in buf.strip().split("\n"):
             print("{0}{1}".format(prefix,line))
 
@@ -34,8 +45,20 @@ class Butane(object):
             raise Exception("'{0}' command failed: {1}".format(" ".join(cmd),edata.decode().strip()))
         return odata.decode().strip()
 
+    def __bash(self,buf):
+        buf2 = b64encode(compress(buf.encode())).decode()
+        cmd = "set -x -e -o pipefail ; flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F <(base64 -d <<< \"" + buf2 + "\" | gunzip) ; systemd-run bash -c 'sleep 1 ; systemctl reboot'"
+        cmd2 = b64encode(compress(cmd.encode())).decode()
+        print("base64 -d <<< \"" + cmd2 + "\" | gunzip | sudo bash")
+
     def __inject(self):
         buf1 = self.__ignition()
+        if self.__output == O_IGNITION:
+            print(buf1)
+            return
+        if self.__output == O_BASH:
+            self.__bash(buf1)
+            return
         js = json.loads(buf1)
         buf2 = json.dumps(js,indent=2,sort_keys=True)
         self.__buf_print(buf2,"<ign> ")
