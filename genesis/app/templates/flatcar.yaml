@@ -14,7 +14,7 @@ systemd:
       Type=oneshot
       Restart=on-failure
       RemainAfterExit=true
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -s - server'
+      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.34.3+k3s1" sh -'
       [Install]
       WantedBy=multi-user.target
 passwd:
