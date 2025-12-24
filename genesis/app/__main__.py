@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-from sys import stderr
+import sys
 from os import getenv
 from logging import getLogger, basicConfig, INFO
 import kopf
 from kubernetes import client, config
 from .install import GenesisInstall
+from .butane import Butane
 
-basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=stderr)
+basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
+
+genesis_target = getenv("GENESIS_TARGET")
+
+if genesis_target is not None and genesis_target != "":
+    Butane(genesis_target).run()
+    sys.exit(0)
+
 #config.load_kube_config()
 config.load_incluster_config()
 

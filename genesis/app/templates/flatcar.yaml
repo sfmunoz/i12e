@@ -1,5 +1,51 @@
 variant: flatcar
 version: 1.0.0
+systemd:
+  units:
+  - name: k3s-install.service
+    enabled: true
+    contents: |
+      [Unit]
+      Description=K3s install
+      Wants=network-online.target
+      After=network-online.target
+      ConditionFirstBoot=yes
+      [Service]
+      Type=oneshot
+      Restart=on-failure
+      RemainAfterExit=true
+      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.34.3+k3s1" sh -'
+      [Install]
+      WantedBy=multi-user.target
+storage:
+  files:
+  - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
+    overwrite: true
+    mode: 0600
+    contents:
+      inline: |
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: genesis
+          namespace: kube-system
+        spec:
+          chart: oci://ghcr.io/sfmunoz/genesis
+          version: "0.1.0"
+          targetNamespace: genesis
+          createNamespace: true
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChartConfig
+        metadata:
+          name: genesis
+          namespace: kube-system
+        spec:
+          valuesContent: |-
+            env:
+              dev:
+                ssh_authorized_keys:
+                - "{{ ssh_authorized_key }}"
 passwd:
   users:
   - name: core
