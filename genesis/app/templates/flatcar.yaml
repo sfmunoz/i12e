@@ -17,6 +17,23 @@ systemd:
       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.34.3+k3s1" sh -'
       [Install]
       WantedBy=multi-user.target
+storage:
+  files:
+  - path: /var/lib/rancher/k3s/server/manifests/prometheus.yaml
+    overwrite: true
+    mode: 0600
+    contents:
+      inline: |
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChart
+        metadata:
+          name: prometheus
+          namespace: kube-system
+        spec:
+          repo: https://prometheus-community.github.io/helm-charts
+          chart: prometheus
+          targetNamespace: mon
+          createNamespace: true
 passwd:
   users:
   - name: core
