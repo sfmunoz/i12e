@@ -10,15 +10,16 @@ from base64 import b64encode
 from gzip import compress
 log = getLogger(__name__)
 
-O_BASH = 0
-O_IGNITION = 1
-O_DEBUG = 2
+O_BASH_B64 = 0
+O_BASH_RAW = 1
+O_IGNITION = 2
+O_DEBUG = 3
 
 class Butane(object):
     def __init__(self,target):
         self.__target = target
         e = getenv("GENESIS_OUTPUT")
-        self.__output = O_IGNITION if e == "ignition" else O_DEBUG if e == "debug" else O_BASH
+        self.__output = O_DEBUG if e == "debug" else O_IGNITION if e == "ignition" else O_BASH_RAW if e == "bash_raw" else O_BASH_B64
         self.__env = Environment(
             loader = PackageLoader("genesis"),
             autoescape = select_autoescape(),
@@ -70,12 +71,15 @@ class Butane(object):
             "jq < {0}".format(config_ign),
             "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
         ])
-        cmd2 = " | ".join([
-            "base64 -d <<< \"" + b64encode(compress(cmd.encode())).decode() + "\"",
-            "gunzip",
-            "sudo bash",
-        ])
-        self.__fp.write(cmd2)
+        if self.__output == O_BASH_RAW:
+            self.__fp.write(cmd)
+        else:
+            cmd2 = " | ".join([
+                "base64 -d <<< \"" + b64encode(compress(cmd.encode())).decode() + "\"",
+                "gunzip",
+                "sudo bash",
+            ])
+            self.__fp.write(cmd2)
         self.__fp.flush()
 
     def __inject(self):
@@ -84,7 +88,7 @@ class Butane(object):
             self.__fp.write(buf1)
             self.__fp.flush()
             return
-        if self.__output == O_BASH:
+        if self.__output in [O_BASH_B64,O_BASH_RAW]:
             self.__bash(buf1)
             return
         js = json.loads(buf1)
