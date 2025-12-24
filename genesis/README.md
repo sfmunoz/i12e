@@ -3,6 +3,7 @@
 - [References](#references)
 - [Install](#install)
 - [Uninstall](#uninstall)
+- [Helm OCI package build](#helm-oci-package-build)
 
 ## References
 
@@ -27,4 +28,38 @@ kubectl delete namespaces genesis
 kubectl delete crd kopfpeerings.kopf.dev
 kubectl delete crd clusterkopfpeerings.kopf.dev
 kubectl delete crd gdeployments.sfmunoz.com
+```
+
+## Helm OCI package build
+
+**(1)** Build the package:
+```
+$ helm package genesis
+Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.1.0.tgz
+```
+**(2)** Generate TOKEN with `write:packages` permissions (**Settings > Developer settings > Personal access tokens**)
+
+**(3)** Login to **ghcr.io** using that token (it's saved to **~/.config/helm/registry/config.json**):
+```
+$ helm registry login ghcr.io --username sfmunoz
+Password: 
+Login Succeeded
+```
+**(4)** Push:
+```
+$ helm push genesis-0.1.0.tgz oci://ghcr.io/sfmunoz
+Pushed: ghcr.io/sfmunoz/genesis:0.1.0
+Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
+```
+**(5)** Logout (optional):
+```
+$ helm registry logout ghcr.io
+Removing login credentials for ghcr.io
+```
+**(6)** Install
+```
+$ helm install my-release oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+Pulled: ghcr.io/sfmunoz/genesis:0.1.0
+Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
+(... details ...)
 ```
