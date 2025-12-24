@@ -56,7 +56,7 @@ Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
 $ helm registry logout ghcr.io
 Removing login credentials for ghcr.io
 ```
-**(6)** Install
+**(6a)** Install
 ```
 $ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
 Release "genesis" does not exist. Installing it now.
@@ -70,6 +70,12 @@ REVISION: 1
 DESCRIPTION: Install complete
 TEST SUITE: None
 ```
+**(6b)** Install (without secrets):
+```
+$ helm upgrade --install -n genesis --set-json '{"env":{"dev":{"ssh_authorized_keys":["...ssh-public-key here..."]}}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+...
+```
+
 **(7)** (first time) Connect package to repository: **Packages > genesis**
 
 **(8)** (first time) Make the package public: **Packages > genesis > Package settings > Change package visibility**
