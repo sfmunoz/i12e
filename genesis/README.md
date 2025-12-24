@@ -2,9 +2,10 @@
 
 - [References](#references)
 - [Trigger](#trigger)
-- [Install](#install)
-- [Uninstall](#uninstall)
 - [Helm OCI package build](#helm-oci-package-build)
+- [Development](#development)
+  - [Install](#install)
+  - [Uninstall](#uninstall)
 
 ## References
 
@@ -28,23 +29,6 @@ $ ./genesis/run.sh | ssh core@192.168.56.51 bash
 - `GENESIS_OUTPUT=bash_raw ./genesis/run.sh`: like **GENESIS_OUTPUT=bash_b64** but in a readable form. Can be injected to **flatcar** machine as well
 - `GENESIS_OUTPUT=ignition ./genesis/run.sh`: generates ready to be used **ignition** file
 - `GENESIS_OUTPUT=debug ./genesis/run.sh`: shows both generated **butane** and **ignition** files
-
-## Install
-```
-$ helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
-```
-
-## Uninstall
-
-[https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted by Helm
-
-```
-$ helm uninstall -n genesis genesis
-$ kubectl delete namespaces genesis
-$ kubectl delete crd kopfpeerings.kopf.dev
-$ kubectl delete crd clusterkopfpeerings.kopf.dev
-$ kubectl delete crd gdeployments.sfmunoz.com
-```
 
 ## Helm OCI package build
 
@@ -95,3 +79,22 @@ $ helm upgrade --install -n genesis --set-json '{"env":{"dev":{"ssh_authorized_k
 **(7)** (first time) Connect package to repository: **Packages > genesis**
 
 **(8)** (first time) Make the package public: **Packages > genesis > Package settings > Change package visibility**
+
+## Development
+
+### Install
+```
+$ helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
+```
+
+### Uninstall
+
+[https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted by Helm
+
+```
+$ helm uninstall -n genesis genesis
+$ kubectl delete namespaces genesis
+$ kubectl delete crd kopfpeerings.kopf.dev
+$ kubectl delete crd clusterkopfpeerings.kopf.dev
+$ kubectl delete crd gdeployments.sfmunoz.com
+```
