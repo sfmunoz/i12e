@@ -58,13 +58,13 @@ Removing login credentials for ghcr.io
 ```
 **(6)** Install
 ```
-$ helm upgrade --install -f secrets://secrets.yaml genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
 Release "genesis" does not exist. Installing it now.
 Pulled: ghcr.io/sfmunoz/genesis:0.1.0
 Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
 NAME: genesis
-LAST DEPLOYED: Wed Dec 24 11:13:14 2025
-NAMESPACE: default
+LAST DEPLOYED: Wed Dec 24 11:15:42 2025
+NAMESPACE: genesis
 STATUS: deployed
 REVISION: 1
 DESCRIPTION: Install complete
