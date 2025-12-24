@@ -15,7 +15,7 @@
 
 ## Install
 ```
-helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
+$ helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
 ```
 
 ## Uninstall
@@ -23,11 +23,11 @@ helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml g
 [https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted by Helm
 
 ```
-helm uninstall -n genesis genesis
-kubectl delete namespaces genesis
-kubectl delete crd kopfpeerings.kopf.dev
-kubectl delete crd clusterkopfpeerings.kopf.dev
-kubectl delete crd gdeployments.sfmunoz.com
+$ helm uninstall -n genesis genesis
+$ kubectl delete namespaces genesis
+$ kubectl delete crd kopfpeerings.kopf.dev
+$ kubectl delete crd clusterkopfpeerings.kopf.dev
+$ kubectl delete crd gdeployments.sfmunoz.com
 ```
 
 ## Helm OCI package build
@@ -51,7 +51,7 @@ $ helm push genesis-0.1.0.tgz oci://ghcr.io/sfmunoz
 Pushed: ghcr.io/sfmunoz/genesis:0.1.0
 Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
 ```
-**(5)** Logout (optional):
+**(5)** (optional) Logout:
 ```
 $ helm registry logout ghcr.io
 Removing login credentials for ghcr.io
@@ -63,3 +63,6 @@ Pulled: ghcr.io/sfmunoz/genesis:0.1.0
 Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
 (... details ...)
 ```
+**(7)** (first time) Connect package to repository: **Packages > genesis**
+
+**(8)** (first time) Make the package public: **Packages > genesis > Package settings > Change package visibility**
