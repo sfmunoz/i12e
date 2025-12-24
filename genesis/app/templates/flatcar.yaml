@@ -19,7 +19,7 @@ systemd:
       WantedBy=multi-user.target
 storage:
   files:
-  - path: /var/lib/rancher/k3s/server/manifests/prometheus.yaml
+  - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
     overwrite: true
     mode: 0600
     contents:
@@ -27,13 +27,25 @@ storage:
         apiVersion: helm.cattle.io/v1
         kind: HelmChart
         metadata:
-          name: prometheus
+          name: genesis
           namespace: kube-system
         spec:
-          repo: https://prometheus-community.github.io/helm-charts
-          chart: prometheus
-          targetNamespace: mon
+          chart: oci://ghcr.io/sfmunoz/genesis
+          version: "0.1.0"
+          targetNamespace: genesis
           createNamespace: true
+        ---
+        apiVersion: helm.cattle.io/v1
+        kind: HelmChartConfig
+        metadata:
+          name: genesis
+          namespace: kube-system
+        spec:
+          valuesContent: |-
+            env:
+              dev:
+                ssh_authorized_keys:
+                - "{{ ssh_authorized_key }}"
 passwd:
   users:
   - name: core
