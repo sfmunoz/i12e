@@ -58,7 +58,7 @@ Removing login credentials for ghcr.io
 ```
 **(6)** Install
 ```
-$ helm install genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
 Pulled: ghcr.io/sfmunoz/genesis:0.1.0
 Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
 (... details ...)
