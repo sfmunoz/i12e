@@ -1,6 +1,7 @@
 # genesis
 
 - [References](#references)
+- [Trigger](#trigger)
 - [Install](#install)
 - [Uninstall](#uninstall)
 - [Helm OCI package build](#helm-oci-package-build)
@@ -12,6 +13,21 @@
 - https://github.com/nolar/kopf
   - https://github.com/nolar/kopf/tree/main/examples/01-minimal
 - https://helm.sh/docs/chart_best_practices/custom_resource_definitions/
+
+## Trigger
+
+This process triggers **k3s + genesis** installation to a **flatcar** machine in order to turn it into a ready to be used server:
+
+Inject `./genesis/run.sh` output to a **flatcar** machine:
+```
+$ ./genesis/run.sh | ssh core@192.168.56.51 bash
+```
+**GENESIS_OUTPUT** env var can be use to change generated data:
+
+- `GENESIS_OUTPUT=bash_b64 ./genesis/run.sh` is the default, like `./genesis/run.sh`: generates script to be injected to **flatcar** machine in a compact way (gzip + base64 applied)
+- `GENESIS_OUTPUT=bash_raw ./genesis/run.sh`: like **GENESIS_OUTPUT=bash_b64** but in a readable form. Can be injected to **flatcar** machine as well
+- `GENESIS_OUTPUT=ignition ./genesis/run.sh`: generates ready to be used **ignition** file
+- `GENESIS_OUTPUT=debug ./genesis/run.sh`: shows both generated **butane** and **ignition** files
 
 ## Install
 ```
