@@ -52,12 +52,12 @@ class Butane(object):
         config_ign = "/oem/config.ign"
         cmd = " ; ".join([
             "set -x -e -o pipefail",
-            "rm -fv {0}".format(config_ign),
+            "sudo rm -fv {0}".format(config_ign),
             " | ".join([
                 "base64 -d <<< \"" + b64encode(compress(buf.encode())).decode() + "\"",
                 "gunzip",
                 " ".join([
-                    "flatcar-reset",
+                    "sudo flatcar-reset",
                     "--keep-machine-id",
                     "--keep-paths",
                     "'/etc/ssh/ssh_host_.*'",
@@ -67,9 +67,9 @@ class Butane(object):
                     "/dev/stdin",
                 ]),
             ]),
-            "test -s {0}".format(config_ign),
-            "jq < {0}".format(config_ign),
-            "systemd-run bash -c 'sleep 1 ; systemctl reboot'",
+            "sudo test -s {0}".format(config_ign),
+            "sudo jq . {0}".format(config_ign),
+            "sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'",
         ])
         if self.__output == O_BASH_RAW:
             self.__fp.write(cmd)
@@ -77,7 +77,7 @@ class Butane(object):
             cmd2 = " | ".join([
                 "base64 -d <<< \"" + b64encode(compress(cmd.encode())).decode() + "\"",
                 "gunzip",
-                "sudo bash",
+                "bash",
             ])
             self.__fp.write(cmd2)
         self.__fp.flush()
