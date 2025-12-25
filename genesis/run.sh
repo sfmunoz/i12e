@@ -27,7 +27,7 @@ esac
 cd "$(dirname "$0")"
 
 exec docker run -i$T_OPT --rm \
-  -v "${SSH_PUBKEY_FILE}:/ssh_authorized_key:ro" \
+  -v "${SSH_PUBKEY_FILE}:/ssh_authorized_keys:ro" \
   -v ./app:/app/genesis:ro \
   -e PYTHONUNBUFFERED=1 \
   -e PYTHONPATH=/app \

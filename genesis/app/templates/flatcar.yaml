@@ -42,12 +42,15 @@ storage:
           namespace: kube-system
         spec:
           valuesContent: |-
-            env:
-              dev:
-                ssh_authorized_keys:
-                - "{{ ssh_authorized_key }}"
+            os:
+              ssh_authorized_keys:
+              {%- for k in ssh_authorized_keys %}
+              - "{{ k }}"
+              {% endfor %}
 passwd:
   users:
   - name: core
     ssh_authorized_keys:
-    - "{{ ssh_authorized_key }}"
+    {%- for k in ssh_authorized_keys %}
+    - "{{ k }}"
+    {% endfor %}

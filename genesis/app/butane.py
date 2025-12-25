@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from os import getenv
 from sys import stdout
-from jinja2 import Environment, PackageLoader, select_autoescape
+from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 import yaml, json
 from subprocess import Popen, PIPE
 from logging import getLogger
@@ -21,11 +21,17 @@ class Butane(object):
         self.__output = O_DEBUG if e == "debug" else O_IGNITION if e == "ignition" else O_BASH_RAW if e == "bash_raw" else O_BASH_B64
         self.__env = Environment(
             loader = PackageLoader("genesis"),
+            undefined = StrictUndefined,
             autoescape = select_autoescape(),
         )
         self.__tpl = self.__env.get_template("flatcar.yaml")
-        with open("/ssh_authorized_key","r") as fp:
-            self.__ssh_authorized_key = fp.read().strip()
+        with open("/ssh_authorized_keys","r") as fp:
+            buf = fp.read().strip()
+            if len(buf) < 1:
+                raise Exception("empty '/ssh_authorized_keys'")
+        self.__ssh_authorized_keys = buf.split("\n")
+        if len(self.__ssh_authorized_keys) < 1:
+            raise Exception("'ssh_authorized_keys' list is empty")
         self.__fp = stdout
 
     def __buf_print(self,buf,prefix=""):
@@ -36,7 +42,7 @@ class Butane(object):
 
     def __ignition(self):
         buf = self.__tpl.render(
-            ssh_authorized_key = self.__ssh_authorized_key,
+            ssh_authorized_keys = self.__ssh_authorized_keys,
         )
         self.__buf_print(buf,"<but> ")
         yaml.safe_load(buf)  # return value ignored: check it is valid

@@ -72,7 +72,7 @@ TEST SUITE: None
 ```
 **(6b)** Install (without secrets):
 ```
-$ helm upgrade --install -n genesis --set-json '{"env":{"dev":{"ssh_authorized_keys":["...ssh-public-key here..."]}}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install -n genesis --set-json '{"os":{"ssh_authorized_keys":["...ssh-public-key here..."]}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
 ...
 ```
 
