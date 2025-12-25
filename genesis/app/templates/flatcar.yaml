@@ -14,7 +14,7 @@ systemd:
       Type=oneshot
       Restart=on-failure
       RemainAfterExit=true
-      Environment=INSTALL_K3S_VERSION=v1.34.3+k3s1
+      Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
       [Install]
       WantedBy=multi-user.target

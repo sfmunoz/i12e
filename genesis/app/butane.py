@@ -17,6 +17,9 @@ O_DEBUG = 3
 class Butane(object):
     def __init__(self,target):
         self.__target = target
+        self.__k3s_version = getenv("GENESIS_K3S_VERSION","")
+        if len(self.__k3s_version) < 1:
+            raise Exception("undefined 'GENESIS_K3S_VERSION'")
         e = getenv("GENESIS_OUTPUT")
         self.__output = O_DEBUG if e == "debug" else O_IGNITION if e == "ignition" else O_BASH_RAW if e == "bash_raw" else O_BASH_B64
         self.__env = Environment(
@@ -42,6 +45,7 @@ class Butane(object):
 
     def __ignition(self):
         buf = self.__tpl.render(
+            k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
         )
         self.__buf_print(buf,"<but> ")
