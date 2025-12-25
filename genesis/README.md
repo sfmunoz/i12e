@@ -35,11 +35,11 @@ $ ./genesis/run.sh | ssh core@192.168.56.51 bash
 **(1)** Build the package:
 ```
 $ helm package genesis
-Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.1.0.tgz
+Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.2.2.tgz
 ```
 **(2)** Generate TOKEN with `write:packages` permissions (**Settings > Developer settings > Personal access tokens**)
 
-**(3)** Login to **ghcr.io** using that token (it's saved to **~/.config/helm/registry/config.json**):
+**(3)** (optional if **~/.docker/config.json → credHelpers → ghcr.io** is configured) Login to **ghcr.io** using that token (it's saved to **~/.config/helm/registry/config.json**):
 ```
 $ helm registry login ghcr.io --username sfmunoz
 Password: 
@@ -47,9 +47,9 @@ Login Succeeded
 ```
 **(4)** Push:
 ```
-$ helm push genesis-0.1.0.tgz oci://ghcr.io/sfmunoz
-Pushed: ghcr.io/sfmunoz/genesis:0.1.0
-Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
+$ helm push genesis-0.2.2.tgz oci://ghcr.io/sfmunoz
+Pushed: ghcr.io/sfmunoz/genesis:0.2.2
+Digest: sha256:...
 ```
 **(5)** (optional) Logout:
 ```
@@ -58,22 +58,14 @@ Removing login credentials for ghcr.io
 ```
 **(6a)** Install
 ```
-$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.2.2
 Release "genesis" does not exist. Installing it now.
-Pulled: ghcr.io/sfmunoz/genesis:0.1.0
-Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
-NAME: genesis
-LAST DEPLOYED: Wed Dec 24 11:15:42 2025
-NAMESPACE: genesis
-STATUS: deployed
-REVISION: 1
-DESCRIPTION: Install complete
-TEST SUITE: None
+(...)
 ```
 **(6b)** Install (without secrets):
 ```
-$ helm upgrade --install -n genesis --set-json '{"env":{"dev":{"ssh_authorized_keys":["...ssh-public-key here..."]}}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
-...
+$ helm upgrade --install -n genesis --set-json '{"os":{"ssh_authorized_keys":["...ssh-public-key here..."]}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.2.2
+(...)
 ```
 
 **(7)** (first time) Connect package to repository: **Packages > genesis**

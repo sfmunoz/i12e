@@ -1,1 +1,5 @@
-peering_name: gpeering
+os:
+  ssh_authorized_keys: []
+
+kopf:
+  peering_name: gpeering

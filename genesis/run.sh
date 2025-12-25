@@ -5,6 +5,7 @@ function error_and_exit {
   exit 1
 }
 
+[ "$GENESIS_K3S_VERSION" = "" ] && GENESIS_K3S_VERSION="v1.34.3+k3s1"
 [ "$GENESIS_OUTPUT" = "" ] && GENESIS_OUTPUT="bash"
 [ "$GENESIS_TARGET" = "" ] && GENESIS_TARGET="192.168.56.51"
 
@@ -27,11 +28,12 @@ esac
 cd "$(dirname "$0")"
 
 exec docker run -i$T_OPT --rm \
-  -v "${SSH_PUBKEY_FILE}:/ssh_authorized_key:ro" \
+  -v "${SSH_PUBKEY_FILE}:/ssh_authorized_keys:ro" \
   -v ./app:/app/genesis:ro \
-  -e PYTHONUNBUFFERED=1 \
-  -e PYTHONPATH=/app \
-  -e GENESIS_OUTPUT=$GENESIS_OUTPUT \
-  -e GENESIS_TARGET=$GENESIS_TARGET \
+  -e "PYTHONUNBUFFERED=1" \
+  -e "PYTHONPATH=/app" \
+  -e "GENESIS_K3S_VERSION=$GENESIS_K3S_VERSION" \
+  -e "GENESIS_OUTPUT=$GENESIS_OUTPUT" \
+  -e "GENESIS_TARGET=$GENESIS_TARGET" \
   ghcr.io/sfmunoz/k8s-bulk:v1.6.0 \
   "$@"

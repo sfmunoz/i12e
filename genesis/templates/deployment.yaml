@@ -31,8 +31,8 @@ spec:
           value: /app
         - name: CODE_SHA256SUM
           value: {{ include "genesis.code_sha256sum" . | quote }}
-        - name: VALUES_PEERING_NAME
-          value: {{ .Values.peering_name | quote }}
+        - name: VALUES_KOPF_PEERING_NAME
+          value: {{ .Values.kopf.peering_name | quote }}
         command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis

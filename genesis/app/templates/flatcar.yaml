@@ -14,7 +14,8 @@ systemd:
       Type=oneshot
       Restart=on-failure
       RemainAfterExit=true
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="v1.34.3+k3s1" sh -'
+      Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
+      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
       [Install]
       WantedBy=multi-user.target
 storage:
@@ -31,7 +32,7 @@ storage:
           namespace: kube-system
         spec:
           chart: oci://ghcr.io/sfmunoz/genesis
-          version: "0.1.0"
+          version: "0.2.2"
           targetNamespace: genesis
           createNamespace: true
         ---
@@ -42,12 +43,15 @@ storage:
           namespace: kube-system
         spec:
           valuesContent: |-
-            env:
-              dev:
-                ssh_authorized_keys:
-                - "{{ ssh_authorized_key }}"
+            os:
+              ssh_authorized_keys:
+              {%- for k in ssh_authorized_keys %}
+              - "{{ k }}"
+              {% endfor %}
 passwd:
   users:
   - name: core
     ssh_authorized_keys:
-    - "{{ ssh_authorized_key }}"
+    {%- for k in ssh_authorized_keys %}
+    - "{{ k }}"
+    {% endfor %}
