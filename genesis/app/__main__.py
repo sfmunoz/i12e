@@ -45,7 +45,7 @@ def on_timer(spec, **kwargs):
 
 def main():
     log.info("==== genesis begin ====")
-    kopf.run(namespace=Namespace.get(),peering_name=getenv("VALUES_PEERING_NAME"))
+    kopf.run(namespace=Namespace.get(),peering_name=getenv("VALUES_KOPF_PEERING_NAME"))
     log.info("---- genesis end ----")
 
 if __name__ == "__main__":

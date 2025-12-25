@@ -1,1 +1,2 @@
-peering_name: gpeering
+kopf:
+  peering_name: gpeering
