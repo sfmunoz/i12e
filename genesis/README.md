@@ -35,7 +35,7 @@ $ ./genesis/run.sh | ssh core@192.168.56.51 bash
 **(1)** Build the package:
 ```
 $ helm package genesis
-Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.1.0.tgz
+Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.2.0.tgz
 ```
 **(2)** Generate TOKEN with `write:packages` permissions (**Settings > Developer settings > Personal access tokens**)
 
@@ -47,9 +47,9 @@ Login Succeeded
 ```
 **(4)** Push:
 ```
-$ helm push genesis-0.1.0.tgz oci://ghcr.io/sfmunoz
-Pushed: ghcr.io/sfmunoz/genesis:0.1.0
-Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
+$ helm push genesis-0.2.0.tgz oci://ghcr.io/sfmunoz
+Pushed: ghcr.io/sfmunoz/genesis:0.2.0
+Digest: sha256:821642154a8b4a11d2541d67a909e6a7b8e1f983641a2277ccb66c17af1c24c4
 ```
 **(5)** (optional) Logout:
 ```
@@ -58,12 +58,12 @@ Removing login credentials for ghcr.io
 ```
 **(6a)** Install
 ```
-$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.2.0
 Release "genesis" does not exist. Installing it now.
-Pulled: ghcr.io/sfmunoz/genesis:0.1.0
-Digest: sha256:93b32f63dd2d7d13ed4762344f1d9314da9e8a8f66b6c75276f5590c2f73a16b
+Pulled: ghcr.io/sfmunoz/genesis:0.2.0
+Digest: sha256:821642154a8b4a11d2541d67a909e6a7b8e1f983641a2277ccb66c17af1c24c4
 NAME: genesis
-LAST DEPLOYED: Wed Dec 24 11:15:42 2025
+LAST DEPLOYED: Thu Dec 25 12:12:40 2025
 NAMESPACE: genesis
 STATUS: deployed
 REVISION: 1
@@ -72,7 +72,7 @@ TEST SUITE: None
 ```
 **(6b)** Install (without secrets):
 ```
-$ helm upgrade --install -n genesis --set-json '{"os":{"ssh_authorized_keys":["...ssh-public-key here..."]}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.1.0
+$ helm upgrade --install -n genesis --set-json '{"os":{"ssh_authorized_keys":["...ssh-public-key here..."]}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.2.0
 ...
 ```
 
