@@ -32,7 +32,7 @@ storage:
           namespace: kube-system
         spec:
           chart: oci://ghcr.io/sfmunoz/genesis
-          version: "0.2.2"
+          version: "0.3.0"
           targetNamespace: genesis
           createNamespace: true
         ---
