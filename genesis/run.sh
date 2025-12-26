@@ -35,5 +35,5 @@ exec docker run -i$T_OPT --rm \
   -e "GENESIS_K3S_VERSION=$GENESIS_K3S_VERSION" \
   -e "GENESIS_OUTPUT=$GENESIS_OUTPUT" \
   -e "GENESIS_TARGET=$GENESIS_TARGET" \
-  ghcr.io/sfmunoz/k8s-bulk:v1.6.0 \
+  ghcr.io/sfmunoz/k8s-bulk:v1.7.0 \
   "$@"
