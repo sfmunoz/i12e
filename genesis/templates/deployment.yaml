@@ -55,6 +55,8 @@ spec:
         configMap:
           name: genesis
           items:
+          - key: code-blob
+            path: code.blob
           - key: init-py
             path: genesis/__init__.py
           - key: main-py

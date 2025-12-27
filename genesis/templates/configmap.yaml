@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: genesis
 data:
+  code-blob: |
+    {{- include "genesis.code_blob" . | nindent 4 }}
   init-py: |
     {{- .Files.Get "app/__init__.py" | nindent 4 }}
   main-py: |
