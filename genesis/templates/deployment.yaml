@@ -55,6 +55,8 @@ spec:
         configMap:
           name: genesis
           items:
+          - key: entrypoint-py
+            path: entrypoint.py
           - key: code-blob
             path: code.blob
           - key: init-py
