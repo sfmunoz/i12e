@@ -81,29 +81,21 @@ cat
 
 {{- define "genesis.code_blob" -}}
 {{-
-list
-  ( "app/__init__.py" | b64enc )
-  ( .Files.Get "app/__init__.py" | b64enc )
-  ( "app/__main__.py" | b64enc )
-  ( .Files.Get "app/__main__.py" | b64enc )
-  ( "app/butane.py" | b64enc )
-  ( .Files.Get "app/butane.py" | b64enc )
-  ( "app/entrypoint.py" | b64enc )
-  ( .Files.Get "app/entrypoint.py" | b64enc )
-  ( "app/install.py" | b64enc )
-  ( .Files.Get "app/install.py" | b64enc )
-  ( "app/templates/crictl.yaml" | b64enc )
-  ( .Files.Get "app/templates/crictl.yaml" | b64enc )
-  ( "app/templates/flatcar-update.conf" | b64enc )
-  ( .Files.Get "app/templates/flatcar-update.conf" | b64enc )
-  ( "app/templates/flatcar.yaml" | b64enc )
-  ( .Files.Get "app/templates/flatcar.yaml" | b64enc )
-  ( "app/templates/k3s-config.yaml" | b64enc )
-  ( .Files.Get "app/templates/k3s-config.yaml" | b64enc )
-  ( "app/templates/k3s-override.conf" | b64enc )
-  ( .Files.Get "app/templates/k3s-override.conf" | b64enc )
-  ( "app/templates/systemd-genesis.conf" | b64enc )
-  ( .Files.Get "app/templates/systemd-genesis.conf" | b64enc )
-| join "\n"
+$filelist := list
+  "app/__init__.py"
+  "app/__main__.py"
+  "app/butane.py"
+  "app/entrypoint.py"
+  "app/install.py"
+  "app/templates/crictl.yaml"
+  "app/templates/flatcar-update.conf"
+  "app/templates/flatcar.yaml"
+  "app/templates/k3s-config.yaml"
+  "app/templates/k3s-override.conf"
+  "app/templates/systemd-genesis.conf"
 -}}
-{{- end -}}
+{{ range $filelist }}
+{{ . | b64enc }}
+{{ . | $.Files.Get | b64enc }}
+{{- end }}
+{{- end }}
