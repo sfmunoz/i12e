@@ -21,7 +21,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: {{ .Chart.Name }}
-        image: ghcr.io/sfmunoz/k8s-bulk:v1.6.0
+        image: ghcr.io/sfmunoz/k8s-bulk:v1.8.0
         imagePullPolicy: IfNotPresent
         env:
         - name: PYTHONUNBUFFERED
@@ -33,6 +33,10 @@ spec:
           value: {{ include "genesis.code_sha256sum" . | quote }}
         - name: VALUES_KOPF_PEERING_NAME
           value: {{ .Values.kopf.peering_name | quote }}
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         command: ["python3","-m","genesis"]
         volumeMounts:
         - mountPath: /genesis
