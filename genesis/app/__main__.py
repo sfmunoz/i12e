@@ -31,6 +31,18 @@ class Namespace(object):
             raise Exception(f"cannot get namespace from '{fname}'")
         return cls.__ns
 
+def get_node_ip():
+    node_name = getenv("NODE_NAME")
+    if node_name is None or len(node_name) < 1:
+        log.error("'NODE_NAME' is not defined")
+        return None
+    api = client.CoreV1Api()
+    node = api.read_node(node_name)
+    internal_ips = [addr.address for addr in node.status.addresses if addr.type == "InternalIP"]
+    print(internal_ips)
+    log.info("node_name={0}: internal_ips={1}".format(node_name,str(internal_ips)))
+    return internal_ips[0] if len(internal_ips) > 0 and internal_ips[0] is not None else None
+
 @kopf.timer('gdeployments', interval=5.0)
 def on_timer(spec, **kwargs):
     try:
@@ -39,6 +51,8 @@ def on_timer(spec, **kwargs):
         pods = api.list_namespaced_pod(Namespace.get())
         for i,pod in enumerate(pods.items):
             log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
+        node_ip = get_node_ip()
+        log.info("node_ip: {0}".format(node_ip))
         GenesisInstall().run()
     except Exception as e:
         log.error("error: " + str(e))
