@@ -9,6 +9,4 @@ set -x
 curl -sfL -o $TFILE https://github.com/sfmunoz/i12e/releases/download/${VERSION}/i12e
 echo "$SHA256  $TFILE" | sha256sum -c
 mkdir -p /opt/bin
-mv $TFILE /opt/bin/i12e
-chmod 755 /opt/bin/i12e
-chown 0:0 /opt/bin/i12e
+install -o root -g root -m 0755 $TFILE /opt/bin/i12e
