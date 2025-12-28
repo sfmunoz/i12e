@@ -61,19 +61,12 @@ Create the name of the service account to use
 {{- end }}
 {{- end }}
 
+{{- define "genesis.code_blob" -}}
+{{- range $path, $buf :=  .Files.Glob "app/**" -}}
+{{ $path | trimPrefix "app/" | printf "genesis/%s" | b64enc }}|{{ $buf | toString | b64enc }}
+{{ end }}
+{{- end }}
+
 {{- define "genesis.code_sha256sum" -}}
-{{-
-cat
-  ( .Files.Get "app/__init__.py" )
-  ( .Files.Get "app/__main__.py" )
-  ( .Files.Get "app/butane.py" )
-  ( .Files.Get "app/install.py" )
-  ( .Files.Get "app/templates/crictl.yaml" )
-  ( .Files.Get "app/templates/flatcar-update.conf" )
-  ( .Files.Get "app/templates/flatcar.yaml" )
-  ( .Files.Get "app/templates/k3s-config.yaml" )
-  ( .Files.Get "app/templates/k3s-override.conf" )
-  ( .Files.Get "app/templates/systemd-genesis.conf" )
-  | sha256sum
--}}
-{{- end -}}
+{{- include "genesis.code_blob" . | sha256sum }}
+{{- end }}
