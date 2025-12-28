@@ -1,6 +1,6 @@
 all: bin/i12e
 
-bin/i12e: ./cmd/i12e/main.go
+bin/i12e: ./cmd/i12e/main.go ./cmd/i12e/install.go
 	go build -buildvcs=false -ldflags="-s -w" -o bin/i12e ./cmd/i12e
 
 clean:

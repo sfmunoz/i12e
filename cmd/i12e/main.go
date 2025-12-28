@@ -1,16 +1,24 @@
-//
-// build:
-//   $ go build -buildvcs=false ./cmd/i12e
-//
-
 package main
 
-import "github.com/sfmunoz/logit"
+import (
+	"os"
+	"time"
+
+	"github.com/sfmunoz/logit"
+)
 
 var log = logit.Logit().
-	WithLevel(logit.LevelNotice).
+	WithLevel(logit.LevelInfo).
 	With("app", "i12e")
 
 func main() {
-	log.Error("i12e not implemented yet")
+	if os.Getenv("I12E_INSTALL") == "1" {
+		install()
+		return
+	}
+	slumber := 3 * time.Second
+	for {
+		log.Info("i12e running...", "slumber", slumber)
+		time.Sleep(slumber)
+	}
 }
