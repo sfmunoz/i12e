@@ -5,10 +5,12 @@
 
 package main
 
-import (
-	"fmt"
-)
+import "github.com/sfmunoz/logit"
+
+var log = logit.Logit().
+	WithLevel(logit.LevelNotice).
+	With("app", "i12e")
 
 func main() {
-	fmt.Println("i12e not implemented yet")
+	log.Error("i12e not implemented yet")
 }
