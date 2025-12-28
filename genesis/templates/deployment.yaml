@@ -37,12 +37,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        command: ["sh","-c"]
-        args:
-        - |
-          set -x -e -o pipefail
-          python3 /entrypoint/entrypoint.py
-          exec python3 -m genesis
+        command: ["python3","/entrypoint/entrypoint.py"]
         volumeMounts:
         - mountPath: /genesis
           name: vol-host
