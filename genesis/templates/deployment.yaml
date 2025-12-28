@@ -37,13 +37,13 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        command: ["python3","-m","genesis"]
+        command: ["python3","/entrypoint/entrypoint.py"]
         volumeMounts:
         - mountPath: /genesis
           name: vol-host
           readOnly: false
-        - mountPath: /app
-          name: app-vol
+        - mountPath: /entrypoint
+          name: entrypoint-vol
         - mountPath: /sec
           name: secret-vol
       volumes:
@@ -51,30 +51,14 @@ spec:
         hostPath:
           path: /
           type: Directory
-      - name: app-vol
+      - name: entrypoint-vol
         configMap:
           name: genesis
           items:
-          - key: init-py
-            path: genesis/__init__.py
-          - key: main-py
-            path: genesis/__main__.py
-          - key: butane-py
-            path: genesis/butane.py
-          - key: install-py
-            path: genesis/install.py
-          - key: crictl-yaml
-            path: genesis/templates/crictl.yaml
-          - key: flatcar-update-conf
-            path: genesis/templates/flatcar-update.conf
-          - key: flatcar-yaml
-            path: genesis/templates/flatcar.yaml
-          - key: k3s-config-yaml
-            path: genesis/templates/k3s-config.yaml
-          - key: k3s-override-conf
-            path: genesis/templates/k3s-override.conf
-          - key: systemd-genesis-conf
-            path: genesis/templates/systemd-genesis.conf
+          - key: entrypoint-py
+            path: entrypoint.py
+          - key: code-blob
+            path: code.blob
       - name: secret-vol
         secret:
           secretName: genesis
