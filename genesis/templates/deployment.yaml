@@ -41,7 +41,7 @@ spec:
         args:
         - |
           set -x -e -o pipefail
-          python3 /entrypoint/entrypoint.py /entrypoint/code.blob /app
+          python3 /entrypoint/entrypoint.py
           mv /app/app /app/genesis
           exec python3 -m genesis
         volumeMounts:
