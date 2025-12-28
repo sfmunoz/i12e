@@ -63,7 +63,7 @@ Create the name of the service account to use
 
 {{- define "genesis.code_blob" -}}
 {{- range $path, $buf :=  .Files.Glob "app/**" -}}
-{{ $path | b64enc }}|{{ $buf | toString | b64enc }}
+{{ $path | trimPrefix "app/" | printf "genesis/%s" | b64enc }}|{{ $buf | toString | b64enc }}
 {{ end }}
 {{- end }}
 
