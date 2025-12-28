@@ -62,22 +62,8 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "genesis.code_blob" -}}
-{{-
-$filelist := list
-  "app/__init__.py"
-  "app/__main__.py"
-  "app/butane.py"
-  "app/entrypoint.py"
-  "app/install.py"
-  "app/templates/crictl.yaml"
-  "app/templates/flatcar-update.conf"
-  "app/templates/flatcar.yaml"
-  "app/templates/k3s-config.yaml"
-  "app/templates/k3s-override.conf"
-  "app/templates/systemd-genesis.conf"
--}}
-{{- range $filelist -}}
-{{ . | b64enc }}|{{ . | $.Files.Get | b64enc }}
+{{- range $path, $_ :=  .Files.Glob "app/**" -}}
+{{ $path | b64enc }}|{{ $path | $.Files.Get | b64enc }}
 {{ end }}
 {{- end }}
 
