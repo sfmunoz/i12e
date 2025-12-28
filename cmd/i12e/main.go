@@ -1,3 +1,8 @@
+//
+// build:
+//   $ go build -buildvcs=false ./cmd/i12e
+//
+
 package main
 
 import (
