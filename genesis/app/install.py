@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 from os.path import isfile, islink, isdir
 from os import unlink, symlink, readlink, fchmod, mkdir, chmod
-from subprocess import call
+from json import loads as json_loads, dumps as json_dumps
+from subprocess import call, Popen, PIPE
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 log = getLogger(__name__)
@@ -224,9 +225,20 @@ class GenesisInstall(object):
         if ret != 0:
             raise Exception("'{0}' command failed: ret={1}".format(" ".join(cmd),ret))
 
+    def __k3s_backup(self):
+        cmd = ["chroot",self.__base,"/opt/bin/k3s","etcd-snapshot","-c","/dev/null","ls","-o","json"]
+        p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
+        (odata,edata) = p.communicate()
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed: {1}".format(" ".join(cmd),edata.decode().strip()))
+        js = json_loads(odata.decode().strip())
+        for item in js.get("items",[]):
+            log.info("snapshot: " + item.get("spec",{}).get("snapshotName","<unknown>"))
+
     def run(self):
         k3s_mode = self.__get_k3s_mode()
         sqlite3_mode = k3s_mode == K3S_SQLITE3_MODE
+        etcd_mode = k3s_mode == K3S_ETCD_MODE
         log.info("==== genesis install begin ({0}) ====".format(k3s_mode))
         self.__flatcar_extensions()
         self.__flatcar_update_conf()
@@ -238,4 +250,6 @@ class GenesisInstall(object):
         self.__etc_crictl_yaml()
         self.__systemctl_daemon_reload()
         self.__reboot()
+        if etcd_mode:
+            self.__k3s_backup()
         log.info("---- genesis install end ({0}) ----".format(k3s_mode))

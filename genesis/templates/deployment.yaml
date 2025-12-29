@@ -17,6 +17,7 @@ spec:
         {{- include "genesis.labels" . | nindent 8 }}
     spec:
       hostPID: true
+      hostNetwork: true
       serviceAccountName: genesis-account
       terminationGracePeriodSeconds: 5
       containers:
