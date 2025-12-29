@@ -30,10 +30,10 @@ ExecStart=/opt/bin/i12e
 	log.Info("i12e_service_install() complete", "fname", fname)
 }
 
-func i12e_service_enable() {
+func runCmd(name string, arg ...string) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	cmd := exec.Command("systemctl", "enable", "i12e.service")
+	cmd := exec.Command(name, arg...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
@@ -48,8 +48,19 @@ func i12e_service_enable() {
 	log.Info("i12e_service_enable() complete")
 }
 
+func i12e_service_enable() {
+	runCmd("systemctl", "enable", "i12e.service")
+	log.Info("i12e_service_enable() complete")
+}
+
+func i12e_service_start() {
+	runCmd("systemctl", "start", "i12e.service")
+	log.Info("i12e_service_start() complete")
+}
+
 func install() {
 	log.Info("installing...")
 	i12e_service_install()
 	i12e_service_enable()
+	i12e_service_start()
 }
