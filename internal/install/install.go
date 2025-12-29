@@ -14,8 +14,7 @@ var log = logit.Logit().
 	With("app", "i12e").
 	With("mod", "install")
 
-func i12e_service_install() {
-	const i12e_service = `[Unit]
+const i12eService = `[Unit]
 Description=i12e
 Wants=network-online.target
 After=network-online.target
@@ -29,8 +28,10 @@ Restart=always
 RestartSec=5s
 ExecStart=/opt/bin/i12e
 `
+
+func i12eServiceInstall() {
 	fname := "/etc/systemd/system/i12e.service"
-	err := os.WriteFile(fname, []byte(i12e_service), 0644)
+	err := os.WriteFile(fname, []byte(i12eService), 0644)
 	if err != nil {
 		log.Fatal("error: 'os.WriteFile()' failed", "fname", fname, "err", err)
 	}
@@ -55,19 +56,19 @@ func runCmd(name string, arg ...string) {
 	log.Info("i12e_service_enable() complete")
 }
 
-func i12e_service_enable() {
+func i12eServiceEnable() {
 	runCmd("systemctl", "enable", "i12e.service")
 	log.Info("i12e_service_enable() complete")
 }
 
-func i12e_service_start() {
+func i12eServiceStart() {
 	runCmd("systemctl", "start", "i12e.service")
 	log.Info("i12e_service_start() complete")
 }
 
 func Install() {
 	log.Info("installing...")
-	i12e_service_install()
-	i12e_service_enable()
-	i12e_service_start()
+	i12eServiceInstall()
+	i12eServiceEnable()
+	i12eServiceStart()
 }
