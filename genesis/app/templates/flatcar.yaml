@@ -15,7 +15,7 @@ systemd:
       Restart=on-failure
       RemainAfterExit=true
       #Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.3/install.sh | sh -'
+      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.5/scripts/install.sh | sh -'
       [Install]
       WantedBy=multi-user.target
 # systemd:
