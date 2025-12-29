@@ -10,3 +10,5 @@ curl -sfL -o $TFILE https://github.com/sfmunoz/i12e/releases/download/${VERSION}
 echo "$SHA256  $TFILE" | sha256sum -c
 mkdir -p /opt/bin
 install -o root -g root -m 0755 $TFILE /opt/bin/i12e
+[ -f /etc/systemd/system/i12e.service ] && systemctl stop i12e
+I12E_INSTALL=1 /opt/bin/i12e
