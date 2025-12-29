@@ -1,11 +1,18 @@
-package main
+package install
 
 import (
 	"bytes"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/sfmunoz/logit"
 )
+
+var log = logit.Logit().
+	WithLevel(logit.LevelInfo).
+	With("app", "i12e").
+	With("mod", "install")
 
 func i12e_service_install() {
 	const i12e_service = `[Unit]
@@ -58,7 +65,7 @@ func i12e_service_start() {
 	log.Info("i12e_service_start() complete")
 }
 
-func install() {
+func Install() {
 	log.Info("installing...")
 	i12e_service_install()
 	i12e_service_enable()
