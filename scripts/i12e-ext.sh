@@ -1,19 +1,18 @@
 #!/bin/bash
 #
-# https://github.com/sfmunoz/i12e/issues/70
+# Refs:
+# - https://github.com/sfmunoz/i12e/issues/70
+# - https://github.com/sfmunoz/i12e/issues/83
 #
 # Proof-of-concept:
-#
-#   - i12e-flatcar extension generation
-#   - tmux (with required 'libutempter.so*') and rclone are included
+# - i12e-flatcar extension generation
+# - tmux (with required 'libutempter.so*') and rclone are included
 #
 # Tested on:
-#
-#   - Source: Linux Mint 22.2 Cinnamon
-#   - Target: Flatcar 4459.2.2
+# - Source: Linux Mint 22.2 Cinnamon
+# - Target: Flatcar 4459.2.2
 #
 # tmux works despite the following warning:
-#
 #   $ tmux
 #   tmux: /usr/lib64/libtinfo.so.6: no version information available (required by tmux)
 #
