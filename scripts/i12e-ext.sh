@@ -1,7 +1,21 @@
 #!/bin/bash
 #
 # https://github.com/sfmunoz/i12e/issues/70
-# Proof-of-concept: i12e-flatcar extension generation
+#
+# Proof-of-concept:
+#
+#   - i12e-flatcar extension generation
+#   - Only tmux is included together with required 'libutempter.so*'
+#
+# Tested on:
+#
+#   - Source: Linux Mint 22.2 Cinnamon
+#   - Target: Flatcar 4459.2.2
+#
+# It works despite the following warning:
+#
+#   $ tmux
+#   tmux: /usr/lib64/libtinfo.so.6: no version information available (required by tmux)
 #
 
 [ "$TARGET" = "" ] && TARGET="192.168.56.51"
