@@ -19,6 +19,10 @@
 # Req on Linux Mint 22.2:
 #   # apt install squashfs-tools erofs-utils tmux rclone
 #
+# FS=squashfs is the default for now since compression is better:
+#   [FS=squashfs] ./scripts/i12e-ext.sh ---> du -s build/i12e-flatcar.raw = 17228
+#   FS=erofs ./scripts/i12e-ext.sh --------> du -s build/i12e-flatcar.raw = 27448
+#
 
 [ "$TARGET" = "" ] && TARGET="192.168.56.51"
 [ "$FS" = "" ] && FS="squashfs"
