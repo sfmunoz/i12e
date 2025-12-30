@@ -5,14 +5,14 @@
 # Proof-of-concept:
 #
 #   - i12e-flatcar extension generation
-#   - Only tmux is included together with required 'libutempter.so*'
+#   - tmux (with required 'libutempter.so*') and rclone are included
 #
 # Tested on:
 #
 #   - Source: Linux Mint 22.2 Cinnamon
 #   - Target: Flatcar 4459.2.2
 #
-# It works despite the following warning:
+# tmux works despite the following warning:
 #
 #   $ tmux
 #   tmux: /usr/lib64/libtinfo.so.6: no version information available (required by tmux)
@@ -27,7 +27,7 @@ set -x
 rm -rf build
 umask 022
 mkdir -p $D/usr/bin $D/usr/lib/extension-release.d $D/usr/lib64
-cp /usr/bin/tmux $D/usr/bin
+cp /usr/bin/{tmux,rclone} $D/usr/bin
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* $D/usr/lib64
 cat << __EOF > $D/usr/lib/extension-release.d/extension-release.i12e-flatcar
 ID=flatcar
