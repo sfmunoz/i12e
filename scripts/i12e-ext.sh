@@ -38,8 +38,11 @@ set -e -o pipefail
 cd "$(dirname "$0")/.."
 set -x
 rm -rf build
+make clean
 umask 022
 mkdir -p $D/usr/bin $D/usr/lib/extension-release.d $D/usr/lib64
+make
+cp bin/i12e $D/usr/bin/i12e
 cp /usr/bin/{tmux,rclone} $D/usr/bin
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* $D/usr/lib64
 cat << __EOF > $D/usr/lib/extension-release.d/extension-release.i12e-flatcar
