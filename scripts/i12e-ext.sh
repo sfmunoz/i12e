@@ -16,8 +16,18 @@
 #   $ tmux
 #   tmux: /usr/lib64/libtinfo.so.6: no version information available (required by tmux)
 #
+# Req on Linux Mint 22.2:
+#   # apt install squashfs-tools erofs-utils tmux rclone
+#
 
 [ "$TARGET" = "" ] && TARGET="192.168.56.51"
+[ "$FS" = "" ] && FS="squashfs"
+
+case "$FS" in
+ squashfs|erofs) ;;
+ *) echo "error: unsupported FS='$FS'; it must be 'squashfs' (default) or 'erofs'" ; exit 1 ;;
+esac
+
 D="build/i12e-flatcar"
 
 set -e -o pipefail
@@ -33,7 +43,20 @@ ID=flatcar
 VERSION_ID=4459.2.2
 ARCHITECTURE=x86-64
 __EOF
-mksquashfs $D $D.raw -noappend -comp zstd -all-root
+{ set +x; } 2>/dev/null
+case "$FS" in
+  squashfs)
+    set -x
+    mksquashfs $D $D.raw -noappend -comp zstd -all-root
+    { set +x; } 2>/dev/null
+  ;;
+  erofs)
+    set -x
+    mkfs.erofs --all-root -z lz4hc $D.raw $D
+    { set +x; } 2>/dev/null
+  ;;
+esac
+set -x
 ssh "core@${TARGET}" "sudo systemd-sysext status"
 ssh "core@${TARGET}" "sudo systemd-sysext unmerge"
 ssh "core@${TARGET}" "sudo systemd-sysext status"
