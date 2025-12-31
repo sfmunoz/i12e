@@ -1,8 +1,10 @@
 #!/bin/bash
 #
 # Refs:
+# - https://www.flatcar.org/docs/latest/provisioning/sysext/
 # - https://github.com/sfmunoz/i12e/issues/70
 # - https://github.com/sfmunoz/i12e/issues/83
+# - https://github.com/sfmunoz/i12e/issues/85
 #
 # Proof-of-concept:
 # - i12e-flatcar extension generation
