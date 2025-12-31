@@ -47,7 +47,7 @@ cp /usr/bin/{tmux,rclone} $D/usr/bin
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* $D/usr/lib64
 cat << __EOF > $D/usr/lib/extension-release.d/extension-release.i12e-flatcar
 ID=flatcar
-VERSION_ID=4459.2.2
+SYSEXT_LEVEL=1.0
 ARCHITECTURE=x86-64
 __EOF
 { set +x; } 2>/dev/null
