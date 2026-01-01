@@ -35,6 +35,7 @@ case "$FS" in
 esac
 
 D="build/i12e-flatcar"
+DRAW="${D}.raw"
 
 set -e -o pipefail
 cd "$(dirname "$0")/.."
@@ -55,12 +56,12 @@ __EOF
 case "$FS" in
   squashfs)
     set -x
-    mksquashfs $D $D.raw -noappend -comp zstd -all-root
+    mksquashfs $D $DRAW -noappend -comp zstd -all-root
     { set +x; } 2>/dev/null
   ;;
   erofs)
     set -x
-    mkfs.erofs --all-root -z lz4hc $D.raw $D
+    mkfs.erofs --all-root -z lz4hc $DRAW $D
     { set +x; } 2>/dev/null
   ;;
 esac
@@ -69,6 +70,6 @@ ssh "core@${TARGET}" "sudo systemd-sysext status"
 ssh "core@${TARGET}" "sudo systemd-sysext unmerge"
 ssh "core@${TARGET}" "sudo systemd-sysext status"
 ssh "core@${TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
-ssh "core@${TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $D.raw
+ssh "core@${TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $DRAW
 ssh "core@${TARGET}" "sudo systemd-sysext refresh"
 ssh "core@${TARGET}" "sudo systemd-sysext status"
