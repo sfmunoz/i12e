@@ -26,7 +26,6 @@
 #   FS=erofs ./scripts/i12e-ext.sh --------> du -s build/i12e-flatcar.raw = 27448
 #
 
-[ "$TARGET" = "" ] && TARGET="192.168.56.51"
 [ "$FS" = "" ] && FS="squashfs"
 
 case "$FS" in
@@ -66,10 +65,11 @@ case "$FS" in
   ;;
 esac
 set -x
-ssh "core@${TARGET}" "sudo systemd-sysext status"
-ssh "core@${TARGET}" "sudo systemd-sysext unmerge"
-ssh "core@${TARGET}" "sudo systemd-sysext status"
-ssh "core@${TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
-ssh "core@${TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $DRAW
-ssh "core@${TARGET}" "sudo systemd-sysext refresh"
-ssh "core@${TARGET}" "sudo systemd-sysext status"
+[ "$I12E_TARGET" = "" ] && exit 0
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext unmerge"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
+ssh "core@${I12E_TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
+ssh "core@${I12E_TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $DRAW
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext refresh"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
