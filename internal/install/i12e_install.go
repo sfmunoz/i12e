@@ -26,7 +26,7 @@ WantedBy=multi-user.target
 Type=simple
 Restart=always
 RestartSec=5s
-ExecStart=/opt/bin/i12e
+ExecStart=/bin/sh -c 'if [ -x /opt/bin/i12e ]; then exec /opt/bin/i12e; else exec /usr/bin/i12e; fi'
 `
 
 func i12eServiceInstall() {

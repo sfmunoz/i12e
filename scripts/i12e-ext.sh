@@ -1,8 +1,10 @@
 #!/bin/bash
 #
 # Refs:
+# - https://www.flatcar.org/docs/latest/provisioning/sysext/
 # - https://github.com/sfmunoz/i12e/issues/70
 # - https://github.com/sfmunoz/i12e/issues/83
+# - https://github.com/sfmunoz/i12e/issues/85
 #
 # Proof-of-concept:
 # - i12e-flatcar extension generation
@@ -24,7 +26,6 @@
 #   FS=erofs ./scripts/i12e-ext.sh --------> du -s build/i12e-flatcar.raw = 27448
 #
 
-[ "$TARGET" = "" ] && TARGET="192.168.56.51"
 [ "$FS" = "" ] && FS="squashfs"
 
 case "$FS" in
@@ -33,38 +34,42 @@ case "$FS" in
 esac
 
 D="build/i12e-flatcar"
+DRAW="${D}.raw"
 
 set -e -o pipefail
 cd "$(dirname "$0")/.."
 set -x
-rm -rf build
+make clean
 umask 022
 mkdir -p $D/usr/bin $D/usr/lib/extension-release.d $D/usr/lib64
+make
+cp build/i12e $D/usr/bin/i12e
 cp /usr/bin/{tmux,rclone} $D/usr/bin
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* $D/usr/lib64
 cat << __EOF > $D/usr/lib/extension-release.d/extension-release.i12e-flatcar
 ID=flatcar
-VERSION_ID=4459.2.2
+SYSEXT_LEVEL=1.0
 ARCHITECTURE=x86-64
 __EOF
 { set +x; } 2>/dev/null
 case "$FS" in
   squashfs)
     set -x
-    mksquashfs $D $D.raw -noappend -comp zstd -all-root
+    mksquashfs $D $DRAW -noappend -comp zstd -all-root
     { set +x; } 2>/dev/null
   ;;
   erofs)
     set -x
-    mkfs.erofs --all-root -z lz4hc $D.raw $D
+    mkfs.erofs --all-root -z lz4hc $DRAW $D
     { set +x; } 2>/dev/null
   ;;
 esac
 set -x
-ssh "core@${TARGET}" "sudo systemd-sysext status"
-ssh "core@${TARGET}" "sudo systemd-sysext unmerge"
-ssh "core@${TARGET}" "sudo systemd-sysext status"
-ssh "core@${TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
-ssh "core@${TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $D.raw
-ssh "core@${TARGET}" "sudo systemd-sysext refresh"
-ssh "core@${TARGET}" "sudo systemd-sysext status"
+[ "$I12E_TARGET" = "" ] && exit 0
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext unmerge"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
+ssh "core@${I12E_TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
+ssh "core@${I12E_TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $DRAW
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext refresh"
+ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
