@@ -1,6 +1,12 @@
 #!/bin/bash
 
-set -x -e -o pipefail
 cd "$(dirname "$0")"
-awk '!/^(#|$)/' udhcpd.conf
-sudo busybox udhcpd -f udhcpd.conf
+while true
+do
+  set -x
+  awk '!/^(#|$)/' udhcpd.conf
+  sudo busybox udhcpd -f udhcpd.conf
+  { set +x; } 2>/dev/null
+  echo "waiting 1s to try again..."
+  sleep 1
+done
