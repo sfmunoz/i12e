@@ -13,7 +13,11 @@ ExecStart=/opt/bin/k3s server
 func k3sOverrideConf() {
 	dir := "/etc/systemd/system/k3s.service.d"
 	file := dir + "/override.conf"
-	os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		log.Error("k3sOverrideConf(): os.MkdirAll() failed", "dir", dir, "err", err)
+		return
+	}
 	s, err := os.Stat(dir)
 	if err != nil {
 		log.Error("k3sOverrideConf(): os.Stat() failed", "dir", dir, "err", err)
