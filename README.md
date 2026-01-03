@@ -35,26 +35,12 @@ Simple outline:
 
 ```mermaid
 flowchart LR
-    u(["User"])
-    ks["K3S<br/>SQLite3"]
-    ke1["K3S etcd<br/>master<br/>server-1"]
-    ke2["K3S etcd<br/>server-2"]
-    ke3["K3S etcd<br/>server-3"]
-    ke4["K3S etcd<br/>agent-1"]
-    ke5["K3S etcd<br/>agent-2"]
-    dns{{"DNS server"}} 
+    local(["local<br/>source code<br/>+<br/>credentials"])
     fs[("fileserver<br/>s3, gcs, ...")] 
-    d{"Deploy"}
-    u -->|"kubectl<br/>helm<br/>..."| d
-    d -->|"spark<br/>+<br/>restore"| ks
-    ks -->|"ignition<br/>+<br/>reboot"| ke1
-    d -->|"os<br/>deploy"| ke1
-    ke1 -.->|cloud API<br/>+<br/>ignition| ke2
-    ke1 -.->|cloud API<br/>+<br/>ignition| ke3
-    ke1 -.->|cloud API<br/>+<br/>ignition| ke4
-    ke1 -.->|cloud API<br/>+<br/>ignition| ke5
-    ke1 -.->|"tls-san IP update<br/>(load balancer free)"| dns
-    ks -.-|"restore<br/>(rclone)"| fs -.-|"backup<br/>(rclone)"| ke1
+    host["host (target)"]
+    local -->|"(1) config push<br/>(rclone)"| fs
+    local -->|"(2) ignition push<br/>(ssh)"| host
+    host -->|"(3) config pull<br/>(i12e + rclone)"| fs
 ```
 
 Details:
