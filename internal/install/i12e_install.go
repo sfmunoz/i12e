@@ -5,14 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/sfmunoz/logit"
 )
-
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("app", "i12e").
-	With("mod", "install")
 
 const i12eService = `[Unit]
 Description=i12e
