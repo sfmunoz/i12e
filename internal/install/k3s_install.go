@@ -49,7 +49,7 @@ func k3sConfigYaml() error {
 	}
 	lines = append(lines, "")
 	buf := strings.Join(lines, "\n")
-	updated, err := fsutil.FileContentSet(file, buf)
+	updated, err := fsutil.FileContentSet(file, buf, 0600)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func k3sConfigYaml() error {
 
 func k3sOverrideConf() error {
 	file := "/etc/systemd/system/k3s.service.d/override.conf"
-	updated, err := fsutil.FileContentSet(file, k3sOverrideConfBuf)
+	updated, err := fsutil.FileContentSet(file, k3sOverrideConfBuf, 0644)
 	if err != nil {
 		return err
 	}
