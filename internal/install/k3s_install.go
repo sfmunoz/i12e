@@ -11,7 +11,15 @@ ExecStart=/opt/bin/k3s server
 `
 
 func k3sOverrideConf() error {
-	return fsutil.FileContentSet("/etc/systemd/system/k3s.service.d/override.conf", k3sOverrideConfBuf)
+	file := "/etc/systemd/system/k3s.service.d/override.conf"
+	updated, err := fsutil.FileContentSet(file, k3sOverrideConfBuf)
+	if err != nil {
+		return err
+	}
+	if updated {
+		log.Info("k3sOverrideConf(): file updated", "file", file)
+	}
+	return nil
 }
 
 func K3sInstall() {
