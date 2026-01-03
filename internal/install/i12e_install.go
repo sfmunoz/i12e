@@ -11,8 +11,8 @@ import (
 
 var log = logit.Logit().
 	WithLevel(logit.LevelInfo).
-	With("app", "i12e").
-	With("mod", "install")
+	With("mod", "i12e").
+	With("pkg", "install")
 
 const i12eService = `[Unit]
 Description=i12e

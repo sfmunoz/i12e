@@ -10,8 +10,8 @@ import (
 
 var log = logit.Logit().
 	WithLevel(logit.LevelInfo).
-	With("app", "i12e").
-	With("mod", "main")
+	With("mod", "i12e").
+	With("pkg", "main")
 
 func main() {
 	if os.Getenv("I12E_INSTALL") == "1" {
