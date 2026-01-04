@@ -18,7 +18,6 @@ O_DEBUG = 3
 class Butane(object):
     def __init__(self,target):
         self.__target = target
-        self.__rclone = Rclone().run()
         self.__k3s_version = getenv("GENESIS_K3S_VERSION","")
         if len(self.__k3s_version) < 1:
             raise Exception("undefined 'GENESIS_K3S_VERSION'")
@@ -49,6 +48,7 @@ class Butane(object):
         buf = self.__tpl.render(
             k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
+            rclone_conf = Rclone().run(),
         )
         self.__buf_print(buf,"<but> ")
         yaml.safe_load(buf)  # return value ignored: check it is valid

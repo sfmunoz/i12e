@@ -36,8 +36,14 @@ systemd:
 #       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
 #       [Install]
 #       WantedBy=multi-user.target
-# storage:
-#   files:
+storage:
+  files:
+  - path: /root/.config/rclone/rclone.conf
+    overwrite: true
+    mode: 0600
+    contents:
+      inline: |
+        {{ rclone_conf | indent(8) }}
 #   - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
 #     overwrite: true
 #     mode: 0600
