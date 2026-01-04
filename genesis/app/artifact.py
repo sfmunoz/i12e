@@ -6,6 +6,7 @@ from io import BytesIO
 from tarfile import TarInfo, SYMTYPE, DIRTYPE, open as tar_open
 from time import time
 from subprocess import Popen, PIPE
+from hashlib import sha256
 from .rclone import Rclone
 log = getLogger(__name__)
 
@@ -115,15 +116,42 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __rclone_setup(self):
+    def __rclone_push(self,buf):
         rclone_config = "/root/rclone.conf"
         with open(rclone_config,"w") as fp:
             fp.write(Rclone().run())
         environ["RCLONE_CONFIG"] = rclone_config   # after encrypted one has been read
+        # --------
+        cmd = ['rclone','rcat','rem:artifact.tar.gz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdin=PIPE)
+        p.communicate(buf)
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
+        # --------
+        cmd = ['rclone','cat','rem:artifact.tar.gz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdout=PIPE)
+        (odata,_) = p.communicate()
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
+        # --------
+        sha256_1 = sha256(buf).hexdigest()
+        sha256_2 = sha256(odata).hexdigest()
+        log.info("sha256(bef): {0}".format(sha256_1))
+        log.info("sha256(aft): {0}".format(sha256_2))
+        if sha256_1 != sha256_2:
+            raise Exception("sha256 checksum mismatch")
+        # --------
+        cmd = ['tar','tvz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdin=PIPE)
+        p.communicate(odata)
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
 
     def run(self):
         log.info("==== genesis artifact begin ====")
-        self.__rclone_setup()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__flatcar_extensions(tar)
@@ -133,16 +161,5 @@ class Artifact(object):
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
-        cmd = ['rclone','rcat','rem:artifact.tar.gz']
-        log.info("$ {0}".format(" ".join(cmd)))
-        p = Popen(args=cmd,stdin=PIPE)
-        p.communicate(buf.getvalue())
-        if p.returncode != 0:
-            raise Exception("'{0}' command failed".format(" ".join(cmd)))
-        cmd = ['sh','-c','rclone cat rem:artifact.tar.gz | tar tvz']
-        log.info("$ {0}".format(" ".join(cmd)))
-        p = Popen(args=cmd,stdin=PIPE)
-        p.communicate()
-        if p.returncode != 0:
-            raise Exception("'{0}' command failed".format(" ".join(cmd)))
+        self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
