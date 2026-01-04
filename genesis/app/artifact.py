@@ -112,30 +112,17 @@ class Artifact(object):
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' created/updated".format(fname))
 
-    def __systemd_genesis_conf(self):
-        buf_new = self.__tpl_systemd_genesis_conf.render() + "\n"
-        dname = "/etc/systemd/system.conf.d"
-        fname = "{0}/genesis.conf".format(dname)
-        if not isdir(dname):
-            mkdir(dname)
-        if not isdir(dname):
-            raise Exception("error: couldn't create '{0}' folder".format(dname))
-        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
-        buf_old = ""
-        if isfile(fname):
-            with open(fname,"r") as fp:
-                buf_old = fp.read()
-        if buf_old == buf_new:
-            log.info("nothing to do: '{0}' is up to date".format(fname))
-            return
-        with open(fname,"w") as fp:
-            fp.write(buf_new)
-            fchmod(fp.fileno(),0o644)
-        log.info("'{0}' created/updated".format(fname))
+    def __systemd_genesis_conf(self,tar):
+        data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
+        fname = "etc/systemd/system.conf.d/genesis.conf"
+        tinfo = self.__tarinfo(fname)
+        tinfo.size = len(data)
+        tar.addfile(tinfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
 
     def __etc_crictl_yaml(self,tar):
-        fname = "etc/crictl.yaml"
         data = (self.__tpl_critcl_yaml.render() + "\n").encode()
+        fname = "etc/crictl.yaml"
         tinfo = self.__tarinfo(fname)
         tinfo.size = len(data)
         tar.addfile(tinfo,BytesIO(data))
@@ -147,9 +134,9 @@ class Artifact(object):
             self.__flatcar_update_conf()
             self.__k3s_config_yaml()
             self.__k3s_override_conf()
-            self.__systemd_genesis_conf()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
         print(b64encode(buf.getvalue()).decode())
         log.info("---- genesis artifact end ----")
