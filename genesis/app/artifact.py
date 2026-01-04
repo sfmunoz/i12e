@@ -3,6 +3,10 @@ from os.path import isfile, islink, isdir
 from os import unlink, symlink, readlink, fchmod, mkdir, chmod, getenv
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
+from io import BytesIO
+from base64 import b64encode
+from tarfile import TarInfo, open as tar_open
+from time import time
 log = getLogger(__name__)
 
 class Artifact(object):
@@ -119,30 +123,29 @@ class Artifact(object):
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' created/updated".format(fname))
 
-    def __etc_crictl_yaml(self):
-        buf_new = self.__tpl_critcl_yaml.render() + "\n"
-        fname = "/etc/crictl.yaml"
-        buf_old = ""
-        if isfile(fname):
-            with open(fname,"r") as fp:
-                buf_old = fp.read()
-        if buf_old == buf_new:
-            log.info("nothing to do: '{0}' is up to date".format(fname))
-            return
-        with open(fname,"w") as fp:
-            fp.write(buf_new)
-            fchmod(fp.fileno(),0o600)
-        log.info("'{0}' created/updated".format(fname))
+    def __etc_crictl_yaml(self,tar):
+        fname = "etc/crictl.yaml"
+        data = (self.__tpl_critcl_yaml.render() + "\n").encode()
+        tinfo = TarInfo(name=fname)
+        tinfo.mode = 0o644
+        tinfo.mtime = time()
+        tinfo.uid = 0
+        tinfo.gid = 0
+        tinfo.uname = "root"
+        tinfo.gname = "root"
+        tinfo.size = len(data)
+        tar.addfile(tinfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
 
     def run(self):
-        if getenv("I12E_LEGACY") != "1":
-            log.warning("Artifact.run(): not implemented yet")
-            return
-        log.info("==== genesis artifact begin ====")
-        self.__flatcar_extensions()
-        self.__flatcar_update_conf()
-        self.__k3s_config_yaml()
-        self.__k3s_override_conf()
-        self.__systemd_genesis_conf()
-        self.__etc_crictl_yaml()
+        if getenv("I12E_LEGACY") == "1":
+            self.__flatcar_extensions()
+            self.__flatcar_update_conf()
+            self.__k3s_config_yaml()
+            self.__k3s_override_conf()
+            self.__systemd_genesis_conf()
+        buf = BytesIO()
+        with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__etc_crictl_yaml(tar)
+        print(b64encode(buf.getvalue()).decode())
         log.info("---- genesis artifact end ----")
