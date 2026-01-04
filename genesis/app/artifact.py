@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from os.path import isfile, islink, isdir
-from os import unlink, symlink, readlink, fchmod, mkdir, chmod, getenv
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 from io import BytesIO
