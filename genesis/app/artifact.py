@@ -5,7 +5,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefine
 from logging import getLogger
 from io import BytesIO
 from base64 import b64encode
-from tarfile import TarInfo, open as tar_open
+from tarfile import TarInfo, DIRTYPE, open as tar_open
 from time import time
 log = getLogger(__name__)
 
@@ -114,18 +114,23 @@ class Artifact(object):
 
     def __systemd_genesis_conf(self,tar):
         data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
-        fname = "etc/systemd/system.conf.d/genesis.conf"
-        tinfo = self.__tarinfo(fname)
-        tinfo.size = len(data)
-        tar.addfile(tinfo,BytesIO(data))
+        dname = "etc/systemd/system.conf.d"
+        dinfo = self.__tarinfo(dname)
+        dinfo.mode = 0o755
+        dinfo.type = DIRTYPE
+        tar.addfile(dinfo)
+        fname = "{0}/genesis.conf".format(dname)
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
     def __etc_crictl_yaml(self,tar):
         data = (self.__tpl_critcl_yaml.render() + "\n").encode()
         fname = "etc/crictl.yaml"
-        tinfo = self.__tarinfo(fname)
-        tinfo.size = len(data)
-        tar.addfile(tinfo,BytesIO(data))
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
     def run(self):
