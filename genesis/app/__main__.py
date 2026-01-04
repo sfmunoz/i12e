@@ -6,9 +6,14 @@ import kopf
 from kubernetes import client, config
 from .install import GenesisInstall
 from .butane import Butane
+from .artifact import Artifact
 
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
+
+if getenv("GENESIS_ARTIFACT") == "1":
+    Artifact().run()
+    sys.exit(0)
 
 genesis_target = getenv("GENESIS_TARGET")
 

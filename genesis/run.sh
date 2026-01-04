@@ -8,6 +8,7 @@ function error_and_exit {
 [ "$GENESIS_K3S_VERSION" = "" ] && GENESIS_K3S_VERSION="v1.34.3+k3s1"
 [ "$GENESIS_OUTPUT" = "" ] && GENESIS_OUTPUT="bash"
 [ "$GENESIS_TARGET" = "" ] && GENESIS_TARGET="192.168.56.51"
+[ "$GENESIS_ARTIFACT" = "" ] && GENESIS_ARTIFACT="0"
 
 set -e -o pipefail
 
@@ -43,5 +44,6 @@ exec docker run -i$T_OPT --rm \
   -e "GENESIS_K3S_VERSION=$GENESIS_K3S_VERSION" \
   -e "GENESIS_OUTPUT=$GENESIS_OUTPUT" \
   -e "GENESIS_TARGET=$GENESIS_TARGET" \
+  -e "GENESIS_ARTIFACT=$GENESIS_ARTIFACT" \
   ghcr.io/sfmunoz/k8s-bulk:v1.8.0 \
   "$@"

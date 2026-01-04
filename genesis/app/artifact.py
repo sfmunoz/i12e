@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from os.path import isfile, islink, isdir
-from os import unlink, symlink, readlink, fchmod, mkdir, chmod
+from os import unlink, symlink, readlink, fchmod, mkdir, chmod, getenv
 from json import loads as json_loads, dumps as json_dumps
 from subprocess import call, Popen, PIPE
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
@@ -10,7 +10,7 @@ log = getLogger(__name__)
 K3S_SQLITE3_MODE = "k3s-sqlite3-mode"
 K3S_ETCD_MODE = "k3s-etcd-mode"
 
-class GenesisInstall(object):
+class Artifact(object):
     def __init__(self):
         self.__base = "/genesis"
         self.__genesis_reboot = "{0}/genesis_reboot".format(self.__base)
@@ -236,6 +236,9 @@ class GenesisInstall(object):
             log.info("snapshot: " + item.get("spec",{}).get("snapshotName","<unknown>"))
 
     def run(self):
+        if getenv("I12E_LEGACY") != "1":
+            log.warning("Artifact.run(): not implemented yet")
+            return
         k3s_mode = self.__get_k3s_mode()
         sqlite3_mode = k3s_mode == K3S_SQLITE3_MODE
         etcd_mode = k3s_mode == K3S_ETCD_MODE
