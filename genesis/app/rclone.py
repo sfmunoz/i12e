@@ -23,7 +23,7 @@ class Rclone(object):
         if name not in cfg:
             raise Exception("cannot find '{0}' remote".format(name))
         c = cfg[name]
-        lines = ["[{0}]".format(name)]
+        lines = ["[{0}]".format("rem" if name == self.__remote else name)]
         for k,v in c.items():
             lines.append("{0} = {1}".format(k,v))
         if "remote" not in c.keys():
