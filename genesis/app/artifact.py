@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+from os import environ
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 from io import BytesIO
-from base64 import b64encode
 from tarfile import TarInfo, SYMTYPE, DIRTYPE, open as tar_open
 from time import time
+from subprocess import Popen, PIPE
+from .rclone import Rclone
 log = getLogger(__name__)
 
 class Artifact(object):
@@ -113,8 +115,15 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
+    def __rclone_setup(self):
+        rclone_config = "/root/rclone.conf"
+        with open(rclone_config,"w") as fp:
+            fp.write(Rclone().run())
+        environ["RCLONE_CONFIG"] = rclone_config   # after encrypted one has been read
+
     def run(self):
         log.info("==== genesis artifact begin ====")
+        self.__rclone_setup()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__flatcar_extensions(tar)
@@ -124,5 +133,16 @@ class Artifact(object):
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
-        print(b64encode(buf.getvalue()).decode())
+        cmd = ['rclone','rcat','rem:artifact.tar.gz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdin=PIPE)
+        p.communicate(buf.getvalue())
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
+        cmd = ['sh','-c','rclone cat rem:artifact.tar.gz | tar tvz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdin=PIPE)
+        p.communicate()
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
         log.info("---- genesis artifact end ----")
