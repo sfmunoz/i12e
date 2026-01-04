@@ -22,6 +22,16 @@ class Artifact(object):
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
         self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
 
+    def __tarinfo(self,fname):
+        tinfo = TarInfo(name=fname)
+        tinfo.mode = 0o644
+        tinfo.mtime = time()
+        tinfo.uid = 0
+        tinfo.gid = 0
+        tinfo.uname = "root"
+        tinfo.gname = "root"
+        return tinfo
+
     def __flatcar_extensions(self):
         for entry in ["containerd","docker"]:
             fname = "/etc/extensions/{0}-flatcar.raw".format(entry)
@@ -126,13 +136,7 @@ class Artifact(object):
     def __etc_crictl_yaml(self,tar):
         fname = "etc/crictl.yaml"
         data = (self.__tpl_critcl_yaml.render() + "\n").encode()
-        tinfo = TarInfo(name=fname)
-        tinfo.mode = 0o644
-        tinfo.mtime = time()
-        tinfo.uid = 0
-        tinfo.gid = 0
-        tinfo.uname = "root"
-        tinfo.gname = "root"
+        tinfo = self.__tarinfo(fname)
         tinfo.size = len(data)
         tar.addfile(tinfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
