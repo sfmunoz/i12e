@@ -45,21 +45,18 @@ flowchart LR
     rclone_conf -->|"(2) config pull<br/>+RCLONE_CONFIG_PASS<br/>+I12E_RCLONE_REMOTE"| local
     local -->|"(3) config push<br/>(rclone)"| fs
     local -->|"(4) ignition push (ssh)<br/>i12e + rclone.conf"| host
-    fs -->|"(5) config pull"| host
-    github_rel -->|"(6) i12e-flatcar.raw pull"| host
+    github_rel -->|"(5) i12e-flatcar.raw pull"| host
+    fs -->|"(6) config pull"| host
 ```
 
 Details:
 
-- User can start 2 procedures
-  - **(1)** os-deploy to generate k3s-etcd master node
-  - **(2)** spark-deploy to generate k3s-sqlite3 node
-    - this now will become k3s-etcd using rclone-saved data and self-ignition + reboot
-- k3s etcd server node (anyone, but just one)
-  - can generate/delete other server nodes
-  - can generate/delete other agent nodes
-  - must perform regular backups
-  - must update tls-san DNS register
+- **(1)** Code is pulled from **github.com/sfmunoz/i12e**
+- **(2)** Rclone config is read from **~/.config/rclone/rclone.conf** (encrypted)
+- **(3)** Configuration is pushed to rclone-compatible storage
+- **(4)** Ignition configuration is pushed to target host (**rclone.conf** included)
+- **(5)** **i12e-flatcar.raw** is pulled from github
+- **(6)** Target host pulls whatever is required from rclone-compatible storage
 
 ## Requirements
 
