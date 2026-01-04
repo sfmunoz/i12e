@@ -104,6 +104,7 @@ class Artifact(object):
         log.info("'{0}' added".format(fname))
 
     def run(self):
+        log.info("==== genesis artifact begin ====")
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__flatcar_extensions(tar)
