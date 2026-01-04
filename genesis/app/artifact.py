@@ -91,26 +91,18 @@ class Artifact(object):
             fchmod(fp.fileno(),0o600)
         log.info("'{0}' created/updated".format(fname))
 
-    def __k3s_override_conf(self):
-        buf_new = self.__tpl_k3s_override_conf.render() + "\n"
-        dname = "/etc/systemd/system/k3s.service.d"
+    def __k3s_override_conf(self,tar):
+        data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
+        dname = "etc/systemd/system/k3s.service.d"
+        dinfo = self.__tarinfo(dname)
+        dinfo.mode = 0o755
+        dinfo.type = DIRTYPE
+        tar.addfile(dinfo)
         fname = "{0}/override.conf".format(dname)
-        if not isdir(dname):
-            mkdir(dname)
-        if not isdir(dname):
-            raise Exception("error: couldn't create '{0}' folder".format(dname))
-        chmod(dname,0o755)  # TODO: avoid doing this on every iteration
-        buf_old = ""
-        if isfile(fname):
-            with open(fname,"r") as fp:
-                buf_old = fp.read()
-        if buf_old == buf_new:
-            log.info("nothing to do: '{0}' is up to date".format(fname))
-            return
-        with open(fname,"w") as fp:
-            fp.write(buf_new)
-            fchmod(fp.fileno(),0o644)
-        log.info("'{0}' created/updated".format(fname))
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
 
     def __systemd_genesis_conf(self,tar):
         data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
@@ -138,9 +130,9 @@ class Artifact(object):
             self.__flatcar_extensions()
             self.__flatcar_update_conf()
             self.__k3s_config_yaml()
-            self.__k3s_override_conf()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__k3s_override_conf(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
         print(b64encode(buf.getvalue()).decode())
