@@ -65,10 +65,10 @@ class Artifact(object):
             fchmod(fp.fileno(),0o644)
         log.info("'{0}' updated".format(fname))
 
-    def __k3s_config_yaml(self):
+    def __k3s_config_yaml(self,tar):
         # https://docs.k3s.io/installation/configuration
         tls_san = "192.168.56.50"
-        buf_new = self.__tpl_k3s_config_yaml.render(
+        data = (self.__tpl_k3s_config_yaml.render(
             position = 1,
             k3s_cmd = "server",
             k3s_token = "main-token",
@@ -77,19 +77,13 @@ class Artifact(object):
             k3s_url = "https://{0}:6443".format(tls_san),
             flannel_iface = "enp0s8",
             node_ip = "192.168.56.51",
-        ) + "\n"
-        fname = "/etc/rancher/k3s/config.yaml"
-        buf_old = ""
-        if isfile(fname):
-            with open(fname,"r") as fp:
-                buf_old = fp.read()
-        if buf_old == buf_new:
-            log.info("nothing to do: '{0}' is up to date".format(fname))
-            return
-        with open(fname,"w") as fp:
-            fp.write(buf_new)
-            fchmod(fp.fileno(),0o600)
-        log.info("'{0}' created/updated".format(fname))
+        ) + "\n").encode()
+        fname = "etc/rancher/k3s/config.yaml"
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        finfo.mode = 0o644
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
 
     def __k3s_override_conf(self,tar):
         data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
@@ -129,9 +123,9 @@ class Artifact(object):
         if getenv("I12E_LEGACY") == "1":
             self.__flatcar_extensions()
             self.__flatcar_update_conf()
-            self.__k3s_config_yaml()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__k3s_config_yaml(tar)
             self.__k3s_override_conf(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
