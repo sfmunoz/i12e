@@ -21,11 +21,12 @@ class Artifact(object):
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
         self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
+        self.__time = time()
 
     def __tarinfo(self,fname):
         tinfo = TarInfo(name=fname)
         tinfo.mode = 0o644
-        tinfo.mtime = time()
+        tinfo.mtime = self.__time
         tinfo.uid = 0
         tinfo.gid = 0
         tinfo.uname = "root"
