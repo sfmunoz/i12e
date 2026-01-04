@@ -15,6 +15,7 @@ class Artifact(object):
             autoescape = select_autoescape(),
         )
         self.__tpl_critcl_yaml = self.__env.get_template("crictl.yaml")
+        self.__tpl_opt_bin_e = self.__env.get_template("opt-bin-e.yaml")
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
@@ -103,6 +104,15 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
+    def __opt_bin_e(self,tar):
+        data = (self.__tpl_opt_bin_e.render() + "\n").encode()
+        fname = "opt/bin/e"
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o755
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
     def run(self):
         log.info("==== genesis artifact begin ====")
         buf = BytesIO()
@@ -113,5 +123,6 @@ class Artifact(object):
             self.__k3s_override_conf(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
+            self.__opt_bin_e(tar)
         print(b64encode(buf.getvalue()).decode())
         log.info("---- genesis artifact end ----")
