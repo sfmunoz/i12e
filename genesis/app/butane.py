@@ -7,6 +7,7 @@ from subprocess import Popen, PIPE
 from logging import getLogger
 from base64 import b64encode
 from gzip import compress
+from .rclone import Rclone
 log = getLogger(__name__)
 
 O_BASH_B64 = 0
@@ -17,6 +18,7 @@ O_DEBUG = 3
 class Butane(object):
     def __init__(self,target):
         self.__target = target
+        self.__rclone = Rclone().run()
         self.__k3s_version = getenv("GENESIS_K3S_VERSION","")
         if len(self.__k3s_version) < 1:
             raise Exception("undefined 'GENESIS_K3S_VERSION'")
