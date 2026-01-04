@@ -35,12 +35,18 @@ Simple outline:
 
 ```mermaid
 flowchart LR
-    local(["local<br/>source code<br/>+<br/>credentials"])
+    github_repo["github.com/sfmunoz/i12e<br/>(repository)"]
+    github_rel["github.com/sfmunoz/i12e<br/>(releases)"]
+    rclone_conf["~/.config/rclone/rclone.conf<br/>(encrypted)"]
+    local(["local"])
     fs[("fileserver<br/>s3, gcs, ...")] 
-    host["host (target)"]
-    local -->|"(1) config push<br/>(rclone)"| fs
-    local -->|"(2) ignition push<br/>(ssh)"| host
-    host -->|"(3) config pull<br/>(i12e + rclone)"| fs
+    host(["host (target)"])
+    github_repo -->|"(1) git clone/pull"| local
+    rclone_conf -->|"(2) config pull<br/>+RCLONE_CONFIG_PASS<br/>+I12E_RCLONE_REMOTE"| local
+    local -->|"(3) config push<br/>(rclone)"| fs
+    local -->|"(4) ignition push (ssh)<br/>i12e + rclone.conf"| host
+    fs -->|"(5) config pull"| host
+    github_rel -->|"(6) i12e-flatcar.raw pull"| host
 ```
 
 Details:
