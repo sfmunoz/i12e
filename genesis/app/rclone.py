@@ -28,13 +28,10 @@ class Rclone(object):
             lines.append("{0} = {1}".format(k,v))
         if "remote" not in c.keys():
             return lines
-        lines.append("")
         rem = c["remote"].split(":")[0]  # remote = name:path/to/subfolder
-        lines.extend(self.__remote_dump(cfg,rem))
-        return lines
+        return self.__remote_dump(cfg,rem) + [""] + lines
 
     def run(self):
         cfg = self.__get_config()
         lines = self.__remote_dump(cfg,self.__remote)
         return "\n".join(lines)
-
