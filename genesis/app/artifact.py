@@ -49,21 +49,13 @@ class Artifact(object):
             except FileNotFoundError as e:
                 log.warning("skipping '{0}': {1}".format(fname,str(e)))
 
-    def __flatcar_update_conf(self):
-        fname = "/etc/flatcar/update.conf"
-        if not isfile(fname):
-            log.info("skipping '{0}': it's not a regular file".format(fname))
-            return
-        buf_new = self.__tpl_flatcar_update_conf.render() + "\n"
-        with open(fname,"r") as fp:
-            buf_old = fp.read()
-        if buf_old == buf_new:
-            log.info("nothing to do: '{0}' is up-to-date".format(fname))
-            return
-        with open(fname,"w") as fp:
-            fp.write(buf_new)
-            fchmod(fp.fileno(),0o644)
-        log.info("'{0}' updated".format(fname))
+    def __flatcar_update_conf(self,tar):
+        data = (self.__tpl_flatcar_update_conf.render() + "\n").encode()
+        fname = "etc/flatcar/update.conf"
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
 
     def __k3s_config_yaml(self,tar):
         # https://docs.k3s.io/installation/configuration
@@ -81,7 +73,7 @@ class Artifact(object):
         fname = "etc/rancher/k3s/config.yaml"
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
-        finfo.mode = 0o644
+        finfo.mode = 0o600
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
@@ -122,9 +114,9 @@ class Artifact(object):
     def run(self):
         if getenv("I12E_LEGACY") == "1":
             self.__flatcar_extensions()
-            self.__flatcar_update_conf()
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__flatcar_update_conf(tar)
             self.__k3s_config_yaml(tar)
             self.__k3s_override_conf(tar)
             self.__systemd_genesis_conf(tar)
