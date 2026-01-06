@@ -116,6 +116,18 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
+    def __etc_i12e_z_flag(self,tar):
+        dname = "etc/i12e"
+        dinfo = self.__tarinfo(dname)
+        dinfo.mode = 0o700
+        dinfo.type = DIRTYPE
+        tar.addfile(dinfo)
+        fname = "{0}/z.flag".format(dname)
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o600
+        tar.addfile(finfo)
+        log.info("'{0}' added".format(fname))
+
     def __rclone_push(self,buf):
         rclone_config = "/root/rclone.conf"
         with open(rclone_config,"w") as fp:
@@ -161,5 +173,6 @@ class Artifact(object):
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
+            self.__etc_i12e_z_flag(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
