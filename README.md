@@ -19,6 +19,9 @@
 
 Simple outline:
 
+- [KISS](https://en.wikipedia.org/wiki/KISS_principle)
+- Flexible
+- Full control
 - Cluster API inspired but...
   - Opinionated
   - Smaller
