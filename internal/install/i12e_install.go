@@ -31,6 +31,11 @@ func i12eServiceInstall() {
 	log.Info("i12e_service_install() complete", "fname", fname)
 }
 
+func i12eSystemctlDaemonReload() {
+	cmdutil.RunCmd("systemctl", "daemon-reload")
+	log.Info("i12e_systemctl_daemon_reload() complete")
+}
+
 func i12eServiceEnable() {
 	cmdutil.RunCmd("systemctl", "enable", "i12e.service")
 	log.Info("i12e_service_enable() complete")
@@ -44,6 +49,7 @@ func i12eServiceStart() {
 func Install() {
 	log.Info("installing...")
 	i12eServiceInstall()
+	i12eSystemctlDaemonReload()
 	i12eServiceEnable()
 	i12eServiceStart()
 }
