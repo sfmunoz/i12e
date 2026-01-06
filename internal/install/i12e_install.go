@@ -28,28 +28,31 @@ func i12eServiceInstall() {
 	if err != nil {
 		log.Fatal("error: 'os.WriteFile()' failed", "fname", fname, "err", err)
 	}
-	log.Info("i12e_service_install() complete", "fname", fname)
+	log.Info("i12eServiceInstall() complete", "fname", fname)
 }
 
-func i12eSystemctlDaemonReload() {
+func systemctlDaemonReload() {
+	log.Info("$ systemctl daemon-reload")
 	cmdutil.RunCmd("systemctl", "daemon-reload")
-	log.Info("i12e_systemctl_daemon_reload() complete")
+	log.Info("systemctlDaemonReload() complete")
 }
 
 func i12eServiceEnable() {
+	log.Info("$ systemctl enable i12e.service")
 	cmdutil.RunCmd("systemctl", "enable", "i12e.service")
-	log.Info("i12e_service_enable() complete")
+	log.Info("i12eServiceEnable() complete")
 }
 
 func i12eServiceStart() {
+	log.Info("$ systemctl start i12e.service")
 	cmdutil.RunCmd("systemctl", "start", "i12e.service")
-	log.Info("i12e_service_start() complete")
+	log.Info("i12eServiceStart() complete")
 }
 
 func Install() {
 	log.Info("installing...")
 	i12eServiceInstall()
-	i12eSystemctlDaemonReload()
+	systemctlDaemonReload()
 	i12eServiceEnable()
 	i12eServiceStart()
 }
