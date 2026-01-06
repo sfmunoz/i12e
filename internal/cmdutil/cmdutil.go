@@ -20,7 +20,7 @@ func RunCmd(name string, arg ...string) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		log.Fatal("error: 'cmd.Run()' failed", "err", err, "stderr", stderr.String())
+		log.Error("error: 'cmd.Run()' failed", "err", err, "stderr", stderr.String())
 	}
 	for line := range strings.SplitSeq(stdout.String(), "\n") {
 		if line == "" {
