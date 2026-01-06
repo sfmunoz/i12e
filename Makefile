@@ -1,4 +1,4 @@
-FILES = ./cmd/i12e/main.go ./internal/install/install.go ./internal/install/i12e_install.go ./internal/install/k3s_install.go ./internal/fsutil/fsutil.go
+FILES = ./cmd/i12e/main.go ./internal/install/install.go ./internal/install/i12e_install.go ./internal/install/k3s_install.go ./internal/cmdutil/cmdutil.go ./internal/fsutil/fsutil.go
 
 all: build/i12e
 
