@@ -18,6 +18,7 @@ function reboot_if_required {
   [ -f "$REBOOT_FILE" ] || return 0
   set -x
   systemctl daemon-reload
+  [ -f /etc/systemd/system/k3s.service ] || touch /etc/i12e/k3s-install-required
   systemctl reboot
 }
 function pull_if_needed {
