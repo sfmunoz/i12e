@@ -10,9 +10,33 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "pull")
 
+const script = `#!/bin/sh
+FLAG_FILE="/etc/i12e/z.flag"
+REBOOT_FILE="/etc/i12e/reboot-required"
+set -e -o pipefail
+function reboot_if_required {
+  [ -f "$REBOOT_FILE" ] || return 0
+  set -x
+  systemctl daemon-reload
+  systemctl reboot
+}
+function pull_if_needed {
+  if [ -f "$FLAG_FILE" ]
+  then
+    echo "pull not needed: '${FLAG_FILE}' already exists"
+  else
+    echo "pulling artifact.tar.gz provided that '${FLAG_FILE}' doesn't exist..."
+    set -x
+    rclone cat rem:artifact.tar.gz | tar -C / -xvz
+    touch "${REBOOT_FILE}"
+    { set +x; } 2>/dev/null
+  fi
+}
+pull_if_needed
+reboot_if_required
+`
+
 func Pull() {
-	cmd := "rclone cat rem:artifact.tar.gz | tar -C / -xvz"
-	log.Info("$ " + cmd)
-	cmdutil.RunCmd("/bin/sh", "-c", cmd)
-	log.Info("systemctlDaemonReload() complete")
+	log.Info("Pull()...")
+	cmdutil.RunCmd("/bin/sh", "-c", script)
 }
