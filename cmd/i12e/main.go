@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/install"
+	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
 
@@ -21,7 +22,7 @@ func main() {
 	slumber := 3 * time.Second
 	for {
 		log.Info("i12e running...", "slumber", slumber)
-		install.K3sInstall()
+		pull.Pull()
 		time.Sleep(slumber)
 	}
 }
