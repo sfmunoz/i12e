@@ -16,7 +16,7 @@ var log = logit.Logit().
 
 func main() {
 	if os.Getenv("I12E_INSTALL") == "1" {
-		install.Install()
+		install.I12eInstall()
 		return
 	}
 	slumber := 3 * time.Second
