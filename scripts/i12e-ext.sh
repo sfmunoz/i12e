@@ -65,6 +65,8 @@ case "$FS" in
   ;;
 esac
 set -x
+ls -l $DRAW
+sha256sum $DRAW
 [ "$I12E_TARGET" = "" ] && exit 0
 ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
 ssh "core@${I12E_TARGET}" "sudo systemd-sysext unmerge"
