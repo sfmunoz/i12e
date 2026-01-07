@@ -14,8 +14,7 @@ systemd:
       Type=oneshot
       Restart=on-failure
       RemainAfterExit=true
-      #Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.6/scripts/install.sh | sh -'
+      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.8/scripts/install.sh | sh -'
       [Install]
       WantedBy=multi-user.target
 # systemd:
@@ -36,8 +35,24 @@ systemd:
 #       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
 #       [Install]
 #       WantedBy=multi-user.target
-# storage:
-#   files:
+storage:
+  files:
+  - path: /root/.config/rclone/rclone.conf
+    overwrite: true
+    mode: 0600
+    contents:
+      inline: |
+        {{ rclone_conf | indent(8) }}
+  - path: /home/core/.config/rclone/rclone.conf
+    overwrite: true
+    mode: 0600
+    user:
+      name: core
+    group:
+      name: core
+    contents:
+      inline: |
+        {{ rclone_conf | indent(8) }}
 #   - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
 #     overwrite: true
 #     mode: 0600

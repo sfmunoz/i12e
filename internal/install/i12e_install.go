@@ -1,10 +1,9 @@
 package install
 
 import (
-	"bytes"
 	"os"
-	"os/exec"
-	"strings"
+
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
 const i12eService = `[Unit]
@@ -28,40 +27,31 @@ func i12eServiceInstall() {
 	if err != nil {
 		log.Fatal("error: 'os.WriteFile()' failed", "fname", fname, "err", err)
 	}
-	log.Info("i12e_service_install() complete", "fname", fname)
+	log.Info("i12eServiceInstall() complete", "fname", fname)
 }
 
-func runCmd(name string, arg ...string) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command(name, arg...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		log.Fatal("error: 'cmd.Run()' failed", "err", err, "stderr", stderr.String())
-	}
-	for line := range strings.SplitSeq(stdout.String(), "\n") {
-		if line == "" {
-			continue
-		}
-		log.Info(line)
-	}
-	log.Info("i12e_service_enable() complete")
+func systemctlDaemonReload() {
+	log.Info("$ systemctl daemon-reload")
+	cmdutil.RunCmd("systemctl", "daemon-reload")
+	log.Info("systemctlDaemonReload() complete")
 }
 
 func i12eServiceEnable() {
-	runCmd("systemctl", "enable", "i12e.service")
-	log.Info("i12e_service_enable() complete")
+	log.Info("$ systemctl enable i12e.service")
+	cmdutil.RunCmd("systemctl", "enable", "i12e.service")
+	log.Info("i12eServiceEnable() complete")
 }
 
 func i12eServiceStart() {
-	runCmd("systemctl", "start", "i12e.service")
-	log.Info("i12e_service_start() complete")
+	log.Info("$ systemctl start i12e.service")
+	cmdutil.RunCmd("systemctl", "start", "i12e.service")
+	log.Info("i12eServiceStart() complete")
 }
 
-func Install() {
-	log.Info("installing...")
+func I12eInstall() {
+	log.Info("I12eInstall()...")
 	i12eServiceInstall()
+	systemctlDaemonReload()
 	i12eServiceEnable()
 	i12eServiceStart()
 }
