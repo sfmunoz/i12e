@@ -5,11 +5,6 @@ function error_and_exit {
   exit 1
 }
 
-[ "$GENESIS_K3S_VERSION" = "" ] && GENESIS_K3S_VERSION="v1.34.3+k3s1"
-[ "$GENESIS_OUTPUT" = "" ] && GENESIS_OUTPUT="bash"
-[ "$GENESIS_TARGET" = "" ] && GENESIS_TARGET="192.168.56.51"
-[ "$GENESIS_ARTIFACT" = "" ] && GENESIS_ARTIFACT="0"
-
 set -e -o pipefail
 
 [ "$SSH_PUBKEY_FILE" = "" ] && SSH_PUBKEY_FILE="${HOME}/.ssh/id_rsa.pub"
@@ -21,15 +16,7 @@ set -e -o pipefail
 [ "$RCLONE_CONFIG_PASS" = "" ] && error_and_exit "'RCLONE_CONFIG_PASS' must be provided"
 [ "$I12E_RCLONE_REMOTE" = "" ] && error_and_exit "'I12E_RCLONE_REMOTE' must be provided"
 
-# "docker run -t" interferes with output capturing (e.g. jq weird indent behaviour)
-case "$1" in
-  sh|python3) T_OPT="t" ;;
-  *) T_OPT="" ;;
-esac
-
-[[ "$@" = "" ]] && set -- python3 -m genesis
-
-#set -x
+[ "$GENESIS_TERMINAL" = "1" ] && T_OPT="t"
 
 cd "$(dirname "$0")"
 
@@ -41,9 +28,5 @@ exec docker run -i$T_OPT --rm \
   -e "I12E_RCLONE_REMOTE=$I12E_RCLONE_REMOTE" \
   -e "PYTHONUNBUFFERED=1" \
   -e "PYTHONPATH=/app" \
-  -e "GENESIS_K3S_VERSION=$GENESIS_K3S_VERSION" \
-  -e "GENESIS_OUTPUT=$GENESIS_OUTPUT" \
-  -e "GENESIS_TARGET=$GENESIS_TARGET" \
-  -e "GENESIS_ARTIFACT=$GENESIS_ARTIFACT" \
   ghcr.io/sfmunoz/k8s-bulk:v1.8.0 \
-  "$@"
+  python3 -m genesis "$@"
