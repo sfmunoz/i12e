@@ -1,71 +1,65 @@
 #!/usr/bin/env python3
 import sys
-from os import getenv
+from os import execlp
 from logging import getLogger, basicConfig, INFO
-import kopf
-from kubernetes import client, config
-from .install import GenesisInstall
+from argparse import ArgumentParser, RawTextHelpFormatter
 from .butane import Butane
 from .artifact import Artifact
 
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
-if getenv("GENESIS_ARTIFACT") == "1":
-    Artifact().run()
-    sys.exit(0)
+BUTANE_K3S_VERSION_DEFAULT = "v1.34.3+k3s1"
+BUTANE_VALID_OUTPUTS = ["bash_b64","bash_raw","ignition","debug"]
+BUTANE_DEFAULT_OUTPUT = "bash_b64"
 
-genesis_target = getenv("GENESIS_TARGET")
-
-if genesis_target is not None and genesis_target != "":
-    Butane(genesis_target).run()
-    sys.exit(0)
-
-#config.load_kube_config()
-config.load_incluster_config()
-
-class Namespace(object):
-    __ns = None
-    @classmethod
-    def get(cls):
-        fname = "/run/secrets/kubernetes.io/serviceaccount/namespace"
-        if cls.__ns is None:
-            with open(fname,"r") as fp:
-                cls.__ns = fp.read()
-        if cls.__ns is None:
-            raise Exception(f"cannot get namespace from '{fname}'")
-        return cls.__ns
-
-def get_node_ip():
-    node_name = getenv("NODE_NAME")
-    if node_name is None or len(node_name) < 1:
-        log.error("'NODE_NAME' is not defined")
-        return None
-    api = client.CoreV1Api()
-    node = api.read_node(node_name)
-    internal_ips = [addr.address for addr in node.status.addresses if addr.type == "InternalIP"]
-    print(internal_ips)
-    log.info("node_name={0}: internal_ips={1}".format(node_name,str(internal_ips)))
-    return internal_ips[0] if len(internal_ips) > 0 and internal_ips[0] is not None else None
-
-@kopf.timer('gdeployments', interval=5.0)
-def on_timer(spec, **kwargs):
-    try:
-        log.info("on_timer()")
-        api = client.CoreV1Api()
-        pods = api.list_namespaced_pod(Namespace.get())
-        for i,pod in enumerate(pods.items):
-            log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
-        node_ip = get_node_ip()
-        log.info("node_ip: {0}".format(node_ip))
-        GenesisInstall().run()
-    except Exception as e:
-        log.error("error: " + str(e))
+def genesis_run(args):
+    if args.command == 'artifact':
+        Artifact().run()
+        return
+    elif args.command == 'butane':
+        Butane(args).run()
+        return
+    elif args.command in ['python3','sh']:
+        execlp(args.command,args.command)
+    raise Exception("unknown command '{0}'".format(args.command))
 
 def main():
-    log.info("==== genesis begin ====")
-    kopf.run(namespace=Namespace.get(),peering_name=getenv("VALUES_KOPF_PEERING_NAME"))
-    log.info("---- genesis end ----")
+    if len(sys.argv) < 2:
+        sys.argv.append("-h")  # enforce help display with no arguments
+    epilog = "46285520+sfmunoz@users.noreply.github.com (C) 2026"
+    parser = ArgumentParser(
+        description = 'genesis',
+        epilog = epilog,
+        formatter_class = RawTextHelpFormatter,
+    )
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='enable debug mode')
+    subparsers = parser.add_subparsers(
+        title = 'genesis command',
+        description = 'choose one genesis command',
+        help = 'genesis command to be run',
+        dest = 'command',
+    )
+    parser_artifact = subparsers.add_parser('artifact', help='generate artifact and push it using rclone')
+    parser_artifact.set_defaults(func=genesis_run)
+    parser_butane = subparsers.add_parser('butane', help='run butane to generate ignition code')
+    parser_butane.add_argument('-k', '--k3s-version', metavar='k3s_version', action='store',
+                        dest='k3s_version', type=str, default=BUTANE_K3S_VERSION_DEFAULT,
+                        help="k3s version (default: '{0}')".format(BUTANE_K3S_VERSION_DEFAULT))
+    parser_butane.add_argument('-o', '--output', metavar='output', action='store',
+                        dest='output', type=str, choices=BUTANE_VALID_OUTPUTS, default=BUTANE_DEFAULT_OUTPUT,
+                        help='output (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_OUTPUT,", ".join(BUTANE_VALID_OUTPUTS)))
+    parser_butane.set_defaults(func=genesis_run)
+    parser_python3 = subparsers.add_parser('python3', help='run python3 within the container')
+    parser_python3.set_defaults(func=genesis_run)
+    parser_sh = subparsers.add_parser('sh', help='run sh within the container')
+    parser_sh.set_defaults(func=genesis_run)
+    args = parser.parse_args()
+    if args.debug:
+        from logging import DEBUG
+        log.setLevel(DEBUG)
+    args.func(args)
 
 if __name__ == "__main__":
     main()

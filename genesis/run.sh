@@ -5,11 +5,6 @@ function error_and_exit {
   exit 1
 }
 
-[ "$GENESIS_K3S_VERSION" = "" ] && GENESIS_K3S_VERSION="v1.34.3+k3s1"
-[ "$GENESIS_OUTPUT" = "" ] && GENESIS_OUTPUT="bash"
-[ "$GENESIS_TARGET" = "" ] && GENESIS_TARGET="192.168.56.51"
-[ "$GENESIS_ARTIFACT" = "" ] && GENESIS_ARTIFACT="0"
-
 set -e -o pipefail
 
 [ "$SSH_PUBKEY_FILE" = "" ] && SSH_PUBKEY_FILE="${HOME}/.ssh/id_rsa.pub"
@@ -27,10 +22,6 @@ case "$1" in
   *) T_OPT="" ;;
 esac
 
-[[ "$@" = "" ]] && set -- python3 -m genesis
-
-#set -x
-
 cd "$(dirname "$0")"
 
 exec docker run -i$T_OPT --rm \
@@ -41,9 +32,5 @@ exec docker run -i$T_OPT --rm \
   -e "I12E_RCLONE_REMOTE=$I12E_RCLONE_REMOTE" \
   -e "PYTHONUNBUFFERED=1" \
   -e "PYTHONPATH=/app" \
-  -e "GENESIS_K3S_VERSION=$GENESIS_K3S_VERSION" \
-  -e "GENESIS_OUTPUT=$GENESIS_OUTPUT" \
-  -e "GENESIS_TARGET=$GENESIS_TARGET" \
-  -e "GENESIS_ARTIFACT=$GENESIS_ARTIFACT" \
   ghcr.io/sfmunoz/k8s-bulk:v1.8.0 \
-  "$@"
+  python3 -m genesis "$@"

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from os import getenv
 from sys import stdout
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 import yaml, json
@@ -10,19 +9,15 @@ from gzip import compress
 from .rclone import Rclone
 log = getLogger(__name__)
 
-O_BASH_B64 = 0
-O_BASH_RAW = 1
-O_IGNITION = 2
-O_DEBUG = 3
+O_BASH_B64 = "bash_b64"
+O_BASH_RAW = "bash_raw"
+O_IGNITION = "ignition"
+O_DEBUG = "debug"
 
 class Butane(object):
-    def __init__(self,target):
-        self.__target = target
-        self.__k3s_version = getenv("GENESIS_K3S_VERSION","")
-        if len(self.__k3s_version) < 1:
-            raise Exception("undefined 'GENESIS_K3S_VERSION'")
-        e = getenv("GENESIS_OUTPUT")
-        self.__output = O_DEBUG if e == "debug" else O_IGNITION if e == "ignition" else O_BASH_RAW if e == "bash_raw" else O_BASH_B64
+    def __init__(self,args):
+        self.__k3s_version = args.k3s_version
+        self.__output = args.output
         self.__env = Environment(
             loader = PackageLoader("genesis"),
             undefined = StrictUndefined,
