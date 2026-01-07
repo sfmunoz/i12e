@@ -2,8 +2,6 @@
 import sys
 from os import getenv
 from logging import getLogger, basicConfig, INFO
-import kopf
-from kubernetes import client, config
 from .butane import Butane
 from .artifact import Artifact
 
@@ -20,49 +18,8 @@ if genesis_target is not None and genesis_target != "":
     Butane(genesis_target).run()
     sys.exit(0)
 
-#config.load_kube_config()
-config.load_incluster_config()
-
-class Namespace(object):
-    __ns = None
-    @classmethod
-    def get(cls):
-        fname = "/run/secrets/kubernetes.io/serviceaccount/namespace"
-        if cls.__ns is None:
-            with open(fname,"r") as fp:
-                cls.__ns = fp.read()
-        if cls.__ns is None:
-            raise Exception(f"cannot get namespace from '{fname}'")
-        return cls.__ns
-
-def get_node_ip():
-    node_name = getenv("NODE_NAME")
-    if node_name is None or len(node_name) < 1:
-        log.error("'NODE_NAME' is not defined")
-        return None
-    api = client.CoreV1Api()
-    node = api.read_node(node_name)
-    internal_ips = [addr.address for addr in node.status.addresses if addr.type == "InternalIP"]
-    print(internal_ips)
-    log.info("node_name={0}: internal_ips={1}".format(node_name,str(internal_ips)))
-    return internal_ips[0] if len(internal_ips) > 0 and internal_ips[0] is not None else None
-
-@kopf.timer('gdeployments', interval=5.0)
-def on_timer(spec, **kwargs):
-    try:
-        log.info("on_timer()")
-        api = client.CoreV1Api()
-        pods = api.list_namespaced_pod(Namespace.get())
-        for i,pod in enumerate(pods.items):
-            log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
-        node_ip = get_node_ip()
-        log.info("node_ip: {0}".format(node_ip))
-    except Exception as e:
-        log.error("error: " + str(e))
-
 def main():
     log.info("==== genesis begin ====")
-    kopf.run(namespace=Namespace.get(),peering_name=getenv("VALUES_KOPF_PEERING_NAME"))
     log.info("---- genesis end ----")
 
 if __name__ == "__main__":
