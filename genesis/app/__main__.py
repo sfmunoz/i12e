@@ -4,7 +4,6 @@ from os import getenv
 from logging import getLogger, basicConfig, INFO
 import kopf
 from kubernetes import client, config
-from .install import GenesisInstall
 from .butane import Butane
 from .artifact import Artifact
 
@@ -58,7 +57,6 @@ def on_timer(spec, **kwargs):
             log.info("pod={0}: name='{1}', phase='{2}', ip='{3}'".format(i,pod.metadata.name,pod.status.phase,pod.status.pod_ip))
         node_ip = get_node_ip()
         log.info("node_ip: {0}".format(node_ip))
-        GenesisInstall().run()
     except Exception as e:
         log.error("error: " + str(e))
 
