@@ -1,7 +1,7 @@
 #!/bin/sh
 # curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/${VERSION}/scripts/install.sh | sh -
-VERSION="v0.0.7"
-SHA256="2dbb0dc5f50612c487ebeeb9f8d3e388443445c542780b3a2f7ad92ea1c86fad"
+VERSION="v0.0.8"
+SHA256="53c7eea461715446019f7a78bbfb556aa37f3d4f327a7eccd0e17dba850f4449"
 set -e -o pipefail
 TFILE="$(mktemp)"
 trap 'echo "exit code: $?" ; rm -f $TFILE' EXIT
