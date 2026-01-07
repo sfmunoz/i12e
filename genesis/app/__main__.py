@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+from os import execlp
 from logging import getLogger, basicConfig, INFO
 from argparse import ArgumentParser, RawTextHelpFormatter
 from .butane import Butane
@@ -19,6 +20,8 @@ def genesis_run(args):
     elif args.command == 'butane':
         Butane(args).run()
         return
+    elif args.command in ['python3','sh']:
+        execlp(args.command,args.command)
     raise Exception("unknown command '{0}'".format(args.command))
 
 def main():
@@ -48,6 +51,10 @@ def main():
                         dest='output', type=str, choices=BUTANE_VALID_OUTPUTS, default=BUTANE_DEFAULT_OUTPUT,
                         help='output (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_OUTPUT,", ".join(BUTANE_VALID_OUTPUTS)))
     parser_butane.set_defaults(func=genesis_run)
+    parser_python3 = subparsers.add_parser('python3', help='run python3 within the container')
+    parser_python3.set_defaults(func=genesis_run)
+    parser_sh = subparsers.add_parser('sh', help='run sh within the container')
+    parser_sh.set_defaults(func=genesis_run)
     args = parser.parse_args()
     if args.debug:
         from logging import DEBUG

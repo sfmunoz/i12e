@@ -16,7 +16,11 @@ set -e -o pipefail
 [ "$RCLONE_CONFIG_PASS" = "" ] && error_and_exit "'RCLONE_CONFIG_PASS' must be provided"
 [ "$I12E_RCLONE_REMOTE" = "" ] && error_and_exit "'I12E_RCLONE_REMOTE' must be provided"
 
-[ "$GENESIS_TERMINAL" = "1" ] && T_OPT="t"
+# "docker run -t" interferes with output capturing (e.g. jq weird indent behaviour)
+case "$1" in
+  sh|python3) T_OPT="t" ;;
+  *) T_OPT="" ;;
+esac
 
 cd "$(dirname "$0")"
 
