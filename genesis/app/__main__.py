@@ -8,19 +8,14 @@ from .artifact import Artifact
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
-if getenv("GENESIS_ARTIFACT") == "1":
-    Artifact().run()
-    sys.exit(0)
-
-genesis_target = getenv("GENESIS_TARGET")
-
-if genesis_target is not None and genesis_target != "":
-    Butane(genesis_target).run()
-    sys.exit(0)
-
 def main():
-    log.info("==== genesis begin ====")
-    log.info("---- genesis end ----")
+    if getenv("GENESIS_ARTIFACT") == "1":
+        Artifact().run()
+        sys.exit(0)
+    genesis_target = getenv("GENESIS_TARGET")
+    if genesis_target is not None and genesis_target != "":
+        Butane(genesis_target).run()
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
