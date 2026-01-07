@@ -1,92 +1,106 @@
 # genesis
 
-- [References](#references)
-- [Trigger](#trigger)
-- [Helm OCI package build](#helm-oci-package-build)
-- [Development](#development)
-  - [Install](#install)
-  - [Uninstall](#uninstall)
+- [Usage](#usage)
 
-## References
+## Usage
 
-- https://github.com/sfmunoz/k8s-playground/blob/main/crd-operator/README.md
-- https://kopf.readthedocs.io/en/stable/install/
-- https://github.com/nolar/kopf
-  - https://github.com/nolar/kopf/tree/main/examples/01-minimal
-- https://helm.sh/docs/chart_best_practices/custom_resource_definitions/
+Help:
+```
+$ ./genesis/run.sh
+usage: python3 -m genesis [-h] [-d] {artifact,butane,python3,sh} ...
 
-## Trigger
+genesis
 
-This process triggers **k3s + genesis** installation to a **flatcar** machine in order to turn it into a ready to be used server:
+options:
+  -h, --help            show this help message and exit
+  -d, --debug           enable debug mode
 
-Inject `./genesis/run.sh` output to a **flatcar** machine:
-```
-$ ./genesis/run.sh | ssh core@192.168.56.51 bash
-```
-**GENESIS_OUTPUT** env var can be use to change generated data:
+genesis command:
+  choose one genesis command
 
-- `GENESIS_OUTPUT=bash_b64 ./genesis/run.sh` is the default, like `./genesis/run.sh`: generates script to be injected to **flatcar** machine in a compact way (gzip + base64 applied)
-- `GENESIS_OUTPUT=bash_raw ./genesis/run.sh`: like **GENESIS_OUTPUT=bash_b64** but in a readable form. Can be injected to **flatcar** machine as well
-- `GENESIS_OUTPUT=ignition ./genesis/run.sh`: generates ready to be used **ignition** file
-- `GENESIS_OUTPUT=debug ./genesis/run.sh`: shows both generated **butane** and **ignition** files
+  {artifact,butane,python3,sh}
+                        genesis command to be run
+    artifact            generate artifact and push it using rclone
+    butane              run butane to generate ignition code
+    python3             run python3 within the container
+    sh                  run sh within the container
 
-## Helm OCI package build
+46285520+sfmunoz@users.noreply.github.com (C) 2026
+```
+Artifact generation:
+```
+$ ./genesis/run.sh artifact
+2026-01-07 19:51:19,292 [    103] [I] ==== genesis artifact begin ==== (artifact:166)
+2026-01-07 19:51:19,293 [    104] [I] 'etc/extensions/containerd-flatcar.raw' added (artifact:46)
+2026-01-07 19:51:19,293 [    104] [I] 'etc/extensions/docker-flatcar.raw' added (artifact:46)
+2026-01-07 19:51:19,294 [    104] [I] 'etc/flatcar/update.conf' added (artifact:54)
+2026-01-07 19:51:19,294 [    104] [I] 'etc/rancher/k3s/config.yaml' added (artifact:74)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/systemd/system/k3s.service.d/override.conf' added (artifact:87)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/systemd/system.conf.d/genesis.conf' added (artifact:100)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/crictl.yaml' added (artifact:108)
+2026-01-07 19:51:19,294 [    105] [I] 'opt/bin/e' added (artifact:117)
+2026-01-07 19:51:19,295 [    105] [I] 'etc/i12e/z.flag' added (artifact:129)
+2026-01-07 19:51:19,362 [    173] [I] $ rclone rcat rem:artifact.tar.gz (artifact:138)
+2026/01/07 19:51:20 NOTICE: Encrypted drive 'rem:': --checksum is in use but the source and destination have no hashes in common; falling back to --size-only
+2026-01-07 19:51:20,102 [    913] [I] $ rclone cat rem:artifact.tar.gz (artifact:145)
+2026-01-07 19:51:20,464 [   1275] [I] sha256(bef): c2ce078cb5c79cd366fea321fc47f8ba0171fe9c8f0d924bfae692c7c3e1f809 (artifact:153)
+2026-01-07 19:51:20,464 [   1275] [I] sha256(aft): c2ce078cb5c79cd366fea321fc47f8ba0171fe9c8f0d924bfae692c7c3e1f809 (artifact:154)
+2026-01-07 19:51:20,464 [   1275] [I] $ tar tvz (artifact:159)
+lrwxrwxrwx root/root         0 2026-01-07 19:51:19 etc/extensions/containerd-flatcar.raw -> /dev/null
+lrwxrwxrwx root/root         0 2026-01-07 19:51:19 etc/extensions/docker-flatcar.raw -> /dev/null
+-rw-r--r-- root/root        73 2026-01-07 19:51:19 etc/flatcar/update.conf
+-rw------- root/root       240 2026-01-07 19:51:19 etc/rancher/k3s/config.yaml
+drwxr-xr-x root/root         0 2026-01-07 19:51:19 etc/systemd/system/k3s.service.d/
+-rw-r--r-- root/root       129 2026-01-07 19:51:19 etc/systemd/system/k3s.service.d/override.conf
+drwxr-xr-x root/root         0 2026-01-07 19:51:19 etc/systemd/system.conf.d/
+-rw-r--r-- root/root        68 2026-01-07 19:51:19 etc/systemd/system.conf.d/genesis.conf
+-rw-r--r-- root/root       145 2026-01-07 19:51:19 etc/crictl.yaml
+-rwxr-xr-x root/root       178 2026-01-07 19:51:19 opt/bin/e
+drwx------ root/root         0 2026-01-07 19:51:19 etc/i12e/
+-rw------- root/root         0 2026-01-07 19:51:19 etc/i12e/z.flag
+2026-01-07 19:51:20,466 [   1277] [I] ---- genesis artifact end ---- (artifact:178)
+```
+Butane generation:
+```
+$ ./genesis/run.sh butane
+base64 -d <<< "H4sIA...(quite long base64 encoded gzipped script)...oIAAA=" | gunzip | bash
+```
+Butane injection (over ssh):
+```
+$ ./genesis/run.sh butane | ssh core@192.168.56.51 bash
++ sudo rm -fv /oem/config.ign
+removed '/oem/config.ign'
++ base64 -d
++ gunzip
++ sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F /dev/stdin
+WARNING: Running without --backup can cause data loss if the keep paths don't work as expected.
+Also check whether your regex works as wanted with --preview-delete and --preview-keep.
 
-**(1)** Build the package:
+Wrote machine ID as kernel cmdline parameter to /oem/grub.cfg
+Removed any ignition.config.url kernel cmdline parameter in /oem/grub.cfg
+Wrote Ignition file /oem/config.ign
+Prepared /selective-os-reset and /boot/flatcar/first_boot
+Staged OS reset, you can reboot now
++ sudo test -s /oem/config.ign
++ sudo jq . /oem/config.ign
+{
+  "ignition": {
+    "version": "3.3.0"
+  },
+  (... ignition config ...)
+}
++ sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'
+Running as unit: run-rb96ef8572bb2485e9ba0e96db33005c0.service; invocation ID: 314d5d8b3f144e8a923ff6ba0ba8b353
 ```
-$ helm package genesis
-Successfully packaged chart and saved it to: /home/sfm/src/i12e/genesis-0.4.0.tgz
+Python3 execution:
 ```
-**(2)** Generate TOKEN with `write:packages` permissions (**Settings > Developer settings > Personal access tokens**)
-
-**(3)** (optional if **~/.docker/config.json → credHelpers → ghcr.io** is configured) Login to **ghcr.io** using that token (it's saved to **~/.config/helm/registry/config.json**):
+$ ./genesis/run.sh python3
+Python 3.14.2 (main, Dec 18 2025, 00:40:52) [GCC 15.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
 ```
-$ helm registry login ghcr.io --username sfmunoz
-Password: 
-Login Succeeded
+sh execution:
 ```
-**(4)** Push:
-```
-$ helm push genesis-0.4.0.tgz oci://ghcr.io/sfmunoz
-Pushed: ghcr.io/sfmunoz/genesis:0.4.0
-Digest: sha256:...
-```
-**(5)** (optional) Logout:
-```
-$ helm registry logout ghcr.io
-Removing login credentials for ghcr.io
-```
-**(6a)** Install
-```
-$ helm upgrade --install -f secrets://secrets.yaml -n genesis --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.4.0
-Release "genesis" does not exist. Installing it now.
-(...)
-```
-**(6b)** Install (without secrets):
-```
-$ helm upgrade --install -n genesis --set-json '{"os":{"ssh_authorized_keys":["...ssh-public-key here..."]}}' --create-namespace genesis oci://ghcr.io/sfmunoz/genesis --version 0.4.0
-(...)
-```
-
-**(7)** (first time) Connect package to repository: **Packages > genesis**
-
-**(8)** (first time) Make the package public: **Packages > genesis > Package settings > Change package visibility**
-
-## Development
-
-### Install
-```
-$ helm upgrade --install -n genesis --create-namespace -f secrets://secrets.yaml genesis genesis
-```
-
-### Uninstall
-
-[https://helm.sh/docs/chart_best_practices/custom_resource_definitions/](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/): CRDs are not deleted by Helm
-
-```
-$ helm uninstall -n genesis genesis
-$ kubectl delete namespaces genesis
-$ kubectl delete crd kopfpeerings.kopf.dev
-$ kubectl delete crd clusterkopfpeerings.kopf.dev
-$ kubectl delete crd gdeployments.sfmunoz.com
+$ ./genesis/run.sh sh
+/ #
 ```
