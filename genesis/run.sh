@@ -32,5 +32,6 @@ exec docker run -i$T_OPT --rm \
   -e "I12E_RCLONE_REMOTE=$I12E_RCLONE_REMOTE" \
   -e "PYTHONUNBUFFERED=1" \
   -e "PYTHONPATH=/app" \
+  -e "SECRETS_YAML=$(sops decrypt ../secrets.yaml | gzip | base64 -w 0)" \
   ghcr.io/sfmunoz/k8s-bulk:v1.8.0 \
   python3 -m genesis "$@"
