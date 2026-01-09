@@ -1,6 +1,11 @@
 package pull
 
 import (
+	"fmt"
+	"net"
+	"os"
+	"strings"
+
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
 )
@@ -45,7 +50,54 @@ pull_if_needed
 reboot_if_required
 `
 
+type II struct {
+	Iface string
+	IP    string
+}
+
+func iface_and_ip() (*II, error) {
+	path := "/etc/i12e/iface.txt"
+	_, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	iname := strings.TrimSpace(string(buf))
+	iface, err := net.InterfaceByName(iname)
+	if err != nil {
+		return nil, fmt.Errorf("net.InterfaceByName() failed: %s", err.Error())
+	}
+	addrs, err := iface.Addrs()
+	if err != nil {
+		return nil, fmt.Errorf("iface.Addrs() failed: %s", err.Error())
+	}
+	for _, addr := range addrs {
+		ipNet, ok := addr.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		ip := ipNet.IP
+		if ip.To4() == nil {
+			continue
+		}
+		return &II{
+			Iface: iname,
+			IP:    ip.String(),
+		}, nil
+	}
+	return nil, fmt.Errorf("no IPv4 address found")
+}
+
 func Pull() {
 	log.Info("Pull()...")
+	ii, err := iface_and_ip()
+	if err != nil {
+		log.Error("iface_and_ip() failed", "err", err)
+	} else {
+		log.Info("iface_and_ip() ok", "Iface", ii.Iface, "IP", ii.IP)
+	}
 	cmdutil.RunCmd("/bin/sh", "-c", script)
 }
