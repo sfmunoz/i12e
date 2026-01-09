@@ -8,7 +8,6 @@ from time import time
 from subprocess import Popen, PIPE
 from hashlib import sha256
 from .config import Config
-from .rclone import Rclone
 log = getLogger(__name__)
 
 class Artifact(object):
@@ -133,7 +132,7 @@ class Artifact(object):
     def __rclone_push(self,buf):
         rclone_config = "/root/rclone.conf"
         with open(rclone_config,"w") as fp:
-            fp.write(Rclone().run())
+            fp.write(Config().rclone_config())
         environ["RCLONE_CONFIG"] = rclone_config   # after encrypted one has been read
         # --------
         cmd = ['rclone','rcat','rem:artifact.tar.gz']

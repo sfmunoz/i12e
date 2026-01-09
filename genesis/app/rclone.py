@@ -3,12 +3,13 @@ from os import environ
 from logging import getLogger
 from subprocess import Popen, PIPE
 from json import loads as json_loads
-from .config import Config
 log = getLogger(__name__)
 
+# XXX: don't meant to be used directly: use 'Config.rclone_config()' instead
+
 class Rclone(object):
-    def __init__(self):
-        self.__cfg = Config().secrets_yaml()
+    def __init__(self,cfg):
+        self.__cfg = cfg
         self.__remote = self.__cfg["rclone_remote"]
 
     def __get_config(self):
@@ -33,7 +34,7 @@ class Rclone(object):
         rem = c["remote"].split(":")[0]  # remote = name:path/to/subfolder
         return self.__remote_dump(cfg,rem) + [""] + lines
 
-    def run(self):
+    def config(self):
         cfg = self.__get_config()
         lines = self.__remote_dump(cfg,self.__remote)
         return "\n".join(lines)

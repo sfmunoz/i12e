@@ -4,6 +4,7 @@ import yaml
 from logging import getLogger
 from base64 import b64decode
 from gzip import decompress
+from .rclone import Rclone
 log = getLogger(__name__)
 
 class Config(object):
@@ -19,3 +20,6 @@ class Config(object):
         if buf is None or len(buf) < 1:
             raise Exception("undefined 'I12E_SECRETS_YAML' env-var")
         return yaml.safe_load(decompress(b64decode(buf)))["env"][self.__env]
+
+    def rclone_config(self):
+        return Rclone(self.secrets_yaml()).config()

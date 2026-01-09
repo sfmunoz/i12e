@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE
 from logging import getLogger
 from base64 import b64encode
 from gzip import compress
-from .rclone import Rclone
+from .config import Config
 log = getLogger(__name__)
 
 O_BASH_B64 = "bash_b64"
@@ -43,7 +43,7 @@ class Butane(object):
         buf = self.__tpl.render(
             k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
-            rclone_conf = Rclone().run(),
+            rclone_conf = Config().rclone_config(),
         )
         self.__buf_print(buf,"<but> ")
         yaml.safe_load(buf)  # return value ignored: check it is valid
