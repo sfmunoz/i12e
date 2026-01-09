@@ -64,8 +64,6 @@ class Artifact(object):
             k3s_agent_token = self.__cfg["k3s_agent_token"],
             tls_san = tls_san,
             k3s_url = "https://{0}:6443".format(tls_san),
-            flannel_iface = self.__cfg["flannel"]["interface"],
-            node_ip = "192.168.56.51",
         ) + "\n").encode()
         fname = "etc/rancher/k3s/config.yaml"
         finfo = self.__tarinfo(fname)
