@@ -17,24 +17,6 @@ systemd:
       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.8/scripts/install.sh | sh -'
       [Install]
       WantedBy=multi-user.target
-# systemd:
-#   units:
-#   - name: k3s-install.service
-#     enabled: true
-#     contents: |
-#       [Unit]
-#       Description=K3s install
-#       Wants=network-online.target
-#       After=network-online.target
-#       ConditionFirstBoot=yes
-#       [Service]
-#       Type=oneshot
-#       Restart=on-failure
-#       RemainAfterExit=true
-#       Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
-#       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
-#       [Install]
-#       WantedBy=multi-user.target
 storage:
   files:
   - path: /root/.config/rclone/rclone.conf
@@ -53,34 +35,6 @@ storage:
     contents:
       inline: |
         {{ rclone_conf | indent(8) }}
-#   - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
-#     overwrite: true
-#     mode: 0600
-#     contents:
-#       inline: |
-#         apiVersion: helm.cattle.io/v1
-#         kind: HelmChart
-#         metadata:
-#           name: genesis
-#           namespace: kube-system
-#         spec:
-#           chart: oci://ghcr.io/sfmunoz/genesis
-#           version: "0.4.0"
-#           targetNamespace: genesis
-#           createNamespace: true
-#         ---
-#         apiVersion: helm.cattle.io/v1
-#         kind: HelmChartConfig
-#         metadata:
-#           name: genesis
-#           namespace: kube-system
-#         spec:
-#           valuesContent: |-
-#             os:
-#               ssh_authorized_keys:
-#               {%- for k in ssh_authorized_keys %}
-#               - "{{ k }}"
-#               {% endfor %}
 passwd:
   users:
   - name: core
