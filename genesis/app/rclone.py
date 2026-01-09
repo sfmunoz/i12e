@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-from os import getenv
 from logging import getLogger
 from subprocess import Popen, PIPE
 from json import loads as json_loads
+from .config import Config
 log = getLogger(__name__)
 
 class Rclone(object):
     def __init__(self):
-        self.__remote = getenv("I12E_RCLONE_REMOTE")
-        if self.__remote is None or len(self.__remote) < 1:
-            raise Exception("cannot find 'I12E_RCLONE_REMOTE' value")
+        cfg = Config().secrets_yaml()
+        self.__remote = cfg["rclone_remote"]
 
     def __get_config(self):
         cmd = ['rclone','config','dump']

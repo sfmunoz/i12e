@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-from os import environ,getenv
-import yaml
+from os import environ
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 from io import BytesIO
@@ -8,8 +7,7 @@ from tarfile import TarInfo, SYMTYPE, DIRTYPE, open as tar_open
 from time import time
 from subprocess import Popen, PIPE
 from hashlib import sha256
-from base64 import b64decode
-from gzip import decompress
+from .config import Config
 from .rclone import Rclone
 log = getLogger(__name__)
 
@@ -57,11 +55,8 @@ class Artifact(object):
         log.info("'{0}' added".format(fname))
 
     def __k3s_config_yaml(self,tar):
-        secrets_yaml_gz_b64 = getenv("I12E_SECRETS_YAML")
-        if secrets_yaml_gz_b64 is None or len(secrets_yaml_gz_b64) < 1:
-            raise Exception("undefined 'I12E_SECRETS_YAML' env-var")
-        cfg = yaml.safe_load(decompress(b64decode(secrets_yaml_gz_b64)))["env"]["dev"]  # TODO: unhardcode "dev"
         # https://docs.k3s.io/installation/configuration
+        cfg = Config().secrets_yaml()
         tls_san = cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
             position = 1,
