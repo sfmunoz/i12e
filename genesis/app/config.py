@@ -22,4 +22,5 @@ class Config(object):
         return yaml.safe_load(decompress(b64decode(buf)))["env"][self.__env]
 
     def rclone_config(self):
-        return Rclone(self.secrets_yaml()).config()
+        c = self.secrets_yaml()
+        return Rclone(c["rclone_remote"],c["rclone_config_pass"]).config()

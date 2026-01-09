@@ -8,14 +8,14 @@ log = getLogger(__name__)
 # XXX: don't meant to be used directly: use 'Config.rclone_config()' instead
 
 class Rclone(object):
-    def __init__(self,cfg):
-        self.__cfg = cfg
-        self.__remote = self.__cfg["rclone_remote"]
+    def __init__(self,remote,config_pass):
+        self.__remote = remote
+        self.__config_pass = config_pass
 
     def __get_config(self):
         cmd = ['rclone','config','dump']
         env = environ.copy()
-        env["RCLONE_CONFIG_PASS"] = self.__cfg["rclone_config_pass"]
+        env["RCLONE_CONFIG_PASS"] = self.__config_pass
         p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE,env=env)
         (odata,edata) = p.communicate()
         if p.returncode != 0:
