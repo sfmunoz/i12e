@@ -44,9 +44,6 @@ def main():
     parser_artifact = subparsers.add_parser('artifact', help='generate artifact and push it using rclone')
     parser_artifact.set_defaults(func=genesis_run)
     parser_butane = subparsers.add_parser('butane', help='run butane to generate ignition code')
-    parser_butane.add_argument('-k', '--k3s-version', metavar='k3s_version', action='store',
-                        dest='k3s_version', type=str, default=BUTANE_K3S_VERSION_DEFAULT,
-                        help="k3s version (default: '{0}')".format(BUTANE_K3S_VERSION_DEFAULT))
     parser_butane.add_argument('-o', '--output', metavar='output', action='store',
                         dest='output', type=str, choices=BUTANE_VALID_OUTPUTS, default=BUTANE_DEFAULT_OUTPUT,
                         help='output (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_OUTPUT,", ".join(BUTANE_VALID_OUTPUTS)))
