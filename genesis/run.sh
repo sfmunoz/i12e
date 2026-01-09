@@ -15,8 +15,6 @@ set -e -o pipefail
 [ "$RCLONE_CONFIG_FILE" = "" ] && RCLONE_CONFIG_FILE="${HOME}/.config/rclone/rclone.conf"
 [ -f "$RCLONE_CONFIG_FILE" ] || error_and_exit "RCLONE_CONFIG_FILE='$RCLONE_CONFIG_FILE' file doesn't exist"
 
-[ "$RCLONE_CONFIG_PASS" = "" ] && error_and_exit "'RCLONE_CONFIG_PASS' must be provided"
-
 # "docker run -t" interferes with output capturing (e.g. jq weird indent behaviour)
 case "$1" in
   sh|python3) T_OPT="t" ;;
@@ -30,7 +28,6 @@ exec docker run -i$T_OPT --rm \
   -v "${RCLONE_CONFIG_FILE}:/root/.config/rclone/rclone.conf:ro" \
   -v ./app:/app/genesis:ro \
   -e "I12E_ENV=$I12E_ENV" \
-  -e "RCLONE_CONFIG_PASS=$RCLONE_CONFIG_PASS" \
   -e "I12E_SECRETS_YAML=$(sops decrypt ../secrets.yaml | gzip | base64 -w 0)" \
   -e "PYTHONUNBUFFERED=1" \
   -e "PYTHONPATH=/app" \
