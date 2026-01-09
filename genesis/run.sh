@@ -9,9 +9,6 @@ set -e -o pipefail
 
 [ "$I12E_ENV" != "prod" ] && I12E_ENV="dev"
 
-[ "$SSH_PUBKEY_FILE" = "" ] && SSH_PUBKEY_FILE="${HOME}/.ssh/id_rsa.pub"
-[ -f "$SSH_PUBKEY_FILE" ] || error_and_exit "SSH_PUBKEY_FILE='$SSH_PUBKEY_FILE' file doesn't exist"
-
 [ "$RCLONE_CONFIG_FILE" = "" ] && RCLONE_CONFIG_FILE="${HOME}/.config/rclone/rclone.conf"
 [ -f "$RCLONE_CONFIG_FILE" ] || error_and_exit "RCLONE_CONFIG_FILE='$RCLONE_CONFIG_FILE' file doesn't exist"
 
@@ -24,7 +21,6 @@ esac
 cd "$(dirname "$0")"
 
 exec docker run -i$T_OPT --rm \
-  -v "${SSH_PUBKEY_FILE}:/ssh_authorized_keys:ro" \
   -v "${RCLONE_CONFIG_FILE}:/root/.config/rclone/rclone.conf:ro" \
   -v ./app:/app/genesis:ro \
   -e "I12E_ENV=$I12E_ENV" \

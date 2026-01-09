@@ -16,6 +16,7 @@ O_DEBUG = "debug"
 
 class Butane(object):
     def __init__(self,args):
+        self.__cfg = Config().secrets_yaml()
         self.__k3s_version = args.k3s_version
         self.__output = args.output
         self.__env = Environment(
@@ -24,11 +25,7 @@ class Butane(object):
             autoescape = select_autoescape(),
         )
         self.__tpl = self.__env.get_template("flatcar.yaml")
-        with open("/ssh_authorized_keys","r") as fp:
-            buf = fp.read().strip()
-            if len(buf) < 1:
-                raise Exception("empty '/ssh_authorized_keys'")
-        self.__ssh_authorized_keys = buf.split("\n")
+        self.__ssh_authorized_keys = self.__cfg["ssh_authorized_keys"]
         if len(self.__ssh_authorized_keys) < 1:
             raise Exception("'ssh_authorized_keys' list is empty")
         self.__fp = stdout
