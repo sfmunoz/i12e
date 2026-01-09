@@ -12,6 +12,7 @@ log = getLogger(__name__)
 
 class Artifact(object):
     def __init__(self):
+        self.__cfg = Config().main_config()
         self.__env = Environment(
             loader = PackageLoader("genesis"),
             undefined = StrictUndefined,
@@ -55,16 +56,15 @@ class Artifact(object):
 
     def __k3s_config_yaml(self,tar):
         # https://docs.k3s.io/installation/configuration
-        cfg = Config().main_config()
-        tls_san = cfg["kube_vip"]["vip"]
+        tls_san = self.__cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
             position = 1,
             k3s_cmd = "server",
-            k3s_token = cfg["k3s_token"],
-            k3s_agent_token = cfg["k3s_agent_token"],
+            k3s_token = self.__cfg["k3s_token"],
+            k3s_agent_token = self.__cfg["k3s_agent_token"],
             tls_san = tls_san,
             k3s_url = "https://{0}:6443".format(tls_san),
-            flannel_iface = cfg["flannel"]["interface"],
+            flannel_iface = self.__cfg["flannel"]["interface"],
             node_ip = "192.168.56.51",
         ) + "\n").encode()
         fname = "etc/rancher/k3s/config.yaml"
