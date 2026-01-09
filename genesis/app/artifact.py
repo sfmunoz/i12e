@@ -117,13 +117,33 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __etc_i12e_z_flag(self,tar):
+    def __etc_i12e(self,tar):
         dname = "etc/i12e"
         dinfo = self.__tarinfo(dname)
         dinfo.mode = 0o700
         dinfo.type = DIRTYPE
         tar.addfile(dinfo)
-        fname = "{0}/z.flag".format(dname)
+        log.info("'{0}' added".format(dname))
+
+    def __etc_i12e_iface_txt(self,tar):
+        fname = "etc/i12e/iface.txt"
+        iface = self.__cfg.get("flannel",{}).get("interface")
+        if iface is None:
+            log.info("'{0}' not added: flannel.interface not defined".format(fname))
+            return
+        iface = iface.strip()
+        if len(iface) < 1:
+            log.info("'{0}' not added: flannel.interface is empty".format(fname))
+            return
+        data = (iface + "\n").encode()
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o600
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
+    def __etc_i12e_z_flag(self,tar):
+        fname = "etc/i12e/z.flag"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o600
         tar.addfile(finfo)
@@ -174,6 +194,8 @@ class Artifact(object):
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
+            self.__etc_i12e(tar)
+            self.__etc_i12e_iface_txt(tar)
             self.__etc_i12e_z_flag(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
