@@ -16,7 +16,7 @@ O_DEBUG = "debug"
 
 class Butane(object):
     def __init__(self,args):
-        self.__cfg = Config().secrets_yaml()
+        self.__cfg = Config().main_config()
         self.__k3s_version = self.__cfg["k3s_version"]
         self.__output = args.output
         self.__env = Environment(

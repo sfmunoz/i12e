@@ -9,12 +9,12 @@ log = getLogger(__name__)
 
 class Config(object):
     def __init__(self):
-        buf = getenv("I12E_SECRETS_YAML")
+        buf = getenv("I12E_CONFIG")
         if buf is None or len(buf) < 1:
-            raise Exception("undefined 'I12E_SECRETS_YAML' env-var")
+            raise Exception("undefined 'I12E_CONFIG' env-var")
         self.__cfg = yaml.safe_load(decompress(b64decode(buf)))
 
-    def secrets_yaml(self):
+    def main_config(self):
         return self.__cfg
 
     def rclone_config(self):

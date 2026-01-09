@@ -11,10 +11,10 @@ cd "$(dirname "$0")"
 
 [ "$I12E_ENV" != "prod" ] && I12E_ENV="dev"
 
-SFILE="../secrets-${I12E_ENV}.yaml"
-[ -f "$SFILE" ] || error_and_exit "cannot find '${SFILE}' file"
-I12E_SECRETS_YAML="$(sops decrypt "$SFILE" | gzip | base64 -w 0)"
-[ "$I12E_SECRETS_YAML" = "" ] && error_and_exit "cannot get content from '${SFILE}' file"
+SECRETS_YAML="../secrets-${I12E_ENV}.yaml"
+[ -f "$SECRETS_YAML" ] || error_and_exit "cannot find '${SECRETS_YAML}' file"
+I12E_CONFIG="$(sops decrypt "$SECRETS_YAML" | gzip | base64 -w 0)"
+[ "$I12E_CONFIG" = "" ] && error_and_exit "cannot get content from '${SECRETS_YAML}' file"
 
 [ "$RCLONE_CONFIG_FILE" = "" ] && RCLONE_CONFIG_FILE="${HOME}/.config/rclone/rclone.conf"
 [ -f "$RCLONE_CONFIG_FILE" ] || error_and_exit "RCLONE_CONFIG_FILE='$RCLONE_CONFIG_FILE' file doesn't exist"
@@ -28,7 +28,7 @@ esac
 exec docker run -i$T_OPT --rm \
   -v "${RCLONE_CONFIG_FILE}:/root/.config/rclone/rclone.conf:ro" \
   -v ./app:/app/genesis:ro \
-  -e "I12E_SECRETS_YAML=$I12E_SECRETS_YAML" \
+  -e "I12E_CONFIG=$I12E_CONFIG" \
   -e "PYTHONUNBUFFERED=1" \
   -e "PYTHONPATH=/app" \
   ghcr.io/sfmunoz/k8s-bulk:v1.8.0 \

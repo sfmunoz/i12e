@@ -55,7 +55,7 @@ class Artifact(object):
 
     def __k3s_config_yaml(self,tar):
         # https://docs.k3s.io/installation/configuration
-        cfg = Config().secrets_yaml()
+        cfg = Config().main_config()
         tls_san = cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
             position = 1,
