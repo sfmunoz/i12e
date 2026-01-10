@@ -25,24 +25,30 @@ rm -f /etc/i12e/config-patched
 `
 
 const scriptBuf2 = `#!/bin/sh
+set -e -o pipefail
 FLAG_FILE="/etc/i12e/config-patched"
 [ -f "$FLAG_FILE" ] && exit 0
+MODE_FILE="/etc/i12e/mode"
+[ -f "$MODE_FILE" ] || exit 0
+set -x
+cat "/etc/i12e/k3s/config-$(cat $MODE_FILE).yaml" > /etc/rancher/k3s/config.yaml
 IFACE="{{ .Iface }}"
 IP="{{ .Ip }}"
-[ "$IFACE" = "" -o "$IP" = "" ] && exit 0
-set -x -e -o pipefail
-awk \
-  -v IFACE="$IFACE" \
-  -v IP="$IP" \
-  '!/^(node-ip|flannel-iface):/ {
-    print
-  }
-  END {
-    printf("flannel-iface: \"%s\"\nnode-ip: \"%s\"\n",IFACE,IP)
-  }' \
-  /etc/rancher/k3s/config.yaml > /etc/rancher/k3s/config.yaml.new
-cat /etc/rancher/k3s/config.yaml.new > /etc/rancher/k3s/config.yaml
-rm -f /etc/rancher/k3s/config.yaml.new
+if [ "$IFACE" != "" -a "$IP" != "" ]
+then
+  awk \
+    -v IFACE="$IFACE" \
+    -v IP="$IP" \
+    '!/^(node-ip|flannel-iface):/ {
+      print
+    }
+    END {
+      printf("flannel-iface: \"%s\"\nnode-ip: \"%s\"\n",IFACE,IP)
+    }' \
+    /etc/rancher/k3s/config.yaml > /etc/rancher/k3s/config.yaml.new
+  cat /etc/rancher/k3s/config.yaml.new > /etc/rancher/k3s/config.yaml
+  rm -f /etc/rancher/k3s/config.yaml.new
+fi
 touch "$FLAG_FILE"
 `
 
