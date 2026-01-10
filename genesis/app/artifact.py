@@ -86,11 +86,19 @@ class Artifact(object):
         tar.addfile(dinfo)
         log.info("'{0}' added".format(dname))
 
-    def __k3s_override_conf(self,tar):
+    def __k3s_override_conf(self,tar,mode=None):
+        if mode is None:
+            fname = "etc/systemd/system/k3s.service.d/override.conf"
+            finfo = self.__tarinfo(fname)
+            finfo.mode = 0o644
+            tar.addfile(finfo)
+            log.info("'{0}' added".format(fname))
+            return
         data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
-        fname = "etc/systemd/system/k3s.service.d/override.conf"
+        fname = "etc/i12e/k3s/override-{0}.conf".format(mode)
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
+        finfo.mode = 0o644
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
@@ -221,6 +229,8 @@ class Artifact(object):
                 self.__k3s_config_yaml(tar,mode)
             self.__k3s_service_d(tar)
             self.__k3s_override_conf(tar)
+            for mode in self.__modes:
+                self.__k3s_override_conf(tar,mode)
             self.__system_conf_d(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
