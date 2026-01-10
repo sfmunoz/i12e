@@ -13,7 +13,7 @@ systemd:
       Type=simple
       Restart=always
       RestartSec=5s
-      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "5e1b08deadf65799227166838cdf137d2b5394113b0deda492191853eacdab1f  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
+      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "ac748762e81eaa5fc01a96c029cd6c47aa79033c6058c4fda209ba4e4ea4b7ef  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
       ExecStart=/bin/sh -c 'if [ -x /opt/bin/i12e ]; then exec /opt/bin/i12e; else exec /usr/bin/i12e; fi'
       [Install]
       WantedBy=multi-user.target
@@ -45,7 +45,7 @@ storage:
     group:
       name: root
     contents:
-      source: https://github.com/sfmunoz/i12e/releases/download/v0.0.10/i12e-flatcar.raw
+      source: https://github.com/sfmunoz/i12e/releases/download/v0.0.11/i12e-flatcar.raw
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
