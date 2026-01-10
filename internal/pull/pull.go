@@ -19,44 +19,23 @@ var log = logit.Logit().
 
 const scriptTplBuf = `#!/bin/sh
 FLAG_FILE="/etc/i12e/z.flag"
-REBOOT_FILE="/etc/i12e/reboot-required"
 IFACE="{{ .Iface }}"
 IP="{{ .Ip }}"
 set -e -o pipefail
-function reboot_if_required {
-  [ -f "$REBOOT_FILE" ] || return 0
-  set -x
-  systemctl daemon-reload
-  [ -f /etc/systemd/system/k3s.service ] || touch /etc/i12e/k3s-install-required
-  rm -f "$REBOOT_FILE"
-  { set +x; } 2> /dev/null
-  if [ -f "$REBOOT_FILE" ]
-  then
-    echo "error: reboot aborted: cannot delete '$REBOOT_FILE' before 'systemctl reboot' execution"
-    return 1
-  fi
-  set -x
-  systemctl reboot
-}
-function pull_if_needed {
-  if [ -f "$FLAG_FILE" ]
-  then
-    echo "pull not needed: '${FLAG_FILE}' already exists"
-  else
-    echo "pulling artifact.tar.gz provided that '${FLAG_FILE}' doesn't exist..."
-    set -x
-    rclone cat rem:artifact.tar.gz | tar -C / -xvz
-    if [ "$IFACE" != "" -a "$IP" != "" ]
-    then
-      echo "node-ip: \"${IP}\"" >> /etc/rancher/k3s/config.yaml
-      echo "flannel-iface: \"${IFACE}\"" >> /etc/rancher/k3s/config.yaml
-    fi
-    touch "$REBOOT_FILE"
-    { set +x; } 2>/dev/null
-  fi
-}
-pull_if_needed
-reboot_if_required
+if [ -f "$FLAG_FILE" ]
+then
+  echo "pull not needed: '${FLAG_FILE}' already exists"
+  exit 0
+fi
+echo "pulling artifact.tar.gz provided that '${FLAG_FILE}' doesn't exist..."
+set -x
+rclone cat rem:artifact.tar.gz | tar -C / -xvz
+if [ "$IFACE" != "" -a "$IP" != "" ]
+then
+  echo "node-ip: \"${IP}\"" >> /etc/rancher/k3s/config.yaml
+  echo "flannel-iface: \"${IFACE}\"" >> /etc/rancher/k3s/config.yaml
+fi
+{ set +x; } 2>/dev/null
 `
 
 var scriptTpl = template.Must(template.New("script").Parse(scriptTplBuf))

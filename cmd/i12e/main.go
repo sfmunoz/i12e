@@ -17,8 +17,8 @@ func main() {
 	slumber := 3 * time.Second
 	for {
 		log.Info("i12e running...")
-		install.K3sInstall()
 		pull.Pull()
+		install.K3sInstall()
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
