@@ -94,7 +94,9 @@ class Artifact(object):
             tar.addfile(finfo)
             log.info("'{0}' added".format(fname))
             return
-        data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
+        data = (self.__tpl_k3s_override_conf.render(
+            i12e_mode = mode,
+        ) + "\n").encode()
         fname = "etc/i12e/k3s/override-{0}.conf".format(mode)
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
