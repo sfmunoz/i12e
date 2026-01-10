@@ -1,10 +1,12 @@
 package pull
 
 import (
+	"bytes"
 	"errors"
 	"net"
 	"os"
 	"strings"
+	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -15,9 +17,11 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "pull")
 
-const script = `#!/bin/sh
+const scriptTplBuf = `#!/bin/sh
 FLAG_FILE="/etc/i12e/z.flag"
 REBOOT_FILE="/etc/i12e/reboot-required"
+IFACE="{{ .Iface }}"
+IP="{{ .Ip }}"
 set -e -o pipefail
 function reboot_if_required {
   [ -f "$REBOOT_FILE" ] || return 0
@@ -42,6 +46,11 @@ function pull_if_needed {
     echo "pulling artifact.tar.gz provided that '${FLAG_FILE}' doesn't exist..."
     set -x
     rclone cat rem:artifact.tar.gz | tar -C / -xvz
+    if [ "$IFACE" != "" -a "$IP" != "" ]
+    then
+      echo "node-ip: \"${IP}\"" >> /etc/rancher/k3s/config.yaml
+      echo "flannel-iface: \"${IFACE}\"" >> /etc/rancher/k3s/config.yaml
+    fi
     touch "$REBOOT_FILE"
     { set +x; } 2>/dev/null
   fi
@@ -49,6 +58,8 @@ function pull_if_needed {
 pull_if_needed
 reboot_if_required
 `
+
+var scriptTpl = template.Must(template.New("script").Parse(scriptTplBuf))
 
 type II struct {
 	Iface string
@@ -109,11 +120,24 @@ func ifaceIP() *II {
 	return nil
 }
 
-func Pull() {
-	log.Info("Pull()...")
+func script() string {
+	var buf bytes.Buffer
+	iface := ""
+	ip := ""
 	ii := ifaceIP()
 	if ii != nil {
 		log.Info("ifaceIP() ok", "Iface", ii.Iface, "IP", ii.IP)
+		iface = ii.Iface
+		ip = ii.IP
 	}
-	cmdutil.RunCmd("/bin/sh", "-c", script)
+	err := scriptTpl.Execute(&buf, map[string]string{"Iface": iface, "Ip": ip})
+	if err != nil {
+		log.Fatal("scriptTpl.Execute() failed", "err", err, "iface", iface, "Ip", ip)
+	}
+	return buf.String()
+}
+
+func Pull() {
+	log.Info("Pull()...")
+	cmdutil.RunCmd("/bin/sh", "-c", script())
 }
