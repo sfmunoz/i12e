@@ -14,6 +14,9 @@ O_BASH_RAW = "bash_raw"
 O_IGNITION = "ignition"
 O_DEBUG = "debug"
 
+I12E_VERSION = "v0.0.13"
+I12E_SHA256SUM = "4261b579bb5754272597b11949f0b95c3877cc9003fb9ac19fc4a2effc7ba488"
+
 class Butane(object):
     def __init__(self,args):
         self.__cfg = Config().main_config()
@@ -39,6 +42,8 @@ class Butane(object):
 
     def __ignition(self):
         buf = self.__tpl.render(
+            i12e_version = I12E_VERSION,
+            i12e_sha256sum = I12E_SHA256SUM,
             mode = self.__mode,
             k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
