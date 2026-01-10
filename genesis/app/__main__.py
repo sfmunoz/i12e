@@ -12,8 +12,8 @@ log = getLogger(__name__)
 BUTANE_K3S_VERSION_DEFAULT = "v1.34.3+k3s1"
 BUTANE_VALID_MODES = ["main","server","agent"]
 BUTANE_DEFAULT_MODE = "main"
-BUTANE_VALID_OUTPUTS = ["bash_b64","bash_raw","ignition","debug"]
-BUTANE_DEFAULT_OUTPUT = "bash_b64"
+BUTANE_VALID_OUTPUTS = ["ignition","bash_b64","bash_raw","debug"]
+BUTANE_DEFAULT_OUTPUT = "ignition"
 
 def genesis_run(args):
     if args.command == 'artifact':
