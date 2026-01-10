@@ -35,22 +35,22 @@ storage:
           ;;
         esac
         set -x
+        echo "b15970e9c0873f647ccac7f22a9b26ce653517264600a87546e472cb1d73dbbb  /usr/bin/i12e" | sha256sum -c
         mkdir -p /etc/i12e
-        chown 0:0 /etc/i12e
-        chmod 700 /etc/i12e
         echo "$MODE" > /etc/i12e/mode
-        chown 0:0 /etc/i12e/mode
+        chown 0:0 /etc/i12e /etc/i12e/mode
+        chmod 700 /etc/i12e
         chmod 600 /etc/i12e/mode
-        VERSION="v0.0.8"
-        SHA256="53c7eea461715446019f7a78bbfb556aa37f3d4f327a7eccd0e17dba850f4449"
-        TFILE="$(mktemp)"
-        trap 'echo "exit code: $?" ; rm -f "$TFILE"' EXIT
-        curl -sfL -o "$TFILE" https://github.com/sfmunoz/i12e/releases/download/${VERSION}/i12e-flatcar.raw
-        echo "$SHA256  $TFILE" | sha256sum -c
-        install -o root -g root -m 0644 $TFILE /etc/extensions/i12e-flatcar.raw
-        systemd-sysext refresh
-        systemd-sysext status
         I12E_INSTALL=1 /usr/bin/i12e
+  - path: /etc/extensions/i12e-flatcar.raw
+    overwrite: true
+    mode: 0644
+    user:
+      name: root
+    group:
+      name: root
+    contents:
+      source: https://github.com/sfmunoz/i12e/releases/download/v0.0.8/i12e-flatcar.raw
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
