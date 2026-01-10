@@ -72,27 +72,33 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __k3s_override_conf(self,tar):
-        data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
+    def __k3s_service_d(self,tar):
         dname = "etc/systemd/system/k3s.service.d"
         dinfo = self.__tarinfo(dname)
         dinfo.mode = 0o755
         dinfo.type = DIRTYPE
         tar.addfile(dinfo)
-        fname = "{0}/override.conf".format(dname)
+        log.info("'{0}' added".format(dname))
+
+    def __k3s_override_conf(self,tar):
+        data = (self.__tpl_k3s_override_conf.render() + "\n").encode()
+        fname = "etc/systemd/system/k3s.service.d/override.conf"
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __systemd_genesis_conf(self,tar):
-        data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
+    def __system_conf_d(self,tar):
         dname = "etc/systemd/system.conf.d"
         dinfo = self.__tarinfo(dname)
         dinfo.mode = 0o755
         dinfo.type = DIRTYPE
         tar.addfile(dinfo)
-        fname = "{0}/genesis.conf".format(dname)
+        log.info("'{0}' added".format(dname))
+
+    def __systemd_genesis_conf(self,tar):
+        data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
+        fname = "etc/systemd/system.conf.d/genesis.conf"
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
@@ -188,7 +194,9 @@ class Artifact(object):
             self.__flatcar_extensions(tar)
             self.__flatcar_update_conf(tar)
             self.__k3s_config_yaml(tar)
+            self.__k3s_service_d(tar)
             self.__k3s_override_conf(tar)
+            self.__system_conf_d(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
