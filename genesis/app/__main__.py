@@ -10,6 +10,8 @@ basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(mes
 log = getLogger(__name__)
 
 BUTANE_K3S_VERSION_DEFAULT = "v1.34.3+k3s1"
+BUTANE_VALID_MODES = ["main","server","agent"]
+BUTANE_DEFAULT_MODE = "main"
 BUTANE_VALID_OUTPUTS = ["bash_b64","bash_raw","ignition","debug"]
 BUTANE_DEFAULT_OUTPUT = "bash_b64"
 
@@ -44,6 +46,9 @@ def main():
     parser_artifact = subparsers.add_parser('artifact', help='generate artifact and push it using rclone')
     parser_artifact.set_defaults(func=genesis_run)
     parser_butane = subparsers.add_parser('butane', help='run butane to generate ignition code')
+    parser_butane.add_argument('-m', '--mode', metavar='mode', action='store',
+                        dest='mode', type=str, choices=BUTANE_VALID_MODES, default=BUTANE_DEFAULT_MODE,
+                        help='mode (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_MODE,", ".join(BUTANE_VALID_MODES)))
     parser_butane.add_argument('-o', '--output', metavar='output', action='store',
                         dest='output', type=str, choices=BUTANE_VALID_OUTPUTS, default=BUTANE_DEFAULT_OUTPUT,
                         help='output (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_OUTPUT,", ".join(BUTANE_VALID_OUTPUTS)))

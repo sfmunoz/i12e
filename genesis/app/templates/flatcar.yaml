@@ -15,33 +15,42 @@ systemd:
       Restart=on-failure
       RestartSec=5
       RemainAfterExit=true
-      ExecStart=/opt/libexec/i12e-install.sh main
+      ExecStart=/opt/libexec/i12e-install.sh
       [Install]
       WantedBy=multi-user.target
 storage:
+  directories:
+  - path: /etc/i12e
+    overwrite: true
+    mode: 0700
+    user:
+      name: root
+    group:
+      name: root
   files:
+  - path: /etc/i12e/mode
+    overwrite: true
+    mode: 0600
+    user:
+      name: root
+    group:
+      name: root
+    contents:
+      inline: |
+        {{ mode }}
   - path: /opt/libexec/i12e-install.sh
     overwrite: true
     mode: 0700
+    user:
+      name: root
+    group:
+      name: root
     contents:
       inline: |
         #!/bin/bash
         set -e -o pipefail
-        MODE="$1"
-        case "$MODE" in
-          main|server|agent) ;;
-          *)
-            echo "error: unknown MODE='$MODE'"
-            exit 1
-          ;;
-        esac
         set -x
         echo "b15970e9c0873f647ccac7f22a9b26ce653517264600a87546e472cb1d73dbbb  /usr/bin/i12e" | sha256sum -c
-        mkdir -p /etc/i12e
-        echo "$MODE" > /etc/i12e/mode
-        chown 0:0 /etc/i12e /etc/i12e/mode
-        chmod 700 /etc/i12e
-        chmod 600 /etc/i12e/mode
         I12E_INSTALL=1 /usr/bin/i12e
   - path: /etc/extensions/i12e-flatcar.raw
     overwrite: true

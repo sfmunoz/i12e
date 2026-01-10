@@ -18,6 +18,7 @@ class Butane(object):
     def __init__(self,args):
         self.__cfg = Config().main_config()
         self.__k3s_version = self.__cfg["k3s_version"]
+        self.__mode = args.mode
         self.__output = args.output
         self.__env = Environment(
             loader = PackageLoader("genesis"),
@@ -38,6 +39,7 @@ class Butane(object):
 
     def __ignition(self):
         buf = self.__tpl.render(
+            mode = self.__mode,
             k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
             rclone_conf = Config().rclone_config(),
