@@ -3,7 +3,7 @@ from os import environ
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 from logging import getLogger
 from io import BytesIO
-from tarfile import TarInfo, SYMTYPE, DIRTYPE, open as tar_open
+from tarfile import TarInfo, DIRTYPE, open as tar_open
 from time import time
 from subprocess import Popen, PIPE
 from hashlib import sha256
@@ -35,16 +35,6 @@ class Artifact(object):
         tinfo.uname = "root"
         tinfo.gname = "root"
         return tinfo
-
-    def __flatcar_extensions(self,tar):
-        for entry in ["containerd","docker"]:
-            fname = "etc/extensions/{0}-flatcar.raw".format(entry)
-            finfo = self.__tarinfo(fname)
-            finfo.mode = 0o777
-            finfo.type = SYMTYPE
-            finfo.linkname = "/dev/null"
-            tar.addfile(finfo)
-            log.info("'{0}' added".format(fname))
 
     def __flatcar_update_conf(self,tar):
         data = (self.__tpl_flatcar_update_conf.render() + "\n").encode()
@@ -191,7 +181,6 @@ class Artifact(object):
         log.info("==== genesis artifact begin ====")
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
-            self.__flatcar_extensions(tar)
             self.__flatcar_update_conf(tar)
             self.__k3s_config_yaml(tar)
             self.__k3s_service_d(tar)

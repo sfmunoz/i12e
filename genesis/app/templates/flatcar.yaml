@@ -71,6 +71,15 @@ storage:
     contents:
       inline: |
         {{ rclone_conf | indent(8) }}
+  links:
+      # orig: /usr/share/flatcar/sysext/docker-flatcar.raw
+    - path: /etc/extensions/docker-flatcar.raw
+      target: /dev/null
+      overwrite: true
+      # orig: /usr/share/flatcar/sysext/containerd-flatcar.raw
+    - path: /etc/extensions/containerd-flatcar.raw
+      target: /dev/null
+      overwrite: true
 passwd:
   users:
   - name: core
