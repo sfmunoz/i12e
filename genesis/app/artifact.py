@@ -54,7 +54,14 @@ class Artifact(object):
         tar.addfile(dinfo)
         log.info("'{0}' added".format(dname))
 
-    def __k3s_config_yaml(self,tar,mode):
+    def __k3s_config_yaml(self,tar,mode=None):
+        if mode is None:
+            fname = "etc/rancher/k3s/config.yaml"
+            finfo = self.__tarinfo(fname)
+            finfo.mode = 0o600
+            tar.addfile(finfo)
+            log.info("'{0}' added".format(fname))
+            return
         # https://docs.k3s.io/installation/configuration
         tls_san = self.__cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
@@ -209,6 +216,7 @@ class Artifact(object):
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__flatcar_update_conf(tar)
             self.__etc_i12e_k3s(tar)
+            self.__k3s_config_yaml(tar)
             for mode in self.__modes:
                 self.__k3s_config_yaml(tar,mode)
             self.__k3s_service_d(tar)
