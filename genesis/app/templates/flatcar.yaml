@@ -13,7 +13,7 @@ systemd:
       Type=simple
       Restart=always
       RestartSec=5s
-      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "b15970e9c0873f647ccac7f22a9b26ce653517264600a87546e472cb1d73dbbb  /usr/bin/i12e" | sha256sum -c'
+      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "53c7eea461715446019f7a78bbfb556aa37f3d4f327a7eccd0e17dba850f4449  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
       ExecStart=/bin/sh -c 'if [ -x /opt/bin/i12e ]; then exec /opt/bin/i12e; else exec /usr/bin/i12e; fi'
       [Install]
       WantedBy=multi-user.target
