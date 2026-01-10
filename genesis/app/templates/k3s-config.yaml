@@ -1,4 +1,4 @@
-{%- if k3s_cmd == "server" -%}
+{%- if i12e_mode in ["main","server"] -%}
 token: "{{ k3s_token }}"
 agent-token: "{{ k3s_agent_token }}"
 secrets-encryption: true
@@ -9,12 +9,13 @@ flannel-backend: "wireguard-native"
 tls-san: "{{ tls_san }}"
 {%- endif -%}
 
-{%- else %}
-token: {{ k3s_agent_token }}
-{%- endif -%}
-
-{%- if position == 1 %}
+{%- if i12e_mode == "main" %}
 cluster-init: true
 {%- else %}
+server: "{{ k3s_url }}"
+{%- endif -%}
+
+{%- else -%}
+token: {{ k3s_agent_token }}
 server: "{{ k3s_url }}"
 {%- endif -%}

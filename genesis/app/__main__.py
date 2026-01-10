@@ -17,7 +17,7 @@ BUTANE_DEFAULT_OUTPUT = "bash_b64"
 
 def genesis_run(args):
     if args.command == 'artifact':
-        Artifact().run()
+        Artifact(BUTANE_VALID_MODES).run()
         return
     elif args.command == 'butane':
         Butane(args).run()

@@ -11,7 +11,8 @@ from .config import Config
 log = getLogger(__name__)
 
 class Artifact(object):
-    def __init__(self):
+    def __init__(self,modes):
+        self.__modes = modes
         self.__cfg = Config().main_config()
         self.__env = Environment(
             loader = PackageLoader("genesis"),
@@ -45,18 +46,25 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __k3s_config_yaml(self,tar):
+    def __etc_i12e_k3s(self,tar):
+        dname = "etc/i12e/k3s"
+        dinfo = self.__tarinfo(dname)
+        dinfo.mode = 0o700
+        dinfo.type = DIRTYPE
+        tar.addfile(dinfo)
+        log.info("'{0}' added".format(dname))
+
+    def __k3s_config_yaml(self,tar,mode):
         # https://docs.k3s.io/installation/configuration
         tls_san = self.__cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
-            position = 1,
-            k3s_cmd = "server",
+            i12e_mode = mode,
             k3s_token = self.__cfg["k3s_token"],
             k3s_agent_token = self.__cfg["k3s_agent_token"],
             tls_san = tls_san,
             k3s_url = "https://{0}:6443".format(tls_san),
         ) + "\n").encode()
-        fname = "etc/rancher/k3s/config.yaml"
+        fname = "etc/i12e/k3s/config-{0}.yaml".format(mode)
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
         finfo.mode = 0o600
@@ -200,7 +208,9 @@ class Artifact(object):
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__flatcar_update_conf(tar)
-            self.__k3s_config_yaml(tar)
+            self.__etc_i12e_k3s(tar)
+            for mode in self.__modes:
+                self.__k3s_config_yaml(tar,mode)
             self.__k3s_service_d(tar)
             self.__k3s_override_conf(tar)
             self.__system_conf_d(tar)
