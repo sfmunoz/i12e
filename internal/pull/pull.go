@@ -1,7 +1,7 @@
 package pull
 
 import (
-	"fmt"
+	"errors"
 	"net"
 	"os"
 	"strings"
@@ -55,24 +55,36 @@ type II struct {
 	IP    string
 }
 
-func iface_and_ip() (*II, error) {
+func iface_and_ip() *II {
 	path := "/etc/i12e/iface.txt"
 	_, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, os.ErrNotExist) {
+			log.Info("file does not exist", "path", path)
+		} else {
+			log.Error("os.Stat() failed", "path", path, "err", err)
+		}
+		return nil
 	}
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		log.Error("os.ReadFile() failed", "path", path, "err", err)
+		return nil
 	}
 	iname := strings.TrimSpace(string(buf))
+	if len(iname) < 1 {
+		log.Error("file is empty", "path", path)
+		return nil
+	}
 	iface, err := net.InterfaceByName(iname)
 	if err != nil {
-		return nil, fmt.Errorf("net.InterfaceByName() failed: %s", err.Error())
+		log.Error("net.InterfaceByName() failed", "iname", iname, "err", err)
+		return nil
 	}
 	addrs, err := iface.Addrs()
 	if err != nil {
-		return nil, fmt.Errorf("iface.Addrs() failed: %s", err.Error())
+		log.Error("iface.Addrs() failed", "iname", iname, "err", err)
+		return nil
 	}
 	for _, addr := range addrs {
 		ipNet, ok := addr.(*net.IPNet)
@@ -83,20 +95,24 @@ func iface_and_ip() (*II, error) {
 		if ip.To4() == nil {
 			continue
 		}
+		ipStr := ip.String()
+		if len(ipStr) < 1 {
+			log.Error("empty ipStr", "iname", iname)
+			continue
+		}
 		return &II{
 			Iface: iname,
 			IP:    ip.String(),
-		}, nil
+		}
 	}
-	return nil, fmt.Errorf("no IPv4 address found")
+	log.Warn("no IPv4 address found")
+	return nil
 }
 
 func Pull() {
 	log.Info("Pull()...")
-	ii, err := iface_and_ip()
-	if err != nil {
-		log.Error("iface_and_ip() failed", "err", err)
-	} else {
+	ii := iface_and_ip()
+	if ii != nil {
 		log.Info("iface_and_ip() ok", "Iface", ii.Iface, "IP", ii.IP)
 	}
 	cmdutil.RunCmd("/bin/sh", "-c", script)
