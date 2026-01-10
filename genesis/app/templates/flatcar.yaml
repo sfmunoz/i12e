@@ -14,14 +14,50 @@ systemd:
       Type=oneshot
       Restart=on-failure
       RemainAfterExit=true
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.8/scripts/install.sh | sh -'
+      ExecStart=/opt/libexec/i12e-install.sh main
       [Install]
       WantedBy=multi-user.target
 storage:
   files:
+  - path: /opt/libexec/i12e-install.sh
+    overwrite: true
+    mode: 0700
+    contents:
+      inline: |
+        #!/bin/bash
+        set -e -o pipefail
+        MODE="$1"
+        case "$MODE" in
+          main|server|agent) ;;
+          *)
+            echo "error: unknown MODE='$MODE'"
+            exit 1
+          ;;
+        esac
+        set -x
+        mkdir -p /etc/i12e
+        chown 0:0 /etc/i12e
+        chmod 700 /etc/i12e
+        echo "$MODE" > /etc/i12e/mode
+        chown 0:0 /etc/i12e/mode
+        chmod 600 /etc/i12e/mode
+        VERSION="v0.0.8"
+        SHA256="53c7eea461715446019f7a78bbfb556aa37f3d4f327a7eccd0e17dba850f4449"
+        TFILE="$(mktemp)"
+        trap 'echo "exit code: $?" ; rm -f "$TFILE"' EXIT
+        curl -sfL -o "$TFILE" https://github.com/sfmunoz/i12e/releases/download/${VERSION}/i12e-flatcar.raw
+        echo "$SHA256  $TFILE" | sha256sum -c
+        install -o root -g root -m 0644 $TFILE /etc/extensions/i12e-flatcar.raw
+        systemd-sysext refresh
+        systemd-sysext status
+        I12E_INSTALL=1 /usr/bin/i12e
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
+    user:
+      name: root
+    group:
+      name: root
     contents:
       inline: |
         {{ rclone_conf | indent(8) }}
