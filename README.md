@@ -45,7 +45,7 @@ flowchart LR
     fs[("fileserver<br/>s3, gcs, ...")] 
     host(["host (target)"])
     github_repo -->|"(1) git clone/pull"| local
-    rclone_conf -->|"(2) config pull<br/>+RCLONE_CONFIG_PASS<br/>+I12E_RCLONE_REMOTE"| local
+    rclone_conf -->|"(2) config pull"| local
     local -->|"(3) config push<br/>(rclone)"| fs
     local -->|"(4) ignition push (ssh)<br/>i12e + rclone.conf"| host
     github_rel -->|"(5) i12e-flatcar.raw pull"| host

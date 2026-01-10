@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/install"
@@ -15,15 +14,11 @@ var log = logit.Logit().
 	With("pkg", "main")
 
 func main() {
-	if os.Getenv("I12E_INSTALL") == "1" {
-		install.I12eInstall()
-		return
-	}
 	slumber := 3 * time.Second
 	for {
 		log.Info("i12e running...")
-		install.K3sInstall()
 		pull.Pull()
+		install.K3sInstall()
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}

@@ -6,7 +6,7 @@ from subprocess import Popen, PIPE
 from logging import getLogger
 from base64 import b64encode
 from gzip import compress
-from .rclone import Rclone
+from .config import Config
 log = getLogger(__name__)
 
 O_BASH_B64 = "bash_b64"
@@ -16,7 +16,9 @@ O_DEBUG = "debug"
 
 class Butane(object):
     def __init__(self,args):
-        self.__k3s_version = args.k3s_version
+        self.__cfg = Config().main_config()
+        self.__k3s_version = self.__cfg["k3s_version"]
+        self.__mode = args.mode
         self.__output = args.output
         self.__env = Environment(
             loader = PackageLoader("genesis"),
@@ -24,11 +26,7 @@ class Butane(object):
             autoescape = select_autoescape(),
         )
         self.__tpl = self.__env.get_template("flatcar.yaml")
-        with open("/ssh_authorized_keys","r") as fp:
-            buf = fp.read().strip()
-            if len(buf) < 1:
-                raise Exception("empty '/ssh_authorized_keys'")
-        self.__ssh_authorized_keys = buf.split("\n")
+        self.__ssh_authorized_keys = self.__cfg["ssh_authorized_keys"]
         if len(self.__ssh_authorized_keys) < 1:
             raise Exception("'ssh_authorized_keys' list is empty")
         self.__fp = stdout
@@ -41,9 +39,10 @@ class Butane(object):
 
     def __ignition(self):
         buf = self.__tpl.render(
+            mode = self.__mode,
             k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
-            rclone_conf = Rclone().run(),
+            rclone_conf = Config().rclone_config(),
         )
         self.__buf_print(buf,"<but> ")
         yaml.safe_load(buf)  # return value ignored: check it is valid

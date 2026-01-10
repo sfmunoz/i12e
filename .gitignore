@@ -1,3 +1,4 @@
 bin
 build
 /secrets.yaml
+/secrets-*.yaml

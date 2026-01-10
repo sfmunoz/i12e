@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-from os import getenv
+from os import environ
 from logging import getLogger
 from subprocess import Popen, PIPE
 from json import loads as json_loads
 log = getLogger(__name__)
 
+# XXX: don't meant to be used directly: use 'Config.rclone_config()' instead
+
 class Rclone(object):
-    def __init__(self):
-        self.__remote = getenv("I12E_RCLONE_REMOTE")
-        if self.__remote is None or len(self.__remote) < 1:
-            raise Exception("cannot find 'I12E_RCLONE_REMOTE' value")
+    def __init__(self,remote,config_pass):
+        self.__remote = remote
+        self.__config_pass = config_pass
 
     def __get_config(self):
         cmd = ['rclone','config','dump']
-        p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
+        env = environ.copy()
+        env["RCLONE_CONFIG_PASS"] = self.__config_pass
+        p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE,env=env)
         (odata,edata) = p.communicate()
         if p.returncode != 0:
             raise Exception("'{0}' command failed: {1}".format(" ".join(cmd),edata.decode().strip()))
@@ -31,7 +34,7 @@ class Rclone(object):
         rem = c["remote"].split(":")[0]  # remote = name:path/to/subfolder
         return self.__remote_dump(cfg,rem) + [""] + lines
 
-    def run(self):
+    def config(self):
         cfg = self.__get_config()
         lines = self.__remote_dump(cfg,self.__remote)
         return "\n".join(lines)

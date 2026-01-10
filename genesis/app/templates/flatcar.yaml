@@ -2,44 +2,57 @@ variant: flatcar
 version: 1.0.0
 systemd:
   units:
-  - name: i12e-install.service
+  - name: i12e.service
     enabled: true
     contents: |
       [Unit]
-      Description=i12e install
+      Description=i12e
       Wants=network-online.target
       After=network-online.target
-      ConditionFirstBoot=yes
       [Service]
-      Type=oneshot
-      Restart=on-failure
-      RemainAfterExit=true
-      ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://raw.githubusercontent.com/sfmunoz/i12e/refs/tags/v0.0.8/scripts/install.sh | sh -'
+      Type=simple
+      Restart=always
+      RestartSec=5s
+      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "825a04585226ff3e61b49b627d3cb83e6dbb232ac1eadcd27d822d7e734c3583  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
+      ExecStart=/bin/sh -c 'if [ -x /opt/bin/i12e ]; then exec /opt/bin/i12e; else exec /usr/bin/i12e; fi'
       [Install]
       WantedBy=multi-user.target
-# systemd:
-#   units:
-#   - name: k3s-install.service
-#     enabled: true
-#     contents: |
-#       [Unit]
-#       Description=K3s install
-#       Wants=network-online.target
-#       After=network-online.target
-#       ConditionFirstBoot=yes
-#       [Service]
-#       Type=oneshot
-#       Restart=on-failure
-#       RemainAfterExit=true
-#       Environment="INSTALL_K3S_VERSION={{ k3s_version }}"
-#       ExecStart=/usr/bin/bash -c 'set -e -o pipefail ; curl -sfL https://get.k3s.io | sh -'
-#       [Install]
-#       WantedBy=multi-user.target
 storage:
+  directories:
+  - path: /etc/i12e
+    overwrite: true
+    mode: 0700
+    user:
+      name: root
+    group:
+      name: root
   files:
+  - path: /etc/i12e/mode
+    overwrite: true
+    mode: 0600
+    user:
+      name: root
+    group:
+      name: root
+    contents:
+      inline: |
+        {{ mode }}
+  - path: /etc/extensions/i12e-flatcar.raw
+    overwrite: true
+    mode: 0644
+    user:
+      name: root
+    group:
+      name: root
+    contents:
+      source: https://github.com/sfmunoz/i12e/releases/download/v0.0.12/i12e-flatcar.raw
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
+    user:
+      name: root
+    group:
+      name: root
     contents:
       inline: |
         {{ rclone_conf | indent(8) }}
@@ -53,34 +66,15 @@ storage:
     contents:
       inline: |
         {{ rclone_conf | indent(8) }}
-#   - path: /var/lib/rancher/k3s/server/manifests/genesis.yaml
-#     overwrite: true
-#     mode: 0600
-#     contents:
-#       inline: |
-#         apiVersion: helm.cattle.io/v1
-#         kind: HelmChart
-#         metadata:
-#           name: genesis
-#           namespace: kube-system
-#         spec:
-#           chart: oci://ghcr.io/sfmunoz/genesis
-#           version: "0.4.0"
-#           targetNamespace: genesis
-#           createNamespace: true
-#         ---
-#         apiVersion: helm.cattle.io/v1
-#         kind: HelmChartConfig
-#         metadata:
-#           name: genesis
-#           namespace: kube-system
-#         spec:
-#           valuesContent: |-
-#             os:
-#               ssh_authorized_keys:
-#               {%- for k in ssh_authorized_keys %}
-#               - "{{ k }}"
-#               {% endfor %}
+  links:
+      # orig: /usr/share/flatcar/sysext/docker-flatcar.raw
+    - path: /etc/extensions/docker-flatcar.raw
+      target: /dev/null
+      overwrite: true
+      # orig: /usr/share/flatcar/sysext/containerd-flatcar.raw
+    - path: /etc/extensions/containerd-flatcar.raw
+      target: /dev/null
+      overwrite: true
 passwd:
   users:
   - name: core
