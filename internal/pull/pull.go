@@ -55,7 +55,7 @@ type II struct {
 	IP    string
 }
 
-func iface_and_ip() *II {
+func ifaceIP() *II {
 	path := "/etc/i12e/iface.txt"
 	_, err := os.Stat(path)
 	if err != nil {
@@ -111,9 +111,9 @@ func iface_and_ip() *II {
 
 func Pull() {
 	log.Info("Pull()...")
-	ii := iface_and_ip()
+	ii := ifaceIP()
 	if ii != nil {
-		log.Info("iface_and_ip() ok", "Iface", ii.Iface, "IP", ii.IP)
+		log.Info("ifaceIP() ok", "Iface", ii.Iface, "IP", ii.IP)
 	}
 	cmdutil.RunCmd("/bin/sh", "-c", script)
 }
