@@ -17,28 +17,36 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "pull")
 
-const scriptTplBuf = `#!/bin/sh
-FLAG_FILE="/etc/i12e/z.flag"
-IFACE="{{ .Iface }}"
-IP="{{ .Ip }}"
-set -e -o pipefail
-if [ -f "$FLAG_FILE" ]
-then
-  echo "pull not needed: '${FLAG_FILE}' already exists"
-  exit 0
-fi
-echo "pulling artifact.tar.gz provided that '${FLAG_FILE}' doesn't exist..."
-set -x
+const script1 = `#!/bin/sh
+[ -f /etc/i12e/pull-done ] && exit 0
+set -x -e -o pipefail
 rclone cat rem:artifact.tar.gz | tar -C / -xvz
-if [ "$IFACE" != "" -a "$IP" != "" ]
-then
-  echo "node-ip: \"${IP}\"" >> /etc/rancher/k3s/config.yaml
-  echo "flannel-iface: \"${IFACE}\"" >> /etc/rancher/k3s/config.yaml
-fi
-{ set +x; } 2>/dev/null
+rm -f /etc/i12e/config-patched
 `
 
-var scriptTpl = template.Must(template.New("script").Parse(scriptTplBuf))
+const scriptBuf2 = `#!/bin/sh
+FLAG_FILE="/etc/i12e/config-patched"
+[ -f "$FLAG_FILE" ] && exit 0
+IFACE="{{ .Iface }}"
+IP="{{ .Ip }}"
+[ "$IFACE" = "" -o "$IP" = "" ] && exit 0
+set -x -e -o pipefail
+awk \
+  -v IFACE="$IFACE" \
+  -v IP="$IP" \
+  '!/^(node-ip|flannel-iface):/ {
+    print
+  }
+  END {
+    printf("flannel-iface: \"%s\"\nnode-ip: \"%s\"\n",IFACE,IP)
+  }' \
+  /etc/rancher/k3s/config.yaml > /etc/rancher/k3s/config.yaml.new
+cat /etc/rancher/k3s/config.yaml.new > /etc/rancher/k3s/config.yaml
+rm -f /etc/rancher/k3s/config.yaml.new
+touch "$FLAG_FILE"
+`
+
+var scriptTpl2 = template.Must(template.New("script").Parse(scriptBuf2))
 
 type II struct {
 	Iface string
@@ -50,30 +58,30 @@ func ifaceIP() *II {
 	_, err := os.Stat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			log.Info("file does not exist", "path", path)
+			log.Info("ifaceIP(): file does not exist", "path", path)
 		} else {
-			log.Error("os.Stat() failed", "path", path, "err", err)
+			log.Error("ifaceIP(): os.Stat() failed", "path", path, "err", err)
 		}
 		return nil
 	}
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		log.Error("os.ReadFile() failed", "path", path, "err", err)
+		log.Error("ifaceIP(): os.ReadFile() failed", "path", path, "err", err)
 		return nil
 	}
 	iname := strings.TrimSpace(string(buf))
 	if len(iname) < 1 {
-		log.Error("file is empty", "path", path)
+		log.Error("ifaceIP(): file is empty", "path", path)
 		return nil
 	}
 	iface, err := net.InterfaceByName(iname)
 	if err != nil {
-		log.Error("net.InterfaceByName() failed", "iname", iname, "err", err)
+		log.Error("ifaceIP(): net.InterfaceByName() failed", "iname", iname, "err", err)
 		return nil
 	}
 	addrs, err := iface.Addrs()
 	if err != nil {
-		log.Error("iface.Addrs() failed", "iname", iname, "err", err)
+		log.Error("ifaceIP(): iface.Addrs() failed", "iname", iname, "err", err)
 		return nil
 	}
 	for _, addr := range addrs {
@@ -87,7 +95,7 @@ func ifaceIP() *II {
 		}
 		ipStr := ip.String()
 		if len(ipStr) < 1 {
-			log.Error("empty ipStr", "iname", iname)
+			log.Error("ifaceIP(): empty ipStr", "iname", iname)
 			continue
 		}
 		return &II{
@@ -95,11 +103,11 @@ func ifaceIP() *II {
 			IP:    ip.String(),
 		}
 	}
-	log.Warn("no IPv4 address found")
+	log.Warn("ifaceIP(): no IPv4 address found")
 	return nil
 }
 
-func script() string {
+func script2() string {
 	var buf bytes.Buffer
 	iface := ""
 	ip := ""
@@ -109,14 +117,15 @@ func script() string {
 		iface = ii.Iface
 		ip = ii.IP
 	}
-	err := scriptTpl.Execute(&buf, map[string]string{"Iface": iface, "Ip": ip})
+	err := scriptTpl2.Execute(&buf, map[string]string{"Iface": iface, "Ip": ip})
 	if err != nil {
-		log.Fatal("scriptTpl.Execute() failed", "err", err, "iface", iface, "Ip", ip)
+		log.Fatal("scriptTpl2.Execute() failed", "err", err, "iface", iface, "Ip", ip)
 	}
 	return buf.String()
 }
 
 func Pull() {
 	log.Info("Pull()...")
-	cmdutil.RunCmd("/bin/sh", "-c", script())
+	cmdutil.RunCmd("/bin/sh", "-c", script1)
+	cmdutil.RunCmd("/bin/sh", "-c", script2())
 }

@@ -154,8 +154,8 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __etc_i12e_z_flag(self,tar):
-        fname = "etc/i12e/z.flag"
+    def __etc_i12e_pull_done(self,tar):
+        fname = "etc/i12e/pull-done"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o600
         tar.addfile(finfo)
@@ -211,6 +211,6 @@ class Artifact(object):
             self.__etc_i12e_iface_txt(tar)
             self.__opt_libexec(tar)
             self.__i12e_k3s_install_sh(tar)
-            self.__etc_i12e_z_flag(tar)
+            self.__etc_i12e_pull_done(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
