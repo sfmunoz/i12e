@@ -9,7 +9,6 @@ from .artifact import Artifact
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
-BUTANE_K3S_VERSION_DEFAULT = "v1.34.3+k3s1"
 BUTANE_VALID_MODES = ["main","server","agent"]
 BUTANE_DEFAULT_MODE = "main"
 BUTANE_VALID_OUTPUTS = ["ignition","bash_b64","bash_raw","debug"]
