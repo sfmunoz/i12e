@@ -24,7 +24,7 @@ class Artifact(object):
         self.__tpl_flatcar_update_conf = self.__env.get_template("flatcar-update.conf")
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
-        self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
+        self.__tpl_systemd_i12e_conf = self.__env.get_template("systemd-i12e.conf")
         self.__tpl_artifact_tune = self.__env.get_template("artifact-tune.sh")
         self.__time = time()
 
@@ -105,9 +105,9 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __systemd_genesis_conf(self,tar):
-        data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
-        fname = "etc/systemd/system.conf.d/genesis.conf"
+    def __systemd_i12e_conf(self,tar):
+        data = (self.__tpl_systemd_i12e_conf.render() + "\n").encode()
+        fname = "etc/systemd/system.conf.d/i12e.conf"
         finfo = self.__tarinfo(fname)
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
@@ -209,7 +209,7 @@ class Artifact(object):
             self.__k3s_override_conf(tar)
             for mode in self.__modes:
                 self.__k3s_override_conf(tar,mode)
-            self.__systemd_genesis_conf(tar)
+            self.__systemd_i12e_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
             self.__etc_i12e_iface_txt(tar)
