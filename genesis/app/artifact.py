@@ -56,10 +56,35 @@ class Artifact(object):
             tar.addfile(ti)
             log.info("'{0}' added".format(f[0]))
 
+    def __etc_crictl_yaml(self,tar):
+        data = (self.__tpl_critcl_yaml.render() + "\n").encode()
+        fname = "etc/crictl.yaml"
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
     def __flatcar_update_conf(self,tar):
         data = (self.__tpl_flatcar_update_conf.render() + "\n").encode()
         fname = "etc/flatcar/update.conf"
         finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
+    def __etc_i12e_iface_txt(self,tar):
+        fname = "etc/i12e/iface.txt"
+        iface = self.__cfg.get("flannel",{}).get("interface")
+        if iface is None:
+            log.info("'{0}' not added: flannel.interface not defined".format(fname))
+            return
+        iface = iface.strip()
+        if len(iface) < 1:
+            log.info("'{0}' not added: flannel.interface is empty".format(fname))
+            return
+        data = (iface + "\n").encode()
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o600
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
@@ -114,36 +139,11 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __etc_crictl_yaml(self,tar):
-        data = (self.__tpl_critcl_yaml.render() + "\n").encode()
-        fname = "etc/crictl.yaml"
-        finfo = self.__tarinfo(fname)
-        finfo.size = len(data)
-        tar.addfile(finfo,BytesIO(data))
-        log.info("'{0}' added".format(fname))
-
     def __opt_bin_e(self,tar):
         data = (self.__tpl_opt_bin_e.render() + "\n").encode()
         fname = "opt/bin/e"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o755
-        finfo.size = len(data)
-        tar.addfile(finfo,BytesIO(data))
-        log.info("'{0}' added".format(fname))
-
-    def __etc_i12e_iface_txt(self,tar):
-        fname = "etc/i12e/iface.txt"
-        iface = self.__cfg.get("flannel",{}).get("interface")
-        if iface is None:
-            log.info("'{0}' not added: flannel.interface not defined".format(fname))
-            return
-        iface = iface.strip()
-        if len(iface) < 1:
-            log.info("'{0}' not added: flannel.interface is empty".format(fname))
-            return
-        data = (iface + "\n").encode()
-        finfo = self.__tarinfo(fname)
-        finfo.mode = 0o600
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
@@ -212,17 +212,17 @@ class Artifact(object):
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
             self.__folders(tar)
+            self.__etc_crictl_yaml(tar)
             self.__flatcar_update_conf(tar)
-            self.__k3s_config_yaml(tar)
+            self.__etc_i12e_iface_txt(tar)
             for mode in self.__modes:
                 self.__k3s_config_yaml(tar,mode)
-            self.__k3s_override_conf(tar)
             for mode in self.__modes:
                 self.__k3s_override_conf(tar,mode)
             self.__systemd_i12e_conf(tar)
-            self.__etc_crictl_yaml(tar)
+            self.__k3s_override_conf(tar)
+            self.__k3s_config_yaml(tar)
             self.__opt_bin_e(tar)
-            self.__etc_i12e_iface_txt(tar)
             self.__artifact_tune_sh(tar)
             self.__etc_i12e_flags_artifact_pulled(tar)
         if self.__devel:
