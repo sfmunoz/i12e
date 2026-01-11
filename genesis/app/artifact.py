@@ -38,10 +38,11 @@ class Artifact(object):
 
     def __folders(self,tar):
         folders = [
+            ("etc/i12e",0o700,"root","root"),
+            ("etc/i12e/flags",0o700,"root","root"),
             ("etc/i12e/k3s",0o700,"root","root"),
             ("etc/systemd/system/k3s.service.d",0o755,"root","root"),
             ("etc/systemd/system.conf.d",0o755,"root","root"),
-            ("etc/i12e",0o700,"root","root"),
             ("opt/libexec",0o755,"root","root"),
             ("opt/libexec/i12e",0o755,"root","root"),
         ]
@@ -155,8 +156,8 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __etc_i12e_pull_done(self,tar):
-        fname = "etc/i12e/pull-done"
+    def __etc_i12e_flags_artifact_pulled(self,tar):
+        fname = "etc/i12e/flags/artifact-pulled"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o600
         tar.addfile(finfo)
@@ -213,6 +214,6 @@ class Artifact(object):
             self.__opt_bin_e(tar)
             self.__etc_i12e_iface_txt(tar)
             self.__artifact_tune_sh(tar)
-            self.__etc_i12e_pull_done(tar)
+            self.__etc_i12e_flags_artifact_pulled(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
