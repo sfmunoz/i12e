@@ -14,8 +14,8 @@ O_BASH_RAW = "bash_raw"
 O_IGNITION = "ignition"
 O_DEBUG = "debug"
 
-I12E_VERSION = "v0.0.16"
-I12E_SHA256SUM = "c11d2eb4a9a40bc31ef8e6ac162e14071587bb02159d227c56bf200a48f293e2"
+I12E_VERSION = "v0.0.17"
+I12E_SHA256SUM = "5ff8f0fe1d7d6a8e26bb4858036a4aafe8408daa8948b910d2b53c57a4a1f6ad"
 
 class Butane(object):
     def __init__(self,args):
