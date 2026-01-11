@@ -17,7 +17,7 @@ BUTANE_DEFAULT_OUTPUT = "ignition"
 
 def genesis_run(args):
     if args.command == 'artifact':
-        Artifact(BUTANE_VALID_MODES).run()
+        Artifact(args,BUTANE_VALID_MODES).run()
         return
     elif args.command == 'butane':
         Butane(args).run()
@@ -44,6 +44,8 @@ def main():
         dest = 'command',
     )
     parser_artifact = subparsers.add_parser('artifact', help='generate artifact and push it using rclone')
+    parser_artifact.add_argument('-d', '--devel', action='store_true',
+                        help='content is not uploaded and output is extended')
     parser_artifact.set_defaults(func=genesis_run)
     parser_butane = subparsers.add_parser('butane', help='run butane to generate ignition code')
     parser_butane.add_argument('-m', '--mode', metavar='mode', action='store',
