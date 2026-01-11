@@ -25,18 +25,35 @@ class Artifact(object):
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
         self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
-        self.__tpl_i12e_k3s_install = self.__env.get_template("i12e-k3s-install.sh")
+        self.__tpl_k3s_install = self.__env.get_template("k3s-install.sh")
+        self.__tpl_config_patch = self.__env.get_template("config-patch.sh")
         self.__time = time()
 
     def __tarinfo(self,fname):
         tinfo = TarInfo(name=fname)
         tinfo.mode = 0o644
         tinfo.mtime = self.__time
-        tinfo.uid = 0
-        tinfo.gid = 0
         tinfo.uname = "root"
         tinfo.gname = "root"
         return tinfo
+
+    def __folders(self,tar):
+        folders = [
+            ("etc/i12e/k3s",0o700,"root","root"),
+            ("etc/systemd/system/k3s.service.d",0o755,"root","root"),
+            ("etc/systemd/system.conf.d",0o755,"root","root"),
+            ("etc/i12e",0o700,"root","root"),
+            ("opt/libexec",0o755,"root","root"),
+            ("opt/libexec/i12e",0o755,"root","root"),
+        ]
+        for f in folders:
+            ti = self.__tarinfo(f[0])
+            ti.mode = f[1]
+            ti.type = DIRTYPE
+            ti.uname = f[2]
+            ti.gname = f[3]
+            tar.addfile(ti)
+            log.info("'{0}' added".format(f[0]))
 
     def __flatcar_update_conf(self,tar):
         data = (self.__tpl_flatcar_update_conf.render() + "\n").encode()
@@ -45,14 +62,6 @@ class Artifact(object):
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
-
-    def __etc_i12e_k3s(self,tar):
-        dname = "etc/i12e/k3s"
-        dinfo = self.__tarinfo(dname)
-        dinfo.mode = 0o700
-        dinfo.type = DIRTYPE
-        tar.addfile(dinfo)
-        log.info("'{0}' added".format(dname))
 
     def __k3s_config_yaml(self,tar,mode=None):
         if mode is None:
@@ -78,14 +87,6 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __k3s_service_d(self,tar):
-        dname = "etc/systemd/system/k3s.service.d"
-        dinfo = self.__tarinfo(dname)
-        dinfo.mode = 0o755
-        dinfo.type = DIRTYPE
-        tar.addfile(dinfo)
-        log.info("'{0}' added".format(dname))
-
     def __k3s_override_conf(self,tar,mode=None):
         if mode is None:
             fname = "etc/systemd/system/k3s.service.d/override.conf"
@@ -103,14 +104,6 @@ class Artifact(object):
         finfo.mode = 0o644
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
-
-    def __system_conf_d(self,tar):
-        dname = "etc/systemd/system.conf.d"
-        dinfo = self.__tarinfo(dname)
-        dinfo.mode = 0o755
-        dinfo.type = DIRTYPE
-        tar.addfile(dinfo)
-        log.info("'{0}' added".format(dname))
 
     def __systemd_genesis_conf(self,tar):
         data = (self.__tpl_systemd_genesis_conf.render() + "\n").encode()
@@ -137,14 +130,6 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __etc_i12e(self,tar):
-        dname = "etc/i12e"
-        dinfo = self.__tarinfo(dname)
-        dinfo.mode = 0o700
-        dinfo.type = DIRTYPE
-        tar.addfile(dinfo)
-        log.info("'{0}' added".format(dname))
-
     def __etc_i12e_iface_txt(self,tar):
         fname = "etc/i12e/iface.txt"
         iface = self.__cfg.get("flannel",{}).get("interface")
@@ -162,19 +147,20 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __opt_libexec(self,tar):
-        dname = "opt/libexec"
-        dinfo = self.__tarinfo(dname)
-        dinfo.mode = 0o755
-        dinfo.type = DIRTYPE
-        tar.addfile(dinfo)
-        log.info("'{0}' added".format(dname))
-
-    def __i12e_k3s_install_sh(self,tar):
-        data = (self.__tpl_i12e_k3s_install.render() + "\n").encode()
-        fname = "opt/libexec/i12e-k3s-install.sh"
+    def __k3s_install_sh(self,tar):
+        data = (self.__tpl_k3s_install.render() + "\n").encode()
+        fname = "opt/libexec/i12e/k3s-install.sh"
         finfo = self.__tarinfo(fname)
-        finfo.mode = 0o700
+        finfo.mode = 0o755
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
+    def __config_patch_sh(self,tar):
+        data = (self.__tpl_config_patch.render() + "\n").encode()
+        fname = "opt/libexec/i12e/config-patch.sh"
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o755
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
@@ -224,23 +210,20 @@ class Artifact(object):
         log.info("==== genesis artifact begin ====")
         buf = BytesIO()
         with tar_open(fileobj=buf, mode="w:gz") as tar:
+            self.__folders(tar)
             self.__flatcar_update_conf(tar)
-            self.__etc_i12e_k3s(tar)
             self.__k3s_config_yaml(tar)
             for mode in self.__modes:
                 self.__k3s_config_yaml(tar,mode)
-            self.__k3s_service_d(tar)
             self.__k3s_override_conf(tar)
             for mode in self.__modes:
                 self.__k3s_override_conf(tar,mode)
-            self.__system_conf_d(tar)
             self.__systemd_genesis_conf(tar)
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
-            self.__etc_i12e(tar)
             self.__etc_i12e_iface_txt(tar)
-            self.__opt_libexec(tar)
-            self.__i12e_k3s_install_sh(tar)
+            self.__k3s_install_sh(tar)
+            self.__config_patch_sh(tar)
             self.__etc_i12e_pull_done(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
