@@ -3,7 +3,6 @@ package main
 import (
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/install"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
@@ -18,7 +17,6 @@ func main() {
 	for {
 		log.Info("i12e running...")
 		pull.Pull()
-		install.Install()
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
