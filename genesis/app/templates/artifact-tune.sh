@@ -18,6 +18,9 @@ function artifact_tune {
       }
     }' \
     /etc/i12e/k3s/config-${MODE}.yaml > /etc/rancher/k3s/config.yaml
+  systemctl daemon-reload
+  systemctl restart update-engine
+  #systemctl restart locksmithd
   touch "$FLAG_FILE"
   { set +x; } 2> /dev/null
 }
