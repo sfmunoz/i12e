@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"os/exec"
+	"sync"
 
 	"github.com/sfmunoz/logit"
 )
@@ -13,14 +14,15 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "cmdutil")
 
-func logOutput(out io.ReadCloser, prefix string) {
+func logOutput(out io.ReadCloser, prefix string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	s := bufio.NewScanner(out)
 	for s.Scan() {
 		line := s.Text()
 		log.Info(prefix + line)
 	}
 	if err := s.Err(); err != nil {
-		return // best effort
+		log.Error("'scanner.Err()' is not nil", "err", err)
 	}
 }
 
@@ -34,11 +36,14 @@ func RunCmd(name string, arg ...string) error {
 	if err != nil {
 		return err
 	}
-	go logOutput(stdout, "o> ")
-	go logOutput(stderr, "e> ")
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go logOutput(stdout, "o> ", &wg)
+	go logOutput(stderr, "e> ", &wg)
 	if err := cmd.Start(); err != nil {
 		return err
 	}
+	wg.Wait()
 	if err := cmd.Wait(); err != nil {
 		return err
 	}
