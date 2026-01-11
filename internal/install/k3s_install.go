@@ -5,7 +5,7 @@ import (
 )
 
 const script = `#!/bin/sh
-[ -x /opt/libexec/i12e-k3s-install.sh ] && exec /opt/libexec/i12e-k3s-install.sh
+[ -x /opt/libexec/i12e/k3s-install.sh ] && exec /opt/libexec/i12e/k3s-install.sh
 exit 0
 `
 

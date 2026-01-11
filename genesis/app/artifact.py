@@ -43,6 +43,7 @@ class Artifact(object):
             ("etc/systemd/system.conf.d",0o755,"root","root"),
             ("etc/i12e",0o700,"root","root"),
             ("opt/libexec",0o755,"root","root"),
+            ("opt/libexec/i12e",0o755,"root","root"),
         ]
         for f in folders:
             ti = self.__tarinfo(f[0])
@@ -147,9 +148,9 @@ class Artifact(object):
 
     def __i12e_k3s_install_sh(self,tar):
         data = (self.__tpl_i12e_k3s_install.render() + "\n").encode()
-        fname = "opt/libexec/i12e-k3s-install.sh"
+        fname = "opt/libexec/i12e/k3s-install.sh"
         finfo = self.__tarinfo(fname)
-        finfo.mode = 0o700
+        finfo.mode = 0o755
         finfo.size = len(data)
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
