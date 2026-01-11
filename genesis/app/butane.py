@@ -20,7 +20,6 @@ I12E_SHA256SUM = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a27
 class Butane(object):
     def __init__(self,args):
         self.__cfg = Config().main_config()
-        self.__k3s_version = self.__cfg["k3s_version"]
         self.__mode = args.mode
         self.__output = args.output
         self.__env = Environment(
@@ -45,7 +44,6 @@ class Butane(object):
             i12e_version = I12E_VERSION,
             i12e_sha256sum = I12E_SHA256SUM,
             mode = self.__mode,
-            k3s_version = self.__k3s_version,
             ssh_authorized_keys = self.__ssh_authorized_keys,
             rclone_conf = Config().rclone_config(),
         )
