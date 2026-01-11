@@ -1,12 +1,10 @@
 package pull
 
 import (
-	"bytes"
 	"errors"
 	"net"
 	"os"
 	"strings"
-	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -17,44 +15,12 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "pull")
 
-const script1 = `#!/bin/sh
+const rcloneScript = `#!/bin/sh
 [ -f /etc/i12e/pull-done ] && exit 0
 set -x -e -o pipefail
 rclone cat rem:artifact.tar.gz | tar -C / -xvz
 rm -f /etc/i12e/config-patched
 `
-
-const scriptBuf2 = `#!/bin/sh
-set -e -o pipefail
-FLAG_FILE="/etc/i12e/config-patched"
-[ -f "$FLAG_FILE" ] && exit 0
-MODE_FILE="/etc/i12e/mode"
-[ -f "$MODE_FILE" ] || exit 0
-MODE="$(cat /etc/i12e/mode)"
-set -x
-cat /etc/i12e/k3s/config-${MODE}.yaml > /etc/rancher/k3s/config.yaml
-cat /etc/i12e/k3s/override-${MODE}.conf > /etc/systemd/system/k3s.service.d/override.conf
-IFACE="{{ .Iface }}"
-IP="{{ .Ip }}"
-if [ "$IFACE" != "" -a "$IP" != "" ]
-then
-  awk \
-    -v IFACE="$IFACE" \
-    -v IP="$IP" \
-    '!/^(node-ip|flannel-iface):/ {
-      print
-    }
-    END {
-      printf("flannel-iface: \"%s\"\nnode-ip: \"%s\"\n",IFACE,IP)
-    }' \
-    /etc/rancher/k3s/config.yaml > /etc/rancher/k3s/config.yaml.new
-  cat /etc/rancher/k3s/config.yaml.new > /etc/rancher/k3s/config.yaml
-  rm -f /etc/rancher/k3s/config.yaml.new
-fi
-touch "$FLAG_FILE"
-`
-
-var scriptTpl2 = template.Must(template.New("script").Parse(scriptBuf2))
 
 type II struct {
 	Iface string
@@ -95,45 +61,36 @@ func ifaceIP() *II {
 	for _, addr := range addrs {
 		ipNet, ok := addr.(*net.IPNet)
 		if !ok {
+			log.Info("ifaceIP(): cannot get ipNet", "iname", iname, "addr", addr)
 			continue
 		}
 		ip := ipNet.IP
 		if ip.To4() == nil {
+			log.Info("ifaceIP(): ip.To4() returned nil", "iname", iname, "addr", addr)
 			continue
 		}
 		ipStr := ip.String()
 		if len(ipStr) < 1 {
-			log.Error("ifaceIP(): empty ipStr", "iname", iname)
+			log.Info("ifaceIP(): empty ipStr", "iname", iname, "addr", addr)
 			continue
 		}
-		return &II{
-			Iface: iname,
-			IP:    ip.String(),
-		}
+		ret := &II{Iface: iname, IP: ip.String()}
+		log.Info("ifaceIP() ok", "Iface", ret.Iface, "IP", ret.IP)
+		return ret
 	}
 	log.Warn("ifaceIP(): no IPv4 address found")
 	return nil
 }
 
-func script2() string {
-	var buf bytes.Buffer
+func Pull() {
+	log.Info("Pull()...")
+	cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
 	iface := ""
 	ip := ""
 	ii := ifaceIP()
 	if ii != nil {
-		log.Info("ifaceIP() ok", "Iface", ii.Iface, "IP", ii.IP)
 		iface = ii.Iface
 		ip = ii.IP
 	}
-	err := scriptTpl2.Execute(&buf, map[string]string{"Iface": iface, "Ip": ip})
-	if err != nil {
-		log.Fatal("scriptTpl2.Execute() failed", "err", err, "iface", iface, "Ip", ip)
-	}
-	return buf.String()
-}
-
-func Pull() {
-	log.Info("Pull()...")
-	cmdutil.RunCmd("/bin/sh", "-c", script1)
-	cmdutil.RunCmd("/bin/sh", "-c", script2())
+	cmdutil.RunCmd("/opt/libexec/i12e/config-patch.sh", iface, ip)
 }
