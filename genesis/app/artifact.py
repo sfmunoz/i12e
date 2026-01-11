@@ -11,7 +11,8 @@ from .config import Config
 log = getLogger(__name__)
 
 class Artifact(object):
-    def __init__(self,modes):
+    def __init__(self,args,modes):
+        self.__devel = args.devel
         self.__modes = modes
         self.__cfg = Config().main_config()
         self.__env = Environment(
@@ -163,6 +164,15 @@ class Artifact(object):
         tar.addfile(finfo)
         log.info("'{0}' added".format(fname))
 
+    def __devel_output(self,buf):
+        log.info("sha256: {0}".format(sha256(buf).hexdigest()))
+        cmd = ['tar','tvz']
+        log.info("$ {0}".format(" ".join(cmd)))
+        p = Popen(args=cmd,stdin=PIPE)
+        p.communicate(buf)
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed".format(" ".join(cmd)))
+
     def __rclone_push(self,buf):
         rclone_config = "/root/rclone.conf"
         with open(rclone_config,"w") as fp:
@@ -215,5 +225,8 @@ class Artifact(object):
             self.__etc_i12e_iface_txt(tar)
             self.__artifact_tune_sh(tar)
             self.__etc_i12e_flags_artifact_pulled(tar)
+        if self.__devel:
+            self.__devel_output(buf.getvalue())
+            return
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
