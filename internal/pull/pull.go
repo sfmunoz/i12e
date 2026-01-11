@@ -84,7 +84,11 @@ func ifaceIP() *II {
 
 func Pull() {
 	log.Info("Pull()...")
-	cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
+	err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
+	if err != nil {
+		log.Error("rcloneScript failed", "err", err)
+		return
+	}
 	iface := ""
 	ip := ""
 	ii := ifaceIP()
@@ -92,5 +96,8 @@ func Pull() {
 		iface = ii.Iface
 		ip = ii.IP
 	}
-	cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
+	err = cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
+	if err != nil {
+		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
+	}
 }
