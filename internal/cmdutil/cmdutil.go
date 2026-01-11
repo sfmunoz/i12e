@@ -1,9 +1,9 @@
 package cmdutil
 
 import (
-	"bytes"
+	"bufio"
+	"io"
 	"os/exec"
-	"strings"
 
 	"github.com/sfmunoz/logit"
 )
@@ -13,19 +13,34 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "cmdutil")
 
-func RunCmd(name string, arg ...string) {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
+func logOutput(out io.ReadCloser, prefix string) {
+	s := bufio.NewScanner(out)
+	for s.Scan() {
+		line := s.Text()
+		log.Info(prefix + line)
+	}
+	if err := s.Err(); err != nil {
+		return // best effort
+	}
+}
+
+func RunCmd(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		log.Error("error: 'cmd.Run()' failed", "err", err, "stderr", stderr.String())
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return err
 	}
-	for line := range strings.SplitSeq(stdout.String(), "\n") {
-		if line == "" {
-			continue
-		}
-		log.Info(line)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return err
 	}
+	go logOutput(stdout, "o> ")
+	go logOutput(stderr, "e> ")
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
