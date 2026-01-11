@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e -o pipefail
-FLAG_FILE="/etc/i12e/config-patched"
+FLAG_FILE="/etc/i12e/artifact-tuned"
 [ -f "$FLAG_FILE" ] && exit 0
 MODE_FILE="/etc/i12e/mode"
 [ -f "$MODE_FILE" ] || exit 0

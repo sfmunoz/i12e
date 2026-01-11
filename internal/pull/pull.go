@@ -19,7 +19,7 @@ const rcloneScript = `#!/bin/sh
 [ -f /etc/i12e/pull-done ] && exit 0
 set -x -e -o pipefail
 rclone cat rem:artifact.tar.gz | tar -C / -xvz
-rm -f /etc/i12e/config-patched
+rm -f /etc/i12e/artifact-tuned
 `
 
 type II struct {
@@ -92,5 +92,5 @@ func Pull() {
 		iface = ii.Iface
 		ip = ii.IP
 	}
-	cmdutil.RunCmd("/opt/libexec/i12e/config-patch.sh", iface, ip)
+	cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
 }
