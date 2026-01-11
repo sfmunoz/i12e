@@ -14,8 +14,7 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "cmdutil")
 
-func logOutput(out io.ReadCloser, prefix string, wg *sync.WaitGroup) {
-	defer wg.Done()
+func logOutput(out io.ReadCloser, prefix string) {
 	s := bufio.NewScanner(out)
 	for s.Scan() {
 		line := s.Text()
@@ -38,8 +37,14 @@ func RunCmd(name string, arg ...string) error {
 	}
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go logOutput(stdout, "o> ", &wg)
-	go logOutput(stderr, "e> ", &wg)
+	go func() {
+		defer wg.Done()
+		logOutput(stdout, "o> ")
+	}()
+	go func() {
+		defer wg.Done()
+		logOutput(stderr, "e> ")
+	}()
 	if err := cmd.Start(); err != nil {
 		return err
 	}
