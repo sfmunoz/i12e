@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -o pipefail
 function artifact_tune {
-  FLAG_FILE="/etc/i12e/artifact-tuned"
+  FLAG_FILE="/etc/i12e/flags/artifact-tuned"
   [ -f "$FLAG_FILE" ] && return 0
   MODE_FILE="/etc/i12e/mode"
   [ -f "$MODE_FILE" ] || return 0
