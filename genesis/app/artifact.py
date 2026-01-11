@@ -25,8 +25,7 @@ class Artifact(object):
         self.__tpl_k3s_config_yaml = self.__env.get_template("k3s-config.yaml")
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
         self.__tpl_systemd_genesis_conf = self.__env.get_template("systemd-genesis.conf")
-        self.__tpl_k3s_install = self.__env.get_template("k3s-install.sh")
-        self.__tpl_config_patch = self.__env.get_template("config-patch.sh")
+        self.__tpl_artifact_tune = self.__env.get_template("artifact-tune.sh")
         self.__time = time()
 
     def __tarinfo(self,fname):
@@ -147,18 +146,9 @@ class Artifact(object):
         tar.addfile(finfo,BytesIO(data))
         log.info("'{0}' added".format(fname))
 
-    def __k3s_install_sh(self,tar):
-        data = (self.__tpl_k3s_install.render() + "\n").encode()
-        fname = "opt/libexec/i12e/k3s-install.sh"
-        finfo = self.__tarinfo(fname)
-        finfo.mode = 0o755
-        finfo.size = len(data)
-        tar.addfile(finfo,BytesIO(data))
-        log.info("'{0}' added".format(fname))
-
-    def __config_patch_sh(self,tar):
-        data = (self.__tpl_config_patch.render() + "\n").encode()
-        fname = "opt/libexec/i12e/config-patch.sh"
+    def __artifact_tune_sh(self,tar):
+        data = (self.__tpl_artifact_tune.render() + "\n").encode()
+        fname = "opt/libexec/i12e/artifact-tune.sh"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o755
         finfo.size = len(data)
@@ -222,8 +212,7 @@ class Artifact(object):
             self.__etc_crictl_yaml(tar)
             self.__opt_bin_e(tar)
             self.__etc_i12e_iface_txt(tar)
-            self.__k3s_install_sh(tar)
-            self.__config_patch_sh(tar)
+            self.__artifact_tune_sh(tar)
             self.__etc_i12e_pull_done(tar)
         self.__rclone_push(buf.getvalue())
         log.info("---- genesis artifact end ----")
