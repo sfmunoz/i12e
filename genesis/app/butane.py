@@ -17,9 +17,18 @@ O_DEBUG = "debug"
 I12E_VERSION = "v0.0.18"
 I12E_SHA256SUM = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
 
+def str_rep(dumper, data):
+    if "\n" in data:
+        return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data)
+
+yaml.add_representer(str,str_rep)
+
 class Butane(object):
     def __init__(self,args):
-        self.__cfg = Config().main_config()
+        c = Config()
+        self.__cfg = c.main_config()
+        self.__butane_config = c.butane_config()
         self.__mode = args.mode
         self.__output = args.output
         self.__env = Environment(
@@ -40,7 +49,10 @@ class Butane(object):
             self.__fp.write("{0}{1}\n".format(prefix,line))
 
     def __ignition(self):
+        storage_files = self.__butane_config.get("storage",{}).get("files",[])
+        extra_files = yaml.dump(storage_files) if len(storage_files) > 0 else ""
         buf = self.__tpl.render(
+            extra_files = extra_files,
             i12e_version = I12E_VERSION,
             i12e_sha256sum = I12E_SHA256SUM,
             mode = self.__mode,

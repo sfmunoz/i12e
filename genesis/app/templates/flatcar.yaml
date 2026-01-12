@@ -27,6 +27,7 @@ storage:
     group:
       name: root
   files:
+  {{ extra_files | indent(2) }}
   - path: /etc/i12e/mode
     overwrite: true
     mode: 0600
