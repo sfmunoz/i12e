@@ -63,8 +63,6 @@ class Butane(object):
         (odata,edata) = p.communicate(ibuf)
         if p.returncode != 0:
             raise Exception("'{0}' command failed: {1}".format(" ".join(cmd),edata.decode().strip()))
-        with open(ofile,"r") as fp:
-            print(fp.read())
 
     def __ignition(self):
         self.__ignition_config_merge_local_build()
