@@ -20,7 +20,7 @@ class Config(object):
     def butane_config(self):
         buf = getenv("I12E_BUTANE")
         if buf is None or len(buf) < 1:
-            return {}
+            return yaml.safe_load("variant: flatcar\nversion: 1.0.0\n")
         return yaml.safe_load(decompress(b64decode(buf)))
 
     def rclone_config(self):
