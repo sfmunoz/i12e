@@ -1,5 +1,9 @@
 variant: flatcar
 version: 1.0.0
+ignition:
+  config:
+    merge:
+     - local: {{ ignition_config_merge_local }}
 systemd:
   units:
   - name: i12e.service

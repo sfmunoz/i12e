@@ -17,5 +17,11 @@ class Config(object):
     def main_config(self):
         return self.__cfg
 
+    def butane_config(self):
+        buf = getenv("I12E_BUTANE")
+        if buf is None or len(buf) < 1:
+            return yaml.safe_load("variant: flatcar\nversion: 1.0.0\n")
+        return yaml.safe_load(decompress(b64decode(buf)))
+
     def rclone_config(self):
         return Rclone(self.__cfg["rclone_remote"],self.__cfg["rclone_config_pass"]).config()
