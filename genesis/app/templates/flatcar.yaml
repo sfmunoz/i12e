@@ -1,5 +1,9 @@
 variant: flatcar
 version: 1.0.0
+ignition:
+  config:
+    merge:
+     - local: {{ ignition_config_merge_local }}
 systemd:
   units:
   - name: i12e.service
@@ -27,7 +31,6 @@ storage:
     group:
       name: root
   files:
-  {{ extra_files | indent(2) }}
   - path: /etc/i12e/mode
     overwrite: true
     mode: 0600

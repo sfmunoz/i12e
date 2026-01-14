@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from os.path import join
 from sys import stdout
 from jinja2 import Environment, PackageLoader, select_autoescape, StrictUndefined
 import yaml, json
@@ -41,6 +42,8 @@ class Butane(object):
         if len(self.__ssh_authorized_keys) < 1:
             raise Exception("'ssh_authorized_keys' list is empty")
         self.__fp = stdout
+        self.__butane_files_dir = "/root"
+        self.__ignition_config_merge_local = "ignition_config_merge_local.json"
 
     def __buf_print(self,buf,prefix=""):
         if self.__output != O_DEBUG:
@@ -48,11 +51,25 @@ class Butane(object):
         for line in buf.strip().split("\n"):
             self.__fp.write("{0}{1}\n".format(prefix,line))
 
+    def __ignition_config_merge_local_build(self):
+        ofile = join(self.__butane_files_dir,self.__ignition_config_merge_local)
+        ibuf = yaml.dump(self.__butane_config).encode()
+        if ibuf == "":
+            with open(ofile,"w") as fp:
+                fp.write("{}")
+            return
+        cmd = ['butane','-o',ofile]
+        p = Popen(args=cmd,stdin=PIPE,stderr=PIPE)
+        (odata,edata) = p.communicate(ibuf)
+        if p.returncode != 0:
+            raise Exception("'{0}' command failed: {1}".format(" ".join(cmd),edata.decode().strip()))
+        with open(ofile,"r") as fp:
+            print(fp.read())
+
     def __ignition(self):
-        storage_files = self.__butane_config.get("storage",{}).get("files",[])
-        extra_files = yaml.dump(storage_files) if len(storage_files) > 0 else ""
+        self.__ignition_config_merge_local_build()
         buf = self.__tpl.render(
-            extra_files = extra_files,
+            ignition_config_merge_local = self.__ignition_config_merge_local,
             i12e_version = I12E_VERSION,
             i12e_sha256sum = I12E_SHA256SUM,
             mode = self.__mode,
@@ -61,7 +78,7 @@ class Butane(object):
         )
         self.__buf_print(buf,"<but> ")
         yaml.safe_load(buf)  # return value ignored: check it is valid
-        cmd = ['butane']
+        cmd = ['butane','-d',self.__butane_files_dir]
         p = Popen(args=cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
         (odata,edata) = p.communicate(buf.encode())
         if p.returncode != 0:
