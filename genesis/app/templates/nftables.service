@@ -1,0 +1,14 @@
+[Unit]
+Description=nftables
+DefaultDependencies=no
+Before=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/nft destroy table inet filter
+ExecStart=/usr/bin/nft -f /etc/nftables.conf
+ExecStop=/usr/bin/nft destroy table inet filter
+
+[Install]
+WantedBy=multi-user.target
