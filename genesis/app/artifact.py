@@ -98,13 +98,12 @@ class Artifact(object):
             log.info("'{0}' added".format(fname))
             return
         # https://docs.k3s.io/installation/configuration
-        tls_san = self.__cfg["kube_vip"]["vip"]
         data = (self.__tpl_k3s_config_yaml.render(
             i12e_mode = mode,
             k3s_token = self.__cfg["k3s_token"],
             k3s_agent_token = self.__cfg["k3s_agent_token"],
-            tls_san = tls_san,
-            k3s_url = "https://{0}:6443".format(tls_san),
+            k3s_url = self.__cfg["k3s_url"],
+            tls_san = self.__cfg.get("tls_san"),
         ) + "\n").encode()
         fname = "etc/i12e/k3s/config-{0}.yaml".format(mode)
         finfo = self.__tarinfo(fname)

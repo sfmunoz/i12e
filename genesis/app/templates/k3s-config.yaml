@@ -5,7 +5,7 @@ secrets-encryption: true
 secrets-encryption-provider: secretbox
 flannel-backend: "wireguard-native"
 
-{%- if tls_san is defined %}
+{%- if tls_san %}
 tls-san: "{{ tls_san }}"
 {%- endif -%}
 
