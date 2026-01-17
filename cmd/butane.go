@@ -5,6 +5,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func butaneRun(cmd *cobra.Command, args []string) {
+	prod, err := cmd.Flags().GetBool("prod")
+	if err != nil {
+		log.Fatal("'cmd.Flags().GetBool()' failed", "err", err)
+	}
+	butane.Run(prod)
+}
+
 // butaneCmd represents the butane command
 var butaneCmd = &cobra.Command{
 	Use:   "butane",
@@ -13,7 +21,7 @@ var butaneCmd = &cobra.Command{
 
   - input: butane
   - output: ignition`,
-	Run: butane.Run,
+	Run: butaneRun,
 }
 
 func init() {

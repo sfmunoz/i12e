@@ -5,6 +5,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func artifactRun(cmd *cobra.Command, args []string) {
+	prod, err := cmd.Flags().GetBool("prod")
+	if err != nil {
+		log.Fatal("'cmd.Flags().GetBool()' failed", "err", err)
+	}
+	artifact.Run(prod)
+}
+
 var artifactCmd = &cobra.Command{
 	Use:   "artifact",
 	Short: "Artifact generation and push with rclone",
@@ -12,7 +20,7 @@ var artifactCmd = &cobra.Command{
 
   - generation: tar+gz artifact
   - push to remote using rclone`,
-	Run: artifact.Run,
+	Run: artifactRun,
 }
 
 func init() {
