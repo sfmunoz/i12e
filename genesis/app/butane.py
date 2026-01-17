@@ -98,6 +98,8 @@ class Butane(object):
                     "'/etc/ssh/ssh_host_.*'",
                     "/var/log",
                     "/var/lib/rancher/k3s/agent/containerd",
+                    "/home/core/.bash_history",
+                    "/root/.bash_history",
                     "-F",
                     "/dev/stdin",
                 ]),
