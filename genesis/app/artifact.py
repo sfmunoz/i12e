@@ -27,6 +27,8 @@ class Artifact(object):
         self.__tpl_k3s_override_conf = self.__env.get_template("k3s-override.conf")
         self.__tpl_systemd_i12e_conf = self.__env.get_template("systemd-i12e.conf")
         self.__tpl_artifact_tune = self.__env.get_template("artifact-tune.sh")
+        self.__tpl_nftables_conf = self.__env.get_template("nftables.conf")
+        self.__tpl_nftables_service = self.__env.get_template("nftables.service")
         self.__time = time()
 
     def __tarinfo(self,fname):
@@ -163,6 +165,25 @@ class Artifact(object):
         tar.addfile(finfo)
         log.info("'{0}' added".format(fname))
 
+    def __nftables_conf(self,tar):
+        data = (self.__tpl_nftables_conf.render(
+            port_knocking = self.__cfg["port_knocking"],
+        ) + "\n").encode()
+        fname = "etc/nftables.conf"
+        finfo = self.__tarinfo(fname)
+        finfo.mode = 0o600
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
+    def __nftables_service(self,tar):
+        data = (self.__tpl_nftables_service.render() + "\n").encode()
+        fname = "etc/systemd/system/nftables.service"
+        finfo = self.__tarinfo(fname)
+        finfo.size = len(data)
+        tar.addfile(finfo,BytesIO(data))
+        log.info("'{0}' added".format(fname))
+
     def __devel_output(self,buf):
         log.info("sha256: {0}".format(sha256(buf).hexdigest()))
         cmd = ['tar','tvz']
@@ -218,8 +239,10 @@ class Artifact(object):
                 self.__k3s_config_yaml(tar,mode)
             for mode in self.__modes:
                 self.__k3s_override_conf(tar,mode)
+            self.__nftables_conf(tar)
             self.__systemd_i12e_conf(tar)
             self.__k3s_override_conf(tar)
+            self.__nftables_service(tar)
             self.__k3s_config_yaml(tar)
             self.__opt_bin_e(tar)
             self.__artifact_tune_sh(tar)
