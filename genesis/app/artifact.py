@@ -166,7 +166,9 @@ class Artifact(object):
         log.info("'{0}' added".format(fname))
 
     def __nftables_conf(self,tar):
-        data = (self.__tpl_nftables_conf.render() + "\n").encode()
+        data = (self.__tpl_nftables_conf.render(
+            port_knocking = self.__cfg["port_knocking"],
+        ) + "\n").encode()
         fname = "etc/nftables.conf"
         finfo = self.__tarinfo(fname)
         finfo.mode = 0o600
