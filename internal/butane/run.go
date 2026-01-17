@@ -1,8 +1,11 @@
 package butane
 
 import (
+	"bytes"
+
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
+	"github.com/spf13/viper"
 )
 
 var log = logit.Logit().
@@ -21,4 +24,16 @@ func Run(prod bool) {
 		log.Fatal("loadConf() failed", "err", err, "prod", prod)
 	}
 	log.Info("loadConf() OK", "buf", buf)
+	viper.SetConfigType("yaml")
+	viper.ReadConfig(bytes.NewBuffer([]byte(buf)))
+	klist := viper.GetStringSlice("ssh_authorized_keys")
+	for i, sshKey := range klist {
+		log.Info("butane.Run()", "i", i, "sshKey", sshKey)
+	}
+	rcloneRemote := viper.Get("rclone_remote")
+	log.Info("butane.Run()", "rcloneRemote", rcloneRemote)
+	kubeVip := viper.GetStringMapString("kube_vip")
+	for k, v := range kubeVip {
+		log.Info("butane.Run() kubeVip", "k", k, "v", v)
+	}
 }
