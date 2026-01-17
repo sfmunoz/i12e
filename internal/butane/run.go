@@ -11,5 +11,9 @@ var log = logit.Logit().
 	With("pkg", "butane")
 
 func Run(cmd *cobra.Command, args []string) {
-	log.Info("butane.Run()")
+	prod, err := cmd.Flags().GetBool("prod")
+	if err != nil {
+		log.Fatal("'cmd.Flags().GetBool()' failed", "err", err)
+	}
+	log.Info("butane.Run()", "prod", prod)
 }
