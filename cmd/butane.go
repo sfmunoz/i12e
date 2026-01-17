@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/sfmunoz/i12e/internal/butane"
 	"github.com/spf13/cobra"
 )
 
@@ -14,9 +13,7 @@ var butaneCmd = &cobra.Command{
 
   - input: butane
   - output: ignition`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("butane called")
-	},
+	Run: butane.Run,
 }
 
 func init() {

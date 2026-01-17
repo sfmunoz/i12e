@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +12,7 @@ var artifactCmd = &cobra.Command{
 
   - generation: tar+gz artifact
   - push to remote using rclone`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("artifact called")
-	},
+	Run: artifact.Run,
 }
 
 func init() {
