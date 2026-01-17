@@ -1,8 +1,6 @@
 package butane
 
 import (
-	"bytes"
-
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
 	"github.com/spf13/viper"
@@ -21,11 +19,11 @@ func Run(prod bool) {
 	}
 	buf, err := cmdutil.SopsDecrypt(fname)
 	if err != nil {
-		log.Fatal("loadConf() failed", "err", err, "prod", prod)
+		log.Fatal("cmdutil.SopsDecrypt() failed", "err", err, "prod", prod)
 	}
-	log.Info("loadConf() OK", "buf", buf)
+	log.Info("cmdutil.SopsDecrypt() OK", "buf", buf)
 	viper.SetConfigType("yaml")
-	viper.ReadConfig(bytes.NewBuffer([]byte(buf)))
+	viper.ReadConfig(buf)
 	klist := viper.GetStringSlice("ssh_authorized_keys")
 	for i, sshKey := range klist {
 		log.Info("butane.Run()", "i", i, "sshKey", sshKey)

@@ -5,14 +5,14 @@ import (
 	"os/exec"
 )
 
-func SopsDecrypt(fname string) (string, error) {
+func SopsDecrypt(fname string) (*bytes.Buffer, error) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd := exec.Command("sops", "decrypt", fname)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return stderr.String(), err
+		return &stderr, err
 	}
-	return stdout.String(), nil
+	return &stdout, nil
 }
