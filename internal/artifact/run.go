@@ -1,6 +1,8 @@
 package artifact
 
 import (
+	"fmt"
+
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
 )
@@ -10,7 +12,7 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "artifact")
 
-func Run(prod bool) {
+func Run(prod bool) error {
 	log.Info("artifact.Run()", "prod", prod)
 	fname := "secrets-dev.yaml"
 	if prod {
@@ -18,7 +20,8 @@ func Run(prod bool) {
 	}
 	buf, err := cmdutil.SopsDecrypt(fname)
 	if err != nil {
-		log.Fatal("loadConf() failed", "err", err, "prod", prod)
+		return fmt.Errorf("cmdutil.SopsDecrypt() failed: err=%s; prod=%t", err, prod)
 	}
-	log.Info("loadConf() OK", "buf", buf)
+	log.Info("cmdutil.SopsDecrypt() OK", "buf", buf)
+	return nil
 }

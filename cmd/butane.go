@@ -5,12 +5,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func butaneRun(cmd *cobra.Command, args []string) {
+func butaneRun(cmd *cobra.Command, args []string) error {
 	prod, err := cmd.Flags().GetBool("prod")
 	if err != nil {
-		log.Fatal("'cmd.Flags().GetBool()' failed", "err", err)
+		return err
 	}
-	butane.Run(prod)
+	return butane.Run(prod)
 }
 
 // butaneCmd represents the butane command
@@ -21,7 +21,7 @@ var butaneCmd = &cobra.Command{
 
   - input: butane
   - output: ignition`,
-	Run: butaneRun,
+	RunE: butaneRun,
 }
 
 func init() {

@@ -2,6 +2,7 @@ package butane
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -16,15 +17,16 @@ var log = logit.Logit().
 //go:embed templates/*.yaml
 var FS embed.FS
 
-func flatcarYamlDump() {
+func flatcarYamlDump() error {
 	buf, err := FS.ReadFile("templates/flatcar.yaml")
 	if err != nil {
-		log.Fatal("FS.ReadFile() failed", "err", err)
+		return err
 	}
 	log.Info("flatcarYamlDump()", "buf", string(buf))
+	return nil
 }
 
-func Run(prod bool) {
+func Run(prod bool) error {
 	log.Info("butane.Run()", "prod", prod)
 	fname := "secrets-dev.yaml"
 	if prod {
@@ -32,7 +34,7 @@ func Run(prod bool) {
 	}
 	buf, err := cmdutil.SopsDecrypt(fname)
 	if err != nil {
-		log.Fatal("cmdutil.SopsDecrypt() failed", "err", err, "prod", prod)
+		return fmt.Errorf("cmdutil.SopsDecrypt() failed: err=%s; prod=%t", err, prod)
 	}
 	log.Info("cmdutil.SopsDecrypt() OK", "buf", buf)
 	viper.SetConfigType("yaml")
@@ -47,5 +49,5 @@ func Run(prod bool) {
 	for k, v := range kubeVip {
 		log.Info("butane.Run() kubeVip", "k", k, "v", v)
 	}
-	flatcarYamlDump()
+	return flatcarYamlDump()
 }
