@@ -3,6 +3,7 @@ package butane
 import (
 	"embed"
 	"fmt"
+	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -23,6 +24,11 @@ func flatcarYamlDump() error {
 		return err
 	}
 	log.Info("flatcarYamlDump()", "buf", string(buf))
+	tpl, err := template.ParseFS(FS, "templates/flatcar.yaml")
+	if err != nil {
+		return err
+	}
+	log.Info("flatcarYamlDump", "tpl", tpl)
 	return nil
 }
 
