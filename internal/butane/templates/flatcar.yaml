@@ -1,9 +1,11 @@
 variant: flatcar
 version: 1.0.0
+{{- with .IgnitionConfigMergeSource }}
 ignition:
   config:
     merge:
-     - local: {{ .IgnitionConfigMergeLocal }}
+    - source: {{ . }}
+{{- end }}
 systemd:
   units:
   - name: i12e.service
