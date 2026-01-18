@@ -20,6 +20,15 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "butane")
 
+type FlatcarYaml struct {
+	IgnitionConfigMergeSource *bytes.Buffer
+	I12eVersion               string
+	I12eSha256sum             string
+	Mode                      string
+	SshAuthorizedKeys         []string
+	RcloneConf                string
+}
+
 var i12eVersion = "v0.0.18"
 var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
 
@@ -76,15 +85,7 @@ func flatcarYamlRender(cfg *config.Config) error {
 		return err
 	}
 	log.Info("butane.Run()", "ignition", i)
-	type FlatcarYaml struct {
-		IgnitionConfigMergeSource *bytes.Buffer
-		I12eSha256sum             string
-		Mode                      string
-		I12eVersion               string
-		RcloneConf                string
-		SshAuthorizedKeys         []string
-	}
-	v := FlatcarYaml{
+	f := FlatcarYaml{
 		IgnitionConfigMergeSource: i,
 		I12eVersion:               i12eVersion,
 		I12eSha256sum:             i12eSha256Sum,
@@ -92,8 +93,7 @@ func flatcarYamlRender(cfg *config.Config) error {
 		SshAuthorizedKeys:         cfg.SshAuthorizedKeys,
 		RcloneConf:                "**** RcloneConf ****",
 	}
-	log.Info("**** flatcarYamlRender", "tpl-name", tpl.Name())
-	err = tpl.Execute(os.Stdout, &v)
+	err = tpl.Execute(os.Stdout, &f)
 	if err != nil {
 		return err
 	}
