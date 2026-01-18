@@ -2,6 +2,7 @@ package butane
 
 import (
 	"bytes"
+	"compress/gzip"
 	"embed"
 	"encoding/base64"
 	"errors"
@@ -33,53 +34,74 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 //go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
 
-func bashRaw(cfg *config.Config) (*bytes.Buffer, error) {
+func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
+	var ret bytes.Buffer
+	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
+	gzEnc := gzip.NewWriter(b64Enc)
+	_, err := gzEnc.Write(ibuf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	if err := gzEnc.Close(); err != nil {
+		return nil, err
+	}
+	if err := b64Enc.Close(); err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
+	gzBuf, err := b64Gzip(ibuf)
+	if err != nil {
+		return nil, err
+	}
 	tpl := template.New("bash_raw.sh")
-	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_raw.sh")
+	tpl, err = tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_raw.sh")
 	if err != nil {
 		return nil, err
 	}
 	var ret bytes.Buffer
 	data := struct {
 		ConfigIgn string
-		Buf       string
+		Buf       *bytes.Buffer
 	}{
-		ConfigIgn: "**** ConfigIgn ****",
-		Buf:       "**** Buf ****",
+		ConfigIgn: "/oem/config.ign",
+		Buf:       gzBuf,
 	}
 	err = tpl.Execute(&ret, &data)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("======== butane begin ========")
+	log.Info("======== bashRaw begin ========")
 	for _, line := range strings.Split(ret.String(), "\n") {
 		log.Info(line)
 	}
-	log.Info("-------- butane end --------")
+	log.Info("-------- bashRaw end --------")
 	return &ret, nil
 }
 
-func bashB64(cfg *config.Config) (*bytes.Buffer, error) {
+func bashB64(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
+	gzBuf, err := b64Gzip(ibuf)
+	if err != nil {
+		return nil, err
+	}
 	tpl := template.New("bash_b64.sh")
-	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_b64.sh")
+	tpl, err = tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_b64.sh")
 	if err != nil {
 		return nil, err
 	}
 	var ret bytes.Buffer
-	data := struct {
-		Buf string
-	}{
-		Buf: "**** Buf ****",
-	}
+	data := struct{ Buf *bytes.Buffer }{Buf: gzBuf}
 	err = tpl.Execute(&ret, &data)
 	if err != nil {
 		return nil, err
 	}
-	log.Info("======== butane begin ========")
+	log.Info("======== bashB64 begin ========")
 	for _, line := range strings.Split(ret.String(), "\n") {
 		log.Info(line)
 	}
-	log.Info("-------- butane end --------")
+	log.Info("-------- bashB64 end --------")
 	return &ret, nil
 }
 
@@ -196,15 +218,16 @@ func Run(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	_, err = ignitionRender(cfg, buf)
+	ignitionBuf, err := ignitionRender(cfg, buf)
 	if err != nil {
 		return err
 	}
-	_, err = bashRaw(cfg)
+	log.Info("ignitionBuf", "ignitionBuf", ignitionBuf)
+	bufRaw, err := bashRaw(cfg, ignitionBuf)
 	if err != nil {
 		return err
 	}
-	_, err = bashB64(cfg)
+	_, err = bashB64(cfg, bufRaw)
 	if err != nil {
 		return err
 	}
