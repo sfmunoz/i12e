@@ -9,10 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("mod", "i12e").
-	With("pkg", "config")
+var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type KubeVip struct {
 	Vip       string `mapstructure:"vip"`

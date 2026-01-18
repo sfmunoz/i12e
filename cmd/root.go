@@ -7,10 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("mod", "i12e").
-	With("pkg", "main")
+var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 var rootCmd = &cobra.Command{
 	Use:   "i12e",

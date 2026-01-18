@@ -7,10 +7,7 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("mod", "i12e").
-	With("pkg", "main")
+var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 func main() {
 	slumber := 3 * time.Second

@@ -7,10 +7,7 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("mod", "i12e").
-	With("pkg", "artifact")
+var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 func Run(cfg *config.Config) error {
 	if cfg == nil {
