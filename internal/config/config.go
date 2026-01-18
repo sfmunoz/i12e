@@ -58,7 +58,7 @@ func validatePortKnocking(portKnocking []int) error {
 
 func validateKubeVip(kubeVip *KubeVip) error {
 	if kubeVip == nil {
-		return fmt.Errorf("config: undefined 'kube_vip'")
+		return nil // kube_vip is optional
 	}
 	if len(kubeVip.Vip) < 1 {
 		return fmt.Errorf("config: undefined 'kube_vip.vip'")
@@ -74,7 +74,7 @@ func validateKubeVip(kubeVip *KubeVip) error {
 
 func validateFlannel(flannel *Flannel) error {
 	if flannel == nil {
-		return fmt.Errorf("config: undefined 'flannel'")
+		return nil // flannel is optional
 	}
 	if len(flannel.Interface) < 1 {
 		return fmt.Errorf("config: undefined 'flannel.interface'")
