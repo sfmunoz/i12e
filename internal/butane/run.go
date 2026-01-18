@@ -16,6 +16,9 @@ var log = logit.Logit().
 	With("mod", "i12e").
 	With("pkg", "butane")
 
+var i12eVersion = "v0.0.18"
+var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
+
 //go:embed templates/*.yaml
 var FS embed.FS
 
@@ -35,15 +38,15 @@ func flatcarYamlRender() error {
 	}
 	v := FlatcarYaml{
 		IgnitionConfigMergeLocal: "**** IgnitionConfigMergeLocal ****",
-		I12eSha256sum:            "**** I12eSha256sum ****",
+		I12eVersion:              i12eVersion,
+		I12eSha256sum:            i12eSha256Sum,
 		Mode:                     "**** Mode ****",
-		I12eVersion:              "**** I12eVersion ****",
-		RcloneConf:               "**** RcloneConf ****",
 		SshAuthorizedKeys: []string{
 			"**** SshAuthorizedKey1 ****",
 			"**** SshAuthorizedKey2 ****",
 			"**** SshAuthorizedKey3 ****",
 		},
+		RcloneConf: "**** RcloneConf ****",
 	}
 	log.Info("**** flatcarYamlRender", "tpl-name", tpl.Name())
 	err = tpl.Execute(os.Stdout, &v)
