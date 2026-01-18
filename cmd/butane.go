@@ -26,6 +26,7 @@ func butaneCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			// mode
 			mode, err := cmd.Flags().GetString("mode")
 			if err != nil {
 				return err
@@ -35,13 +36,24 @@ func butaneCmd() *cobra.Command {
 				return err
 			}
 			cfg.Mode = m
+			// bout (butane output)
+			bout, err := cmd.Flags().GetString("output")
+			if err != nil {
+				return err
+			}
+			b, err := config.GetBout(bout)
+			if err != nil {
+				return err
+			}
+			cfg.Bout = b
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return butane.Run(cfg)
 		},
 	}
-	cmd.Flags().StringP("mode", "m", config.ModeMain.String(), fmt.Sprintf("Set output mode (valid: %q)", config.ValidModes()))
+	cmd.Flags().StringP("mode", "m", config.ModeMain.String(), fmt.Sprintf("Set target mode: %q", config.ValidModes()))
+	cmd.Flags().StringP("output", "o", config.BoutBash64.String(), fmt.Sprintf("Set output format: %q", config.ValidBouts()))
 	return cmd
 }
 
