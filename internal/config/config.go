@@ -31,7 +31,6 @@ type Config struct {
 	Mode              Mode
 	Bout              Bout
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
-	RcloneConfigPass  string    `mapstructure:"rclone_config_pass"`
 	K3sToken          string    `mapstructure:"k3s_token"`
 	K3sAgentToken     string    `mapstructure:"k3s_agent_token"`
 	K3sUrl            string    `mapstructure:"k3s_url"`
@@ -107,12 +106,6 @@ func validateSshAuthorizedKeys(sshAuthorizedKeys []string) error {
 
 func validateConfig(cfg *Config) error {
 	if len(cfg.RcloneRemote) < 1 {
-		return fmt.Errorf("config: undefined 'rclone_remote'")
-	}
-	if len(cfg.RcloneConfigPass) < 1 {
-		return fmt.Errorf("config: undefined 'rclone_config_pass'")
-	}
-	if len(cfg.RcloneConfigPass) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
 	if len(cfg.K3sToken) < 1 {
