@@ -8,6 +8,51 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func getModeFlag(cmd *cobra.Command, cfg *config.Config) error {
+	mode, err := cmd.Flags().GetString("mode")
+	if err != nil {
+		return err
+	}
+	m, err := config.GetMode(mode)
+	if err != nil {
+		return err
+	}
+	cfg.Mode = m
+	return nil
+}
+
+func getOutputFlag(cmd *cobra.Command, cfg *config.Config) error {
+	bout, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return err
+	}
+	b, err := config.GetBout(bout)
+	if err != nil {
+		return err
+	}
+	cfg.Bout = b
+	return nil
+}
+
+func buildConfig(cmd *cobra.Command) (*config.Config, error) {
+	prod, err := cmd.Flags().GetBool("prod")
+	if err != nil {
+		return nil, err
+	}
+	cfg, err := config.LoadConfig(prod)
+	if err != nil {
+		return nil, err
+	}
+	cfg.Prod = prod
+	if err := getModeFlag(cmd, cfg); err != nil {
+		return nil, err
+	}
+	if err := getOutputFlag(cmd, cfg); err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
 func butaneCmd() *cobra.Command {
 	var cfg *config.Config = nil
 	cmd := &cobra.Command{
@@ -18,34 +63,11 @@ func butaneCmd() *cobra.Command {
   - input: butane
   - output: ignition`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			prod, err := cmd.Flags().GetBool("prod")
+			c, err := buildConfig(cmd)
 			if err != nil {
 				return err
 			}
-			cfg, err = config.LoadConfig(prod)
-			if err != nil {
-				return err
-			}
-			// mode
-			mode, err := cmd.Flags().GetString("mode")
-			if err != nil {
-				return err
-			}
-			m, err := config.GetMode(mode)
-			if err != nil {
-				return err
-			}
-			cfg.Mode = m
-			// bout (butane output)
-			bout, err := cmd.Flags().GetString("output")
-			if err != nil {
-				return err
-			}
-			b, err := config.GetBout(bout)
-			if err != nil {
-				return err
-			}
-			cfg.Bout = b
+			cfg = c
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
