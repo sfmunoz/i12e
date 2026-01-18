@@ -59,6 +59,30 @@ func bashRaw(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
+func bashB64(cfg *config.Config) (*bytes.Buffer, error) {
+	tpl := template.New("bash_b64.sh")
+	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_b64.sh")
+	if err != nil {
+		return nil, err
+	}
+	var ret bytes.Buffer
+	data := struct {
+		Buf string
+	}{
+		Buf: "**** Buf ****",
+	}
+	err = tpl.Execute(&ret, &data)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("======== butane begin ========")
+	for _, line := range strings.Split(ret.String(), "\n") {
+		log.Info(line)
+	}
+	log.Info("-------- butane end --------")
+	return &ret, nil
+}
+
 func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	fname := "butane-dev.yaml"
 	if cfg.Prod {
@@ -177,6 +201,10 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 	_, err = bashRaw(cfg)
+	if err != nil {
+		return err
+	}
+	_, err = bashB64(cfg)
 	if err != nil {
 		return err
 	}
