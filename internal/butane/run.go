@@ -24,7 +24,7 @@ type FlatcarYaml struct {
 	I12eSha256sum             string
 	Mode                      string
 	SshAuthorizedKeys         []string
-	RcloneConf                *bytes.Buffer
+	RcloneConf                string
 }
 
 var i12eVersion = "v0.0.18"
@@ -72,8 +72,21 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
+func indent(spaces int, v string) string {
+	pad := strings.Repeat(" ", spaces)
+	return pad + strings.ReplaceAll(v, "\n", "\n"+pad)
+}
+
+func nindent(spaces int, v string) string {
+	return "\n" + indent(spaces, v)
+}
+
 func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
-	tpl := template.New("flatcar.yaml") // must match basename of the file
+	var funcMap = template.FuncMap{
+		"indent":  indent,
+		"nindent": nindent,
+	}
+	tpl := template.New("flatcar.yaml").Funcs(funcMap)
 	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
 	if err != nil {
 		return nil, err
@@ -92,7 +105,7 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 		I12eSha256sum:             i12eSha256Sum,
 		Mode:                      cfg.Mode.String(),
 		SshAuthorizedKeys:         cfg.SshAuthorizedKeys,
-		RcloneConf:                rcloneConfig,
+		RcloneConf:                rcloneConfig.String(),
 	}
 	var ret bytes.Buffer
 	err = tpl.Execute(&ret, &f)

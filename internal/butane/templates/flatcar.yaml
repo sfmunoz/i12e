@@ -61,7 +61,7 @@ storage:
       name: root
     contents:
       inline: |
-        {{ .RcloneConf }}
+        {{- .RcloneConf | nindent 8 }}
   - path: /home/core/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
@@ -71,7 +71,7 @@ storage:
       name: core
     contents:
       inline: |
-        {{ .RcloneConf }}
+        {{- .RcloneConf | nindent 8 }}
   links:
       # orig: /usr/share/flatcar/sysext/docker-flatcar.raw
     - path: /etc/extensions/docker-flatcar.raw
