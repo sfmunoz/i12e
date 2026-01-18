@@ -2,6 +2,7 @@ package butane
 
 import (
 	"embed"
+	"fmt"
 	"os"
 	"text/template"
 
@@ -38,7 +39,7 @@ func flatcarYamlRender(cfg *config.Config) error {
 		IgnitionConfigMergeLocal: "**** IgnitionConfigMergeLocal ****",
 		I12eVersion:              i12eVersion,
 		I12eSha256sum:            i12eSha256Sum,
-		Mode:                     "**** Mode ****",
+		Mode:                     cfg.Mode.String(),
 		SshAuthorizedKeys:        cfg.SshAuthorizedKeys,
 		RcloneConf:               "**** RcloneConf ****",
 	}
@@ -51,6 +52,9 @@ func flatcarYamlRender(cfg *config.Config) error {
 }
 
 func Run(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("butane.Run(): undefined config")
+	}
 	log.Info("butane.Run()", "cfg", cfg)
 	return flatcarYamlRender(cfg)
 }

@@ -30,6 +30,7 @@ type Pushover struct {
 
 type Config struct {
 	Prod              bool
+	Mode              Mode
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
 	RcloneConfigPass  string    `mapstructure:"rclone_config_pass"`
 	K3sToken          string    `mapstructure:"k3s_token"`
