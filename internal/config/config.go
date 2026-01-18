@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -152,7 +153,7 @@ func LoadConfig(prod bool) (*Config, error) {
 	if prod {
 		fname = "secrets-prod.yaml"
 	}
-	bufOut, bufErr, err := cmdutil.RunSimple("sops", "decrypt", fname)
+	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
 	if err != nil {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, bufErr, prod)
 	}
