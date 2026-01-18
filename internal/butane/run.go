@@ -34,6 +34,13 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 //go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
 
+func butaneCmd(pretty bool) *exec.Cmd {
+	if pretty {
+		return exec.Command("butane", "-s", "-p")
+	}
+	return exec.Command("butane", "-s")
+}
+
 func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	var ret bytes.Buffer
 	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
@@ -121,7 +128,7 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, cfg.Prod)
 	}
-	cmd := exec.Command("butane", "-s")
+	cmd := butaneCmd(false)
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -193,12 +200,7 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 }
 
 func ignitionRender(cfg *config.Config, buf *bytes.Buffer, pretty bool) (*bytes.Buffer, error) {
-	cmd := func() *exec.Cmd {
-		if pretty {
-			return exec.Command("butane", "-s", "-p")
-		}
-		return exec.Command("butane", "-s")
-	}()
+	cmd := butaneCmd(pretty)
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
