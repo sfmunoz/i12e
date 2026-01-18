@@ -192,8 +192,13 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
-func ignitionRender(cfg *config.Config, buf *bytes.Buffer) (*bytes.Buffer, error) {
-	cmd := exec.Command("butane", "-s", "-p")
+func ignitionRender(cfg *config.Config, buf *bytes.Buffer, pretty bool) (*bytes.Buffer, error) {
+	cmd := func() *exec.Cmd {
+		if pretty {
+			return exec.Command("butane", "-s", "-p")
+		}
+		return exec.Command("butane", "-s")
+	}()
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -218,7 +223,7 @@ func Run(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	ignitionBuf, err := ignitionRender(cfg, buf)
+	ignitionBuf, err := ignitionRender(cfg, buf, true)
 	if err != nil {
 		return err
 	}
