@@ -49,7 +49,7 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, cfg.Prod)
 	}
-	cmd := exec.Command("butane")
+	cmd := exec.Command("butane", "-s")
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -104,7 +104,7 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 }
 
 func ignitionRender(cfg *config.Config, buf *bytes.Buffer) (*bytes.Buffer, error) {
-	cmd := exec.Command("butane", "-p")
+	cmd := exec.Command("butane", "-s", "-p")
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
