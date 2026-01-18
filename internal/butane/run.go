@@ -30,8 +30,34 @@ type FlatcarYaml struct {
 var i12eVersion = "v0.0.18"
 var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
 
-//go:embed templates/*.yaml
+//go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
+
+func bashRaw(cfg *config.Config) (*bytes.Buffer, error) {
+	tpl := template.New("bash_raw.sh")
+	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_raw.sh")
+	if err != nil {
+		return nil, err
+	}
+	var ret bytes.Buffer
+	data := struct {
+		ConfigIgn string
+		Buf       string
+	}{
+		ConfigIgn: "**** ConfigIgn ****",
+		Buf:       "**** Buf ****",
+	}
+	err = tpl.Execute(&ret, &data)
+	if err != nil {
+		return nil, err
+	}
+	log.Info("======== butane begin ========")
+	for _, line := range strings.Split(ret.String(), "\n") {
+		log.Info(line)
+	}
+	log.Info("-------- butane end --------")
+	return &ret, nil
+}
 
 func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	fname := "butane-dev.yaml"
@@ -147,6 +173,10 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 	_, err = ignitionRender(cfg, buf)
+	if err != nil {
+		return err
+	}
+	_, err = bashRaw(cfg)
 	if err != nil {
 		return err
 	}
