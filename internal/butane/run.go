@@ -3,6 +3,7 @@ package butane
 import (
 	"embed"
 	"fmt"
+	"os"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -18,17 +19,37 @@ var log = logit.Logit().
 //go:embed templates/*.yaml
 var FS embed.FS
 
-func flatcarYamlDump() error {
-	buf, err := FS.ReadFile("templates/flatcar.yaml")
+func flatcarYamlRender() error {
+	tpl := template.New("flatcar.yaml") // must much basename of the file
+	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
 	if err != nil {
 		return err
 	}
-	log.Info("flatcarYamlDump()", "buf", string(buf))
-	tpl, err := template.ParseFS(FS, "templates/flatcar.yaml")
+	type FlatcarYaml struct {
+		IgnitionConfigMergeLocal string
+		I12eSha256sum            string
+		Mode                     string
+		I12eVersion              string
+		RcloneConf               string
+		SshAuthorizedKeys        []string
+	}
+	v := FlatcarYaml{
+		IgnitionConfigMergeLocal: "**** IgnitionConfigMergeLocal ****",
+		I12eSha256sum:            "**** I12eSha256sum ****",
+		Mode:                     "**** Mode ****",
+		I12eVersion:              "**** I12eVersion ****",
+		RcloneConf:               "**** RcloneConf ****",
+		SshAuthorizedKeys: []string{
+			"**** SshAuthorizedKey1 ****",
+			"**** SshAuthorizedKey2 ****",
+			"**** SshAuthorizedKey3 ****",
+		},
+	}
+	log.Info("**** flatcarYamlRender", "tpl-name", tpl.Name())
+	err = tpl.Execute(os.Stdout, &v)
 	if err != nil {
 		return err
 	}
-	log.Info("flatcarYamlDump", "tpl", tpl)
 	return nil
 }
 
@@ -55,5 +76,5 @@ func Run(prod bool) error {
 	for k, v := range kubeVip {
 		log.Info("butane.Run() kubeVip", "k", k, "v", v)
 	}
-	return flatcarYamlDump()
+	return flatcarYamlRender()
 }
