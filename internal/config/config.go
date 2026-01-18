@@ -150,15 +150,15 @@ func LoadConfig(prod bool) (*Config, error) {
 	if prod {
 		fname = "secrets-prod.yaml"
 	}
-	buf, err := cmdutil.SopsDecrypt(fname)
+	bufOut, bufErr, err := cmdutil.RunSimple("sops", "decrypt", fname)
 	if err != nil {
-		return nil, fmt.Errorf("cmdutil.SopsDecrypt() failed: err=%s; prod=%t", err, prod)
+		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, bufErr, prod)
 	}
 	v := viper.New()
 	//v.SetEnvPrefix("I12E")
 	//v.AutomaticEnv()
 	v.SetConfigType("yaml")
-	v.ReadConfig(buf)
+	v.ReadConfig(bufOut)
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
