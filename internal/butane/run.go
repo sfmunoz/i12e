@@ -20,8 +20,8 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 //go:embed templates/*.yaml
 var FS embed.FS
 
-func flatcarYamlRender() error {
-	tpl := template.New("flatcar.yaml") // must much basename of the file
+func flatcarYamlRender(cfg *config.Config) error {
+	tpl := template.New("flatcar.yaml") // must match basename of the file
 	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
 	if err != nil {
 		return err
@@ -39,12 +39,8 @@ func flatcarYamlRender() error {
 		I12eVersion:              i12eVersion,
 		I12eSha256sum:            i12eSha256Sum,
 		Mode:                     "**** Mode ****",
-		SshAuthorizedKeys: []string{
-			"**** SshAuthorizedKey1 ****",
-			"**** SshAuthorizedKey2 ****",
-			"**** SshAuthorizedKey3 ****",
-		},
-		RcloneConf: "**** RcloneConf ****",
+		SshAuthorizedKeys:        cfg.SshAuthorizedKeys,
+		RcloneConf:               "**** RcloneConf ****",
 	}
 	log.Info("**** flatcarYamlRender", "tpl-name", tpl.Name())
 	err = tpl.Execute(os.Stdout, &v)
@@ -56,5 +52,5 @@ func flatcarYamlRender() error {
 
 func Run(cfg *config.Config) error {
 	log.Info("butane.Run()", "cfg", cfg)
-	return flatcarYamlRender()
+	return flatcarYamlRender(cfg)
 }
