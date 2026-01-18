@@ -133,6 +133,8 @@ func Run(cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	RcloneDump(cfg)
+	if err := RcloneDump(cfg); err != nil {
+		return err
+	}
 	return nil
 }
