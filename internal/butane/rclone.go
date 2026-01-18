@@ -42,18 +42,18 @@ func remotes(rc *RcloneConf, rem string) ([]string, error) {
 	return ret, nil
 }
 
-func RcloneDump(cfg *config.Config) error {
+func RcloneConfig(cfg *config.Config) (*bytes.Buffer, error) {
 	bo, be, err := cmdutil.RunSimple(exec.Command("rclone", "config", "dump"))
 	if err != nil {
-		return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be, cfg.Prod)
+		return nil, fmt.Errorf("'rclone config dump' failed: err=%s; buf_err=%s; prod=%t", err, be, cfg.Prod)
 	}
 	var rcloneConf RcloneConf
 	if err := json.Unmarshal(bo.Bytes(), &rcloneConf); err != nil {
-		return err
+		return nil, err
 	}
 	rems, err := remotes(&rcloneConf, cfg.RcloneRemote)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var out bytes.Buffer
 	var firstLine bool = true
@@ -77,6 +77,5 @@ func RcloneDump(cfg *config.Config) error {
 			}
 		}
 	}
-	log.Info("RcloneDump", "out", out.String())
-	return nil
+	return &out, nil
 }
