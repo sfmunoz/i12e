@@ -2,13 +2,11 @@ package butane
 
 import (
 	"embed"
-	"fmt"
 	"os"
 	"text/template"
 
-	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/logit"
-	"github.com/spf13/viper"
 )
 
 var log = logit.Logit().
@@ -58,26 +56,10 @@ func flatcarYamlRender() error {
 
 func Run(prod bool) error {
 	log.Info("butane.Run()", "prod", prod)
-	fname := "secrets-dev.yaml"
-	if prod {
-		fname = "secrets-prod.yaml"
-	}
-	buf, err := cmdutil.SopsDecrypt(fname)
+	cfg, err := config.LoadConfig(prod)
 	if err != nil {
-		return fmt.Errorf("cmdutil.SopsDecrypt() failed: err=%s; prod=%t", err, prod)
+		return err
 	}
-	log.Info("cmdutil.SopsDecrypt() OK", "buf", buf)
-	viper.SetConfigType("yaml")
-	viper.ReadConfig(buf)
-	klist := viper.GetStringSlice("ssh_authorized_keys")
-	for i, sshKey := range klist {
-		log.Info("butane.Run()", "i", i, "sshKey", sshKey)
-	}
-	rcloneRemote := viper.Get("rclone_remote")
-	log.Info("butane.Run()", "rcloneRemote", rcloneRemote)
-	kubeVip := viper.GetStringMapString("kube_vip")
-	for k, v := range kubeVip {
-		log.Info("butane.Run() kubeVip", "k", k, "v", v)
-	}
+	log.Info("butane.Run()", "prod", prod, "cfg", cfg)
 	return flatcarYamlRender()
 }
