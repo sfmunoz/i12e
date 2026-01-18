@@ -24,7 +24,7 @@ type FlatcarYaml struct {
 	I12eSha256sum             string
 	Mode                      string
 	SshAuthorizedKeys         []string
-	RcloneConf                string
+	RcloneConf                *bytes.Buffer
 }
 
 var i12eVersion = "v0.0.18"
@@ -72,12 +72,12 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
-func indent(spaces int, v string) string {
+func indent(spaces int, v fmt.Stringer) string {
 	pad := strings.Repeat(" ", spaces)
-	return pad + strings.ReplaceAll(v, "\n", "\n"+pad)
+	return pad + strings.ReplaceAll(v.String(), "\n", "\n"+pad)
 }
 
-func nindent(spaces int, v string) string {
+func nindent(spaces int, v fmt.Stringer) string {
 	return "\n" + indent(spaces, v)
 }
 
@@ -105,7 +105,7 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 		I12eSha256sum:             i12eSha256Sum,
 		Mode:                      cfg.Mode.String(),
 		SshAuthorizedKeys:         cfg.SshAuthorizedKeys,
-		RcloneConf:                rcloneConfig.String(),
+		RcloneConf:                rcloneConfig,
 	}
 	var ret bytes.Buffer
 	err = tpl.Execute(&ret, &f)
