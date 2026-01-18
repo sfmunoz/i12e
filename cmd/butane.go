@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/sfmunoz/i12e/internal/butane"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -10,7 +11,11 @@ func butaneRun(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return butane.Run(prod)
+	cfg, err := config.LoadConfig(prod)
+	if err != nil {
+		return err
+	}
+	return butane.Run(cfg)
 }
 
 // butaneCmd represents the butane command

@@ -54,12 +54,7 @@ func flatcarYamlRender() error {
 	return nil
 }
 
-func Run(prod bool) error {
-	log.Info("butane.Run()", "prod", prod)
-	cfg, err := config.LoadConfig(prod)
-	if err != nil {
-		return err
-	}
-	log.Info("butane.Run()", "prod", prod, "cfg", cfg)
+func Run(cfg *config.Config) error {
+	log.Info("butane.Run()", "cfg", cfg)
 	return flatcarYamlRender()
 }

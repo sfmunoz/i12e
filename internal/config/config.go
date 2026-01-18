@@ -14,6 +14,7 @@ var log = logit.Logit().
 	With("pkg", "config")
 
 type Config struct {
+	Prod              bool
 	RcloneRemote      string   `mapstructure:"rclone_remote"`
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
 }
@@ -36,6 +37,7 @@ func LoadConfig(prod bool) (*Config, error) {
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
+	cfg.Prod = prod
 	if len(cfg.SshAuthorizedKeys) < 1 {
 		return nil, fmt.Errorf("undefined 'ssh_authorized_keys'")
 	}
