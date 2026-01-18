@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -74,36 +75,66 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
-func flatcarYamlRender(cfg *config.Config) error {
+func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 	tpl := template.New("flatcar.yaml") // must match basename of the file
 	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
 	if err != nil {
-		return err
+		return nil, err
 	}
-	i, err := ignitionConfigMergeSource(cfg)
+	icms, err := ignitionConfigMergeSource(cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	log.Info("butane.Run()", "ignition", i)
 	f := FlatcarYaml{
-		IgnitionConfigMergeSource: i,
+		IgnitionConfigMergeSource: icms,
 		I12eVersion:               i12eVersion,
 		I12eSha256sum:             i12eSha256Sum,
 		Mode:                      cfg.Mode.String(),
 		SshAuthorizedKeys:         cfg.SshAuthorizedKeys,
 		RcloneConf:                "**** RcloneConf ****",
 	}
-	err = tpl.Execute(os.Stdout, &f)
+	var ret bytes.Buffer
+	err = tpl.Execute(&ret, &f)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	log.Info("======== butane begin ========")
+	for _, line := range strings.Split(ret.String(), "\n") {
+		log.Info(line)
+	}
+	log.Info("-------- butane end --------")
+	return &ret, nil
+}
+
+func ignitionRender(cfg *config.Config, buf *bytes.Buffer) (*bytes.Buffer, error) {
+	cmd := exec.Command("butane", "-p")
+	cmd.Stdin = buf
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be, cfg.Prod)
+	}
+	log.Info("======== ignition begin ========")
+	for _, line := range strings.Split(bo.String(), "\n") {
+		log.Info(line)
+	}
+	log.Info("-------- ignition end --------")
+	return bo, nil
 }
 
 func Run(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("butane.Run(): undefined config")
 	}
-	log.Info("butane.Run()", "cfg", cfg)
-	return flatcarYamlRender(cfg)
+	if cfg.Bout != config.BoutDebug {
+		return fmt.Errorf("butane.Run(): output mode '%s' not implemented yet: use '%s'", cfg.Bout, config.BoutDebug)
+	}
+	buf, err := butaneRender(cfg)
+	if err != nil {
+		return err
+	}
+	_, err = ignitionRender(cfg, buf)
+	if err != nil {
+		return err
+	}
+	return nil
 }
