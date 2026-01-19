@@ -2,7 +2,6 @@ package butane
 
 import (
 	"bytes"
-	"compress/gzip"
 	"embed"
 	"encoding/base64"
 	"errors"
@@ -10,11 +9,9 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
-	"github.com/sfmunoz/i12e/internal/tplutil"
 	"github.com/sfmunoz/logit"
 )
 
@@ -34,38 +31,6 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 
 //go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
-
-func butaneCmd(cfg *config.Config) *exec.Cmd {
-	if cfg.Bout == config.BoutDebug {
-		return exec.Command("butane", "-s", "-p")
-	}
-	return exec.Command("butane", "-s")
-}
-
-func tplNew(fname string, addFuncs bool) (*template.Template, error) {
-	t := template.New(fname)
-	if addFuncs {
-		t = t.Funcs(tplutil.FuncMap())
-	}
-	return t.Option("missingkey=error").ParseFS(FS, "templates/"+fname)
-}
-
-func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
-	var ret bytes.Buffer
-	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
-	gzEnc := gzip.NewWriter(b64Enc)
-	_, err := gzEnc.Write(ibuf.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	if err := gzEnc.Close(); err != nil {
-		return nil, err
-	}
-	if err := b64Enc.Close(); err != nil {
-		return nil, err
-	}
-	return &ret, nil
-}
 
 func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	gzBuf, err := b64Gzip(ibuf)
