@@ -17,15 +17,6 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-type FlatcarYaml struct {
-	IgnitionConfigMergeSource *bytes.Buffer
-	I12eVersion               string
-	I12eSha256sum             string
-	Mode                      string
-	SshAuthorizedKeys         []string
-	RcloneConf                *bytes.Buffer
-}
-
 var i12eVersion = "v0.0.18"
 var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
 
@@ -84,7 +75,14 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := FlatcarYaml{
+	data := struct {
+		IgnitionConfigMergeSource *bytes.Buffer
+		I12eVersion               string
+		I12eSha256sum             string
+		Mode                      string
+		SshAuthorizedKeys         []string
+		RcloneConf                *bytes.Buffer
+	}{
 		IgnitionConfigMergeSource: icms,
 		I12eVersion:               i12eVersion,
 		I12eSha256sum:             i12eSha256Sum,
@@ -93,7 +91,7 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 		RcloneConf:                rcloneConfig,
 	}
 	var ret bytes.Buffer
-	err = tpl.Execute(&ret, &f)
+	err = tpl.Execute(&ret, &data)
 	if err != nil {
 		return nil, err
 	}
