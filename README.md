@@ -5,11 +5,11 @@
 - [Guidelines](#guidelines)
 - [Architecture](#architecture)
 - [Requirements](#requirements)
-  - [helm](#helm)
+  - [butane](#butane)
   - [age](#age)
   - [sops](#sops)
+  - [helm](#helm)
   - [helm-secrets](#helm-secrets)
-  - [yq](#yq)
 - [Genesis](#genesis)
 - Modules (not in this page)
   - [os](os/README.md)
@@ -63,13 +63,13 @@ Details:
 
 ## Requirements
 
-### helm
+### butane
 
-- https://helm.sh/
-- https://github.com/helm/helm
+- https://coreos.github.io/butane/
+- https://github.com/coreos/butane
 
 ```
-$ brew install helm
+$ brew install butane
 ```
 
 ### age
@@ -90,6 +90,15 @@ $ brew install helm
 $ brew install sops
 ```
 
+### helm
+
+- https://helm.sh/
+- https://github.com/helm/helm
+
+```
+$ brew install helm
+```
+
 ### helm-secrets
 
 [https://github.com/jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets)
@@ -106,14 +115,6 @@ Installed plugin: secrets
 $ helm plugin list
 NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
 secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
-```
-
-### yq
-
-- https://mikefarah.gitbook.io/yq/
-- https://github.com/kislyuk/yq
-```
-# apt install yq
 ```
 
 ## Genesis
