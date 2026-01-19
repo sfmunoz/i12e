@@ -32,48 +32,6 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 //go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
 
-func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
-	gzBuf, err := b64Gzip(ibuf)
-	if err != nil {
-		return nil, err
-	}
-	tpl, err := tplNew("bash_b64.sh", false)
-	if err != nil {
-		return nil, err
-	}
-	var ret bytes.Buffer
-	data := struct {
-		ConfigIgn string
-		Buf       *bytes.Buffer
-	}{
-		ConfigIgn: "/oem/config.ign",
-		Buf:       gzBuf,
-	}
-	err = tpl.Execute(&ret, &data)
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
-}
-
-func bashB64(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
-	gzBuf, err := b64Gzip(ibuf)
-	if err != nil {
-		return nil, err
-	}
-	tpl, err := tplNew("bash_b64.sh", false)
-	if err != nil {
-		return nil, err
-	}
-	var ret bytes.Buffer
-	data := struct{ Buf *bytes.Buffer }{Buf: gzBuf}
-	err = tpl.Execute(&ret, &data)
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
-}
-
 func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	fname := "butane-dev.yaml"
 	if cfg.Prod {
@@ -164,6 +122,48 @@ func ignitionRender(cfg *config.Config, buf *bytes.Buffer) (*bytes.Buffer, error
 		log.Info("-------- ignition end --------")
 	}
 	return bo, nil
+}
+
+func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
+	gzBuf, err := b64Gzip(ibuf)
+	if err != nil {
+		return nil, err
+	}
+	tpl, err := tplNew("bash_b64.sh", false)
+	if err != nil {
+		return nil, err
+	}
+	var ret bytes.Buffer
+	data := struct {
+		ConfigIgn string
+		Buf       *bytes.Buffer
+	}{
+		ConfigIgn: "/oem/config.ign",
+		Buf:       gzBuf,
+	}
+	err = tpl.Execute(&ret, &data)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func bashB64(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
+	gzBuf, err := b64Gzip(ibuf)
+	if err != nil {
+		return nil, err
+	}
+	tpl, err := tplNew("bash_b64.sh", false)
+	if err != nil {
+		return nil, err
+	}
+	var ret bytes.Buffer
+	data := struct{ Buf *bytes.Buffer }{Buf: gzBuf}
+	err = tpl.Execute(&ret, &data)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
 }
 
 func Run(cfg *config.Config) error {
