@@ -118,10 +118,10 @@ secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
 
 ## Genesis
 
-Help:
+Help (genesis, artifact):
 ```
-$ ./genesis/run.sh
-usage: python3 -m genesis [-h] [-d] {artifact,butane,python3,sh} ...
+./genesis/run.sh
+usage: python3 -m genesis [-h] [-d] {artifact,python3,sh} ...
 
 genesis
 
@@ -132,14 +132,36 @@ options:
 genesis command:
   choose one genesis command
 
-  {artifact,butane,python3,sh}
+  {artifact,python3,sh}
                         genesis command to be run
     artifact            generate artifact and push it using rclone
-    butane              run butane to generate ignition code
     python3             run python3 within the container
     sh                  run sh within the container
 
 46285520+sfmunoz@users.noreply.github.com (C) 2026
+```
+Help (butane):
+```
+$ go run main.go butane -h
+Run butane to generate ignition code
+
+Examples:
+  Reset flatcar host over ssh (default: '-o bash_b64'):
+    $ i12e butane | ssh core@192.168.56.51 bash
+
+  Generate ignition file:
+    $ i12e butane -o ignition
+
+Usage:
+  i12e butane [flags]
+
+Flags:
+  -h, --help            help for butane
+  -m, --mode string     Set target mode: ["main" "server" "agent"] (default "main")
+  -o, --output string   Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
+
+Global Flags:
+  -p, --prod   Environment: 'prod' if set (default: 'dev')
 ```
 Artifact generation:
 ```
@@ -176,12 +198,12 @@ drwx------ root/root         0 2026-01-07 19:51:19 etc/i12e/
 ```
 Butane generation:
 ```
-$ ./genesis/run.sh butane
+$ go run main.go butane
 base64 -d <<< "H4sIA...(quite long base64 encoded gzipped script)...oIAAA=" | gunzip | bash
 ```
 Butane injection (over ssh):
 ```
-$ ./genesis/run.sh butane | ssh core@192.168.56.51 bash
+go run main.go butane -o bash_b64 | ssh core@192.168.56.51 bash
 + sudo rm -fv /oem/config.ign
 removed '/oem/config.ign'
 + base64 -d
