@@ -1,9 +1,11 @@
 variant: flatcar
 version: 1.0.0
+{{- with .IgnitionConfigMergeSource }}
 ignition:
   config:
     merge:
-     - local: {{ ignition_config_merge_local }}
+    - source: {{ . }}
+{{- end }}
 systemd:
   units:
   - name: i12e.service
@@ -17,7 +19,7 @@ systemd:
       Type=simple
       Restart=always
       RestartSec=5s
-      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "{{ i12e_sha256sum }}  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
+      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "{{ .I12eSha256sum }}  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
       ExecStart=/usr/bin/i12e
       [Install]
       WantedBy=multi-user.target
@@ -40,7 +42,7 @@ storage:
       name: root
     contents:
       inline: |
-        {{ mode }}
+        {{ .Mode }}
   - path: /etc/extensions/i12e-flatcar.raw
     overwrite: true
     mode: 0644
@@ -49,7 +51,7 @@ storage:
     group:
       name: root
     contents:
-      source: https://github.com/sfmunoz/i12e/releases/download/{{ i12e_version }}/i12e-flatcar.raw
+      source: https://github.com/sfmunoz/i12e/releases/download/{{ .I12eVersion }}/i12e-flatcar.raw
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
@@ -59,7 +61,7 @@ storage:
       name: root
     contents:
       inline: |
-        {{ rclone_conf | indent(8) }}
+        {{- .RcloneConf | nindent 8 }}
   - path: /home/core/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
@@ -69,7 +71,7 @@ storage:
       name: core
     contents:
       inline: |
-        {{ rclone_conf | indent(8) }}
+        {{- .RcloneConf | nindent 8 }}
   links:
       # orig: /usr/share/flatcar/sysext/docker-flatcar.raw
     - path: /etc/extensions/docker-flatcar.raw
@@ -83,6 +85,6 @@ passwd:
   users:
   - name: core
     ssh_authorized_keys:
-    {%- for k in ssh_authorized_keys %}
-    - "{{ k }}"
-    {% endfor %}
+    {{- range .SshAuthorizedKeys }}
+    - "{{ . }}"
+    {{- end }}

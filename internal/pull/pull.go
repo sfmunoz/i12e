@@ -10,10 +10,7 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-var log = logit.Logit().
-	WithLevel(logit.LevelInfo).
-	With("mod", "i12e").
-	With("pkg", "pull")
+var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const rcloneScript = `#!/bin/sh
 [ -f /etc/i12e/flags/artifact-pulled ] && exit 0

@@ -3,23 +3,14 @@ import sys
 from os import execlp
 from logging import getLogger, basicConfig, INFO
 from argparse import ArgumentParser, RawTextHelpFormatter
-from .butane import Butane
 from .artifact import Artifact
 
 basicConfig(format='%(asctime)s [%(relativeCreated)7.0f] [%(levelname).1s] %(message)s (%(module)s:%(lineno)d)',level=INFO,stream=sys.stderr)
 log = getLogger(__name__)
 
-BUTANE_VALID_MODES = ["main","server","agent"]
-BUTANE_DEFAULT_MODE = "main"
-BUTANE_VALID_OUTPUTS = ["ignition","bash_b64","bash_raw","debug"]
-BUTANE_DEFAULT_OUTPUT = "ignition"
-
 def genesis_run(args):
     if args.command == 'artifact':
-        Artifact(args,BUTANE_VALID_MODES).run()
-        return
-    elif args.command == 'butane':
-        Butane(args).run()
+        Artifact(args,["main","server","agent"]).run()
         return
     elif args.command in ['python3','sh']:
         execlp(args.command,args.command)
@@ -46,14 +37,6 @@ def main():
     parser_artifact.add_argument('-d', '--devel', action='store_true',
                         help='content is not uploaded and output is extended')
     parser_artifact.set_defaults(func=genesis_run)
-    parser_butane = subparsers.add_parser('butane', help='run butane to generate ignition code')
-    parser_butane.add_argument('-m', '--mode', metavar='mode', action='store',
-                        dest='mode', type=str, choices=BUTANE_VALID_MODES, default=BUTANE_DEFAULT_MODE,
-                        help='mode (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_MODE,", ".join(BUTANE_VALID_MODES)))
-    parser_butane.add_argument('-o', '--output', metavar='output', action='store',
-                        dest='output', type=str, choices=BUTANE_VALID_OUTPUTS, default=BUTANE_DEFAULT_OUTPUT,
-                        help='output (default: {0}; valid: {1})'.format(BUTANE_DEFAULT_OUTPUT,", ".join(BUTANE_VALID_OUTPUTS)))
-    parser_butane.set_defaults(func=genesis_run)
     parser_python3 = subparsers.add_parser('python3', help='run python3 within the container')
     parser_python3.set_defaults(func=genesis_run)
     parser_sh = subparsers.add_parser('sh', help='run sh within the container')

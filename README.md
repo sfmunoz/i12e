@@ -5,15 +5,15 @@
 - [Guidelines](#guidelines)
 - [Architecture](#architecture)
 - [Requirements](#requirements)
-  - [helm](#helm)
+  - [butane](#butane)
   - [age](#age)
   - [sops](#sops)
+  - [helm](#helm)
   - [helm-secrets](#helm-secrets)
-  - [yq](#yq)
+- [Genesis](#genesis)
 - Modules (not in this page)
   - [os](os/README.md)
   - [dhcpd](dhcpd/README.md)
-  - [genesis](genesis/README.md)
 
 ## Guidelines
 
@@ -63,13 +63,13 @@ Details:
 
 ## Requirements
 
-### helm
+### butane
 
-- https://helm.sh/
-- https://github.com/helm/helm
+- https://coreos.github.io/butane/
+- https://github.com/coreos/butane
 
 ```
-$ brew install helm
+$ brew install butane
 ```
 
 ### age
@@ -90,6 +90,15 @@ $ brew install helm
 $ brew install sops
 ```
 
+### helm
+
+- https://helm.sh/
+- https://github.com/helm/helm
+
+```
+$ brew install helm
+```
+
 ### helm-secrets
 
 [https://github.com/jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets)
@@ -108,10 +117,127 @@ NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
 secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
 ```
 
-### yq
+## Genesis
 
-- https://mikefarah.gitbook.io/yq/
-- https://github.com/kislyuk/yq
+Help (genesis, artifact):
 ```
-# apt install yq
+./genesis/run.sh
+usage: python3 -m genesis [-h] [-d] {artifact,python3,sh} ...
+
+genesis
+
+options:
+  -h, --help            show this help message and exit
+  -d, --debug           enable debug mode
+
+genesis command:
+  choose one genesis command
+
+  {artifact,python3,sh}
+                        genesis command to be run
+    artifact            generate artifact and push it using rclone
+    python3             run python3 within the container
+    sh                  run sh within the container
+
+46285520+sfmunoz@users.noreply.github.com (C) 2026
+```
+Help (butane):
+```
+$ go run main.go butane -h
+Run butane to generate ignition code
+
+Examples:
+  Reset flatcar host over ssh (default: '-o bash_b64'):
+    $ i12e butane | ssh core@192.168.56.51 bash
+
+  Generate ignition file:
+    $ i12e butane -o ignition
+
+Usage:
+  i12e butane [flags]
+
+Flags:
+  -h, --help            help for butane
+  -m, --mode string     Set target mode: ["main" "server" "agent"] (default "main")
+  -o, --output string   Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
+
+Global Flags:
+  -p, --prod   Environment: 'prod' if set (default: 'dev')
+```
+Artifact generation:
+```
+$ ./genesis/run.sh artifact
+2026-01-07 19:51:19,292 [    103] [I] ==== genesis artifact begin ==== (artifact:166)
+2026-01-07 19:51:19,293 [    104] [I] 'etc/extensions/containerd-flatcar.raw' added (artifact:46)
+2026-01-07 19:51:19,293 [    104] [I] 'etc/extensions/docker-flatcar.raw' added (artifact:46)
+2026-01-07 19:51:19,294 [    104] [I] 'etc/flatcar/update.conf' added (artifact:54)
+2026-01-07 19:51:19,294 [    104] [I] 'etc/rancher/k3s/config.yaml' added (artifact:74)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/systemd/system/k3s.service.d/override.conf' added (artifact:87)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/systemd/system.conf.d/genesis.conf' added (artifact:100)
+2026-01-07 19:51:19,294 [    105] [I] 'etc/crictl.yaml' added (artifact:108)
+2026-01-07 19:51:19,294 [    105] [I] 'opt/bin/e' added (artifact:117)
+2026-01-07 19:51:19,295 [    105] [I] 'etc/i12e/z.flag' added (artifact:129)
+2026-01-07 19:51:19,362 [    173] [I] $ rclone rcat rem:artifact.tar.gz (artifact:138)
+2026/01/07 19:51:20 NOTICE: Encrypted drive 'rem:': --checksum is in use but the source and destination have no hashes in common; falling back to --size-only
+2026-01-07 19:51:20,102 [    913] [I] $ rclone cat rem:artifact.tar.gz (artifact:145)
+2026-01-07 19:51:20,464 [   1275] [I] sha256(bef): c2ce078cb5c79cd366fea321fc47f8ba0171fe9c8f0d924bfae692c7c3e1f809 (artifact:153)
+2026-01-07 19:51:20,464 [   1275] [I] sha256(aft): c2ce078cb5c79cd366fea321fc47f8ba0171fe9c8f0d924bfae692c7c3e1f809 (artifact:154)
+2026-01-07 19:51:20,464 [   1275] [I] $ tar tvz (artifact:159)
+lrwxrwxrwx root/root         0 2026-01-07 19:51:19 etc/extensions/containerd-flatcar.raw -> /dev/null
+lrwxrwxrwx root/root         0 2026-01-07 19:51:19 etc/extensions/docker-flatcar.raw -> /dev/null
+-rw-r--r-- root/root        73 2026-01-07 19:51:19 etc/flatcar/update.conf
+-rw------- root/root       240 2026-01-07 19:51:19 etc/rancher/k3s/config.yaml
+drwxr-xr-x root/root         0 2026-01-07 19:51:19 etc/systemd/system/k3s.service.d/
+-rw-r--r-- root/root       129 2026-01-07 19:51:19 etc/systemd/system/k3s.service.d/override.conf
+drwxr-xr-x root/root         0 2026-01-07 19:51:19 etc/systemd/system.conf.d/
+-rw-r--r-- root/root        68 2026-01-07 19:51:19 etc/systemd/system.conf.d/genesis.conf
+-rw-r--r-- root/root       145 2026-01-07 19:51:19 etc/crictl.yaml
+-rwxr-xr-x root/root       178 2026-01-07 19:51:19 opt/bin/e
+drwx------ root/root         0 2026-01-07 19:51:19 etc/i12e/
+-rw------- root/root         0 2026-01-07 19:51:19 etc/i12e/z.flag
+2026-01-07 19:51:20,466 [   1277] [I] ---- genesis artifact end ---- (artifact:178)
+```
+Butane generation:
+```
+$ go run main.go butane
+base64 -d <<< "H4sIA...(quite long base64 encoded gzipped script)...oIAAA=" | gunzip | bash
+```
+Butane injection (over ssh):
+```
+go run main.go butane -o bash_b64 | ssh core@192.168.56.51 bash
++ sudo rm -fv /oem/config.ign
+removed '/oem/config.ign'
++ base64 -d
++ gunzip
++ sudo flatcar-reset --keep-machine-id --keep-paths '/etc/ssh/ssh_host_.*' /var/log /var/lib/rancher/k3s/agent/containerd -F /dev/stdin
+WARNING: Running without --backup can cause data loss if the keep paths don't work as expected.
+Also check whether your regex works as wanted with --preview-delete and --preview-keep.
+
+Wrote machine ID as kernel cmdline parameter to /oem/grub.cfg
+Removed any ignition.config.url kernel cmdline parameter in /oem/grub.cfg
+Wrote Ignition file /oem/config.ign
+Prepared /selective-os-reset and /boot/flatcar/first_boot
+Staged OS reset, you can reboot now
++ sudo test -s /oem/config.ign
++ sudo jq . /oem/config.ign
+{
+  "ignition": {
+    "version": "3.3.0"
+  },
+  (... ignition config ...)
+}
++ sudo systemd-run bash -c 'sleep 1 ; systemctl reboot'
+Running as unit: run-rb96ef8572bb2485e9ba0e96db33005c0.service; invocation ID: 314d5d8b3f144e8a923ff6ba0ba8b353
+```
+Python3 execution:
+```
+$ ./genesis/run.sh python3
+Python 3.14.2 (main, Dec 18 2025, 00:40:52) [GCC 15.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+```
+sh execution:
+```
+$ ./genesis/run.sh sh
+/ #
 ```
