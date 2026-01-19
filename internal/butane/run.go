@@ -214,13 +214,19 @@ func ignitionRender(cfg *config.Config, buf *bytes.Buffer, pretty bool) (*bytes.
 	return bo, nil
 }
 
-func Run(cfg *config.Config) error {
-	if cfg == nil {
-		return fmt.Errorf("butane.Run(): undefined config")
-	}
-	if cfg.Bout != config.BoutDebug {
-		return fmt.Errorf("butane.Run(): output mode '%s' not implemented yet: use '%s'", cfg.Bout, config.BoutDebug)
-	}
+func getBash64(cfg *config.Config) error {
+	return fmt.Errorf("getBash64() not implemented yet")
+}
+
+func getBashRaw(cfg *config.Config) error {
+	return fmt.Errorf("getBashRaw() not implemented yet")
+}
+
+func getIgnition(cfg *config.Config) error {
+	return fmt.Errorf("getIgnition() not implemented yet")
+}
+
+func getDebug(cfg *config.Config) error {
 	buf, err := butaneRender(cfg)
 	if err != nil {
 		return err
@@ -239,4 +245,21 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 	return nil
+}
+
+func Run(cfg *config.Config) error {
+	if cfg == nil {
+		return fmt.Errorf("butane.Run(): undefined config")
+	}
+	switch cfg.Bout {
+	case config.BoutBash64:
+		return getBash64(cfg)
+	case config.BoutBashRaw:
+		return getBashRaw(cfg)
+	case config.BoutIgnition:
+		return getIgnition(cfg)
+	case config.BoutDebug:
+		return getDebug(cfg)
+	}
+	return fmt.Errorf("butane.Run(): unhandled cfg.Bout='%s'", cfg.Bout)
 }

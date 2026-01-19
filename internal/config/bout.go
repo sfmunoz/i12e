@@ -8,12 +8,12 @@ type Bout string
 
 const (
 	BoutBash64   Bout = "bash_b64"
-	BoutRaw      Bout = "bash_raw"
+	BoutBashRaw  Bout = "bash_raw"
 	BoutIgnition Bout = "ignition"
 	BoutDebug    Bout = "debug"
 )
 
-var bouts = []Bout{BoutBash64, BoutRaw, BoutIgnition, BoutDebug}
+var bouts = []Bout{BoutBash64, BoutBashRaw, BoutIgnition, BoutDebug}
 
 func (b Bout) String() string {
 	return string(b)
