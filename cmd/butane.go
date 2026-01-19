@@ -58,10 +58,14 @@ func butaneCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "butane",
 		Short: "Run butane to generate ignition code",
-		Long: `Run butane to generate ignition code:
+		Long: `Run butane to generate ignition code
 
-  - input: butane
-  - output: ignition`,
+Examples:
+  Reset flatcar host over ssh (default: '-o bash_b64'):
+    $ i12e butane | ssh core@192.168.56.51 bash
+
+  Generate ignition file:
+    $ i12e butane -o ignition`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			c, err := buildConfig(cmd)
 			if err != nil {
