@@ -42,6 +42,14 @@ func butaneCmd(cfg *config.Config) *exec.Cmd {
 	return exec.Command("butane", "-s")
 }
 
+func tplNew(fname string, addFuncs bool) (*template.Template, error) {
+	t := template.New(fname)
+	if addFuncs {
+		t = t.Funcs(tplutil.FuncMap())
+	}
+	return t.Option("missingkey=error").ParseFS(FS, "templates/"+fname)
+}
+
 func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	var ret bytes.Buffer
 	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
@@ -64,8 +72,7 @@ func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	tpl := template.New("bash_raw.sh")
-	tpl, err = tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_raw.sh")
+	tpl, err := tplNew("bash_b64.sh", false)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +96,7 @@ func bashB64(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	tpl := template.New("bash_b64.sh")
-	tpl, err = tpl.Option("missingkey=error").ParseFS(FS, "templates/bash_b64.sh")
+	tpl, err := tplNew("bash_b64.sh", false)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +149,7 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 }
 
 func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
-	tpl := template.New("flatcar.yaml").Funcs(tplutil.FuncMap())
-	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
+	tpl, err := tplNew("flatcar.yaml", true)
 	if err != nil {
 		return nil, err
 	}
