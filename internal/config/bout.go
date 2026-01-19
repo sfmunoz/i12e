@@ -7,13 +7,13 @@ import (
 type Bout string
 
 const (
-	BoutBash64   Bout = "bash_b64"
+	BoutBashB64  Bout = "bash_b64"
 	BoutBashRaw  Bout = "bash_raw"
 	BoutIgnition Bout = "ignition"
 	BoutDebug    Bout = "debug"
 )
 
-var bouts = []Bout{BoutBash64, BoutBashRaw, BoutIgnition, BoutDebug}
+var bouts = []Bout{BoutBashB64, BoutBashRaw, BoutIgnition, BoutDebug}
 
 func (b Bout) String() string {
 	return string(b)
@@ -33,5 +33,5 @@ func GetBout(b string) (Bout, error) {
 			return v, nil
 		}
 	}
-	return BoutBash64, fmt.Errorf("unknown butane output '%s' (valid: %q)", b, ValidBouts())
+	return BoutBashB64, fmt.Errorf("unknown butane output '%s' (valid: %q)", b, ValidBouts())
 }

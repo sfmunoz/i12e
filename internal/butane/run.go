@@ -34,8 +34,8 @@ var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4
 //go:embed templates/*.yaml templates/*.sh
 var FS embed.FS
 
-func butaneCmd(pretty bool) *exec.Cmd {
-	if pretty {
+func butaneCmd(cfg *config.Config) *exec.Cmd {
+	if cfg.Bout == config.BoutDebug {
 		return exec.Command("butane", "-s", "-p")
 	}
 	return exec.Command("butane", "-s")
@@ -80,11 +80,6 @@ func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Info("======== bashRaw begin ========")
-	for _, line := range strings.Split(ret.String(), "\n") {
-		log.Info(line)
-	}
-	log.Info("-------- bashRaw end --------")
 	return &ret, nil
 }
 
@@ -104,11 +99,6 @@ func bashB64(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Info("======== bashB64 begin ========")
-	for _, line := range strings.Split(ret.String(), "\n") {
-		log.Info(line)
-	}
-	log.Info("-------- bashB64 end --------")
 	return &ret, nil
 }
 
@@ -128,7 +118,7 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, cfg.Prod)
 	}
-	cmd := butaneCmd(false)
+	cmd := butaneCmd(cfg)
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -191,75 +181,67 @@ func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Info("======== butane begin ========")
-	for _, line := range strings.Split(ret.String(), "\n") {
-		log.Info(line)
+	if cfg.Bout == config.BoutDebug {
+		log.Info("======== butane begin ========")
+		for _, line := range strings.Split(ret.String(), "\n") {
+			log.Info(line)
+		}
+		log.Info("-------- butane end --------")
 	}
-	log.Info("-------- butane end --------")
 	return &ret, nil
 }
 
-func ignitionRender(cfg *config.Config, buf *bytes.Buffer, pretty bool) (*bytes.Buffer, error) {
-	cmd := butaneCmd(pretty)
+func ignitionRender(cfg *config.Config, buf *bytes.Buffer) (*bytes.Buffer, error) {
+	cmd := butaneCmd(cfg)
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be, cfg.Prod)
 	}
-	log.Info("======== ignition begin ========")
-	for _, line := range strings.Split(bo.String(), "\n") {
-		log.Info(line)
+	if cfg.Bout == config.BoutDebug {
+		log.Info("======== ignition begin ========")
+		for _, line := range strings.Split(bo.String(), "\n") {
+			log.Info(line)
+		}
+		log.Info("-------- ignition end --------")
 	}
-	log.Info("-------- ignition end --------")
 	return bo, nil
-}
-
-func getBash64(cfg *config.Config) error {
-	return fmt.Errorf("getBash64() not implemented yet")
-}
-
-func getBashRaw(cfg *config.Config) error {
-	return fmt.Errorf("getBashRaw() not implemented yet")
-}
-
-func getIgnition(cfg *config.Config) error {
-	return fmt.Errorf("getIgnition() not implemented yet")
-}
-
-func getDebug(cfg *config.Config) error {
-	buf, err := butaneRender(cfg)
-	if err != nil {
-		return err
-	}
-	ignitionBuf, err := ignitionRender(cfg, buf, true)
-	if err != nil {
-		return err
-	}
-	log.Info("ignitionBuf", "ignitionBuf", ignitionBuf)
-	bufRaw, err := bashRaw(cfg, ignitionBuf)
-	if err != nil {
-		return err
-	}
-	_, err = bashB64(cfg, bufRaw)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func Run(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("butane.Run(): undefined config")
 	}
-	switch cfg.Bout {
-	case config.BoutBash64:
-		return getBash64(cfg)
-	case config.BoutBashRaw:
-		return getBashRaw(cfg)
-	case config.BoutIgnition:
-		return getIgnition(cfg)
-	case config.BoutDebug:
-		return getDebug(cfg)
+	buf, err := butaneRender(cfg)
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("butane.Run(): unhandled cfg.Bout='%s'", cfg.Bout)
+	ignitionBuf, err := ignitionRender(cfg, buf)
+	if err != nil {
+		return err
+	}
+	if cfg.Bout == config.BoutDebug {
+		return nil
+	}
+	if cfg.Bout == config.BoutIgnition {
+		fmt.Fprint(os.Stdout, ignitionBuf.String())
+		return nil
+	}
+	bufRaw, err := bashRaw(cfg, ignitionBuf)
+	if err != nil {
+		return err
+	}
+	if cfg.Bout == config.BoutBashRaw {
+		fmt.Fprint(os.Stdout, bufRaw.String())
+		return nil
+	}
+	bufB64, err := bashB64(cfg, bufRaw)
+	if err != nil {
+		return err
+	}
+	if cfg.Bout == config.BoutBashB64 {
+		fmt.Fprint(os.Stdout, bufB64.String())
+		return nil
+	}
+	return nil
 }
