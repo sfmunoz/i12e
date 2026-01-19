@@ -14,6 +14,7 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
+	"github.com/sfmunoz/i12e/internal/tplutil"
 	"github.com/sfmunoz/logit"
 )
 
@@ -141,21 +142,8 @@ func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	return &ret, nil
 }
 
-func indent(spaces int, v fmt.Stringer) string {
-	pad := strings.Repeat(" ", spaces)
-	return pad + strings.ReplaceAll(v.String(), "\n", "\n"+pad)
-}
-
-func nindent(spaces int, v fmt.Stringer) string {
-	return "\n" + indent(spaces, v)
-}
-
 func butaneRender(cfg *config.Config) (*bytes.Buffer, error) {
-	var funcMap = template.FuncMap{
-		"indent":  indent,
-		"nindent": nindent,
-	}
-	tpl := template.New("flatcar.yaml").Funcs(funcMap)
+	tpl := template.New("flatcar.yaml").Funcs(tplutil.FuncMap())
 	tpl, err := tpl.Option("missingkey=error").ParseFS(FS, "templates/flatcar.yaml")
 	if err != nil {
 		return nil, err
