@@ -18,10 +18,43 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 //go:embed static/* templates/*
 var FS embed.FS
 
+func folders(tarOut *tar.Writer, tnow *time.Time) error {
+	flist := []struct {
+		Name string
+		Mode int64
+	}{
+		{Name: "etc/i12e", Mode: 0700},
+		{Name: "etc/i12e/flags", Mode: 0700},
+		{Name: "etc/i12e/k3s", Mode: 0700},
+		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
+		{Name: "etc/systemd/system.conf.d", Mode: 0755},
+		{Name: "opt/libexec", Mode: 0755},
+		{Name: "opt/libexec/i12e", Mode: 0755},
+	}
+	for _, folder := range flist {
+		hdr := &tar.Header{
+			Typeflag: tar.TypeDir,
+			Name:     folder.Name,
+			ModTime:  *tnow,
+			Mode:     folder.Mode,
+			Uid:      0,
+			Gid:      0,
+			Uname:    "root",
+			Gname:    "root",
+		}
+		if err := tarOut.WriteHeader(hdr); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func tarGz() (*bytes.Buffer, error) {
 	var buf bytes.Buffer
 	gzOut := gzip.NewWriter(&buf)
 	tarOut := tar.NewWriter(gzOut)
+	tnow := time.Now().UTC()
+	folders(tarOut, &tnow)
 	var files = []struct {
 		Name, Body string
 	}{
@@ -29,7 +62,6 @@ func tarGz() (*bytes.Buffer, error) {
 		{"file2.txt", "2nd file"},
 		{"file3.txt", "3rd and last file"},
 	}
-	tnow := time.Now().UTC()
 	for _, file := range files {
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,
