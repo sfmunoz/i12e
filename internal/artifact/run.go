@@ -140,15 +140,59 @@ func (a *Artifact) etcI12eIfaceTxt() error {
 		Uname:    "root",
 		Gname:    "root",
 	}
-
 	if err := a.tarOut.WriteHeader(hdr); err != nil {
 		return err
 	}
-
 	if _, err := a.tarOut.Write(body); err != nil {
 		return err
 	}
+	return nil
+}
 
+func (a *Artifact) etcI12eK3sConfigYaml() error {
+	tpl, err := tplNew("k3s-config.yaml", false)
+	if err != nil {
+		return err
+	}
+	modes := config.ValidModes()
+	for _, m := range modes {
+		data := struct {
+			I12eMode      string
+			K3sToken      string
+			K3sAgentToken string
+			K3sUrl        string
+			TlsSan        string
+		}{
+			I12eMode:      m,
+			K3sToken:      a.cfg.K3sToken,
+			K3sAgentToken: a.cfg.K3sAgentToken,
+			K3sUrl:        a.cfg.K3sUrl,
+			TlsSan:        a.cfg.TlsSan,
+		}
+		var body bytes.Buffer
+		err = tpl.Execute(&body, &data)
+		if err != nil {
+			return err
+		}
+		targetName := fmt.Sprintf("etc/i12e/k3s/config-%s.yaml", m)
+		hdr := &tar.Header{
+			Typeflag: tar.TypeReg,
+			Name:     targetName,
+			ModTime:  a.tnow,
+			Size:     int64(body.Len()),
+			Mode:     0600,
+			Uid:      0,
+			Gid:      0,
+			Uname:    "root",
+			Gname:    "root",
+		}
+		if err := a.tarOut.WriteHeader(hdr); err != nil {
+			return err
+		}
+		if _, err := a.tarOut.Write(body.Bytes()); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -169,6 +213,7 @@ func Run(cfg *config.Config) error {
 		a.etcCrictlYaml,
 		a.etcFlatcarUpdateConf,
 		a.etcI12eIfaceTxt,
+		a.etcI12eK3sConfigYaml,
 		a.optBinE,
 	}
 	for _, f := range funcList {
