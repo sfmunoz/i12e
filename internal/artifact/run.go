@@ -19,17 +19,19 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 var FS embed.FS
 
 type Artifact struct {
+	cfg    *config.Config
 	tnow   time.Time
 	tarOut *tar.Writer
 	gzOut  *gzip.Writer
 	obuf   *bytes.Buffer
 }
 
-func newArtifact() *Artifact {
+func newArtifact(cfg *config.Config) *Artifact {
 	var obuf bytes.Buffer
 	gzOut := gzip.NewWriter(&obuf)
 	tarOut := tar.NewWriter(gzOut)
 	return &Artifact{
+		cfg:    cfg,
 		tnow:   time.Now().UTC(),
 		tarOut: tarOut,
 		gzOut:  gzOut,
@@ -121,6 +123,39 @@ func (a *Artifact) etcFlatcarUpdateConf() error {
 	return nil
 }
 
+func (a *Artifact) etcI12eIfaceTxt() error {
+	targetName := "etc/i12e/iface.txt"
+	if a.cfg.Flannel == nil {
+		log.Info("skipping: undefined 'flannel'", "targetName", targetName)
+		return nil
+	}
+	if len(a.cfg.Flannel.Interface) < 1 {
+		log.Info("skipping: undefined 'flannel.interface'", "targetName", targetName)
+	}
+	body := []byte(a.cfg.Flannel.Interface)
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     targetName,
+		ModTime:  a.tnow,
+		Size:     int64(len(body)),
+		Mode:     0600,
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
+	}
+
+	if err := a.tarOut.WriteHeader(hdr); err != nil {
+		return err
+	}
+
+	if _, err := a.tarOut.Write(body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -132,8 +167,14 @@ func Run(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("artifact.Run(): undefined config")
 	}
-	a := newArtifact()
-	funcList := []func() error{a.folders, a.etcCrictlYaml, a.etcFlatcarUpdateConf, a.optBinE}
+	a := newArtifact(cfg)
+	funcList := []func() error{
+		a.folders,
+		a.etcCrictlYaml,
+		a.etcFlatcarUpdateConf,
+		a.etcI12eIfaceTxt,
+		a.optBinE,
+	}
 	for _, f := range funcList {
 		if err := f(); err != nil {
 			a.Close()
