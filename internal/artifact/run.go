@@ -106,7 +106,7 @@ func (a *Artifact) addStatic(staticFname, targetFname string, mode int64) error 
 }
 
 func (a *Artifact) addTemplate(templateFname, targetFname string, mode int64, data any) error {
-	tpl, err := tplNew(templateFname, false)
+	tpl, err := tplNew(templateFname, true)
 	if err != nil {
 		return err
 	}
@@ -214,6 +214,14 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 	return nil
 }
 
+func (a *Artifact) etcNftablesConf() error {
+	data := struct{ PortKnocking []int }{PortKnocking: a.cfg.PortKnocking}
+	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -233,6 +241,7 @@ func Run(cfg *config.Config) error {
 		a.etcI12eIfaceTxt,
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
+		a.etcNftablesConf,
 		a.optBinE,
 	}
 	for _, f := range funcList {
