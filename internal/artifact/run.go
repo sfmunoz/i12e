@@ -82,6 +82,31 @@ func (a *Artifact) folders() error {
 	return nil
 }
 
+func (a *Artifact) etcCrictlYaml() error {
+	body, err := FS.ReadFile("static/crictl.yaml")
+	if err != nil {
+		return err
+	}
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     "etc/crictl.yaml",
+		ModTime:  a.tnow,
+		Size:     int64(len(body)),
+		Mode:     0644,
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
+	}
+	if err := a.tarOut.WriteHeader(hdr); err != nil {
+		return err
+	}
+	if _, err := a.tarOut.Write(body); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	body, err := FS.ReadFile("static/opt-bin-e")
 	if err != nil {
@@ -112,7 +137,7 @@ func Run(cfg *config.Config) error {
 		return fmt.Errorf("artifact.Run(): undefined config")
 	}
 	a := newArtifact()
-	funcList := []func() error{a.folders, a.optBinE}
+	funcList := []func() error{a.folders, a.etcCrictlYaml, a.optBinE}
 	for _, f := range funcList {
 		if err := f(); err != nil {
 			a.Close()
