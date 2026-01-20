@@ -114,6 +114,13 @@ func (a *Artifact) etcCrictlYaml() error {
 	return nil
 }
 
+func (a *Artifact) etcFlatcarUpdateConf() error {
+	if err := a.addStatic("static/flatcar-update.conf", "etc/flatcar/update.conf", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -126,7 +133,7 @@ func Run(cfg *config.Config) error {
 		return fmt.Errorf("artifact.Run(): undefined config")
 	}
 	a := newArtifact()
-	funcList := []func() error{a.folders, a.etcCrictlYaml, a.optBinE}
+	funcList := []func() error{a.folders, a.etcCrictlYaml, a.etcFlatcarUpdateConf, a.optBinE}
 	for _, f := range funcList {
 		if err := f(); err != nil {
 			a.Close()
