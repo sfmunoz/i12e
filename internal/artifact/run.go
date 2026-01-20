@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"embed"
 	"fmt"
 	"os"
 	"time"
@@ -14,9 +13,6 @@ import (
 )
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
-
-//go:embed static/* templates/*
-var FS embed.FS
 
 type Artifact struct {
 	cfg    *config.Config

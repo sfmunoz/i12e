@@ -3,6 +3,7 @@ package butane
 import (
 	"bytes"
 	"compress/gzip"
+	"embed"
 	"encoding/base64"
 	"os/exec"
 	"text/template"
@@ -10,6 +11,9 @@ import (
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/tplutil"
 )
+
+//go:embed templates/*.yaml templates/*.sh
+var FS embed.FS
 
 func butaneCmd(cfg *config.Config) *exec.Cmd {
 	if cfg.Bout == config.BoutDebug {
