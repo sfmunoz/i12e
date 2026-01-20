@@ -196,7 +196,18 @@ func (a *Artifact) etcI12eK3sConfigYaml() error {
 	for _, m := range config.ValidModes() {
 		data.I12eMode = m
 		targetName := fmt.Sprintf("etc/i12e/k3s/config-%s.yaml", m)
-		if err := a.addTemplate("k3s-config.yaml", targetName, 0600, data); err != nil {
+		if err := a.addTemplate("k3s-config.yaml", targetName, 0600, &data); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *Artifact) etcI12eK3sOverrideConf() error {
+	for _, m := range config.ValidModes() {
+		data := struct{ I12eMode string }{I12eMode: m}
+		targetName := fmt.Sprintf("etc/i12e/k3s/override-%s.conf", m)
+		if err := a.addTemplate("k3s-override.conf", targetName, 0644, &data); err != nil {
 			return err
 		}
 	}
@@ -221,6 +232,7 @@ func Run(cfg *config.Config) error {
 		a.etcFlatcarUpdateConf,
 		a.etcI12eIfaceTxt,
 		a.etcI12eK3sConfigYaml,
+		a.etcI12eK3sOverrideConf,
 		a.optBinE,
 	}
 	for _, f := range funcList {
