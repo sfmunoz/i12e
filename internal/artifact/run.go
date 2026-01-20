@@ -82,17 +82,17 @@ func (a *Artifact) folders() error {
 	return nil
 }
 
-func (a *Artifact) etcCrictlYaml() error {
-	body, err := FS.ReadFile("static/crictl.yaml")
+func (a *Artifact) addStatic(staticFname, targetFname string, mode int64) error {
+	body, err := FS.ReadFile(staticFname)
 	if err != nil {
 		return err
 	}
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
-		Name:     "etc/crictl.yaml",
+		Name:     targetFname,
 		ModTime:  a.tnow,
 		Size:     int64(len(body)),
-		Mode:     0644,
+		Mode:     mode,
 		Uid:      0,
 		Gid:      0,
 		Uname:    "root",
@@ -107,26 +107,15 @@ func (a *Artifact) etcCrictlYaml() error {
 	return nil
 }
 
+func (a *Artifact) etcCrictlYaml() error {
+	if err := a.addStatic("static/crictl.yaml", "etc/crictl.yaml", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
-	body, err := FS.ReadFile("static/opt-bin-e")
-	if err != nil {
-		return err
-	}
-	hdr := &tar.Header{
-		Typeflag: tar.TypeReg,
-		Name:     "opt/bin/e",
-		ModTime:  a.tnow,
-		Size:     int64(len(body)),
-		Mode:     0755,
-		Uid:      0,
-		Gid:      0,
-		Uname:    "root",
-		Gname:    "root",
-	}
-	if err := a.tarOut.WriteHeader(hdr); err != nil {
-		return err
-	}
-	if _, err := a.tarOut.Write(body); err != nil {
+	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
 	}
 	return nil
