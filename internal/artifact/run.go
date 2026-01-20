@@ -105,6 +105,36 @@ func (a *Artifact) addStatic(staticFname, targetFname string, mode int64) error 
 	return nil
 }
 
+func (a *Artifact) addTemplate(templateFname, targetFname string, mode int64, data any) error {
+	tpl, err := tplNew(templateFname, false)
+	if err != nil {
+		return err
+	}
+	var body bytes.Buffer
+	err = tpl.Execute(&body, data)
+	if err != nil {
+		return err
+	}
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     targetFname,
+		ModTime:  a.tnow,
+		Size:     int64(body.Len()),
+		Mode:     mode,
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
+	}
+	if err := a.tarOut.WriteHeader(hdr); err != nil {
+		return err
+	}
+	if _, err := a.tarOut.Write(body.Bytes()); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) etcCrictlYaml() error {
 	if err := a.addStatic("static/crictl.yaml", "etc/crictl.yaml", 0644); err != nil {
 		return err
@@ -150,46 +180,23 @@ func (a *Artifact) etcI12eIfaceTxt() error {
 }
 
 func (a *Artifact) etcI12eK3sConfigYaml() error {
-	tpl, err := tplNew("k3s-config.yaml", false)
-	if err != nil {
-		return err
+	data := struct {
+		I12eMode      string
+		K3sToken      string
+		K3sAgentToken string
+		K3sUrl        string
+		TlsSan        string
+	}{
+		I12eMode:      "",
+		K3sToken:      a.cfg.K3sToken,
+		K3sAgentToken: a.cfg.K3sAgentToken,
+		K3sUrl:        a.cfg.K3sUrl,
+		TlsSan:        a.cfg.TlsSan,
 	}
-	modes := config.ValidModes()
-	for _, m := range modes {
-		data := struct {
-			I12eMode      string
-			K3sToken      string
-			K3sAgentToken string
-			K3sUrl        string
-			TlsSan        string
-		}{
-			I12eMode:      m,
-			K3sToken:      a.cfg.K3sToken,
-			K3sAgentToken: a.cfg.K3sAgentToken,
-			K3sUrl:        a.cfg.K3sUrl,
-			TlsSan:        a.cfg.TlsSan,
-		}
-		var body bytes.Buffer
-		err = tpl.Execute(&body, &data)
-		if err != nil {
-			return err
-		}
+	for _, m := range config.ValidModes() {
+		data.I12eMode = m
 		targetName := fmt.Sprintf("etc/i12e/k3s/config-%s.yaml", m)
-		hdr := &tar.Header{
-			Typeflag: tar.TypeReg,
-			Name:     targetName,
-			ModTime:  a.tnow,
-			Size:     int64(body.Len()),
-			Mode:     0600,
-			Uid:      0,
-			Gid:      0,
-			Uname:    "root",
-			Gname:    "root",
-		}
-		if err := a.tarOut.WriteHeader(hdr); err != nil {
-			return err
-		}
-		if _, err := a.tarOut.Write(body.Bytes()); err != nil {
+		if err := a.addTemplate("k3s-config.yaml", targetName, 0600, data); err != nil {
 			return err
 		}
 	}
