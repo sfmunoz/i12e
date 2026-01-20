@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"embed"
 	"fmt"
 	"os"
 	"time"
@@ -13,6 +14,9 @@ import (
 )
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
+
+//go:embed static/* templates/*
+var FS embed.FS
 
 func tarGz() (*bytes.Buffer, error) {
 	var buf bytes.Buffer
@@ -28,14 +32,15 @@ func tarGz() (*bytes.Buffer, error) {
 	tnow := time.Now().UTC()
 	for _, file := range files {
 		hdr := &tar.Header{
-			Name:    file.Name,
-			ModTime: tnow,
-			Size:    int64(len(file.Body)),
-			Mode:    0644,
-			Uid:     0,
-			Gid:     0,
-			Uname:   "root",
-			Gname:   "root",
+			Typeflag: tar.TypeReg,
+			Name:     file.Name,
+			ModTime:  tnow,
+			Size:     int64(len(file.Body)),
+			Mode:     0644,
+			Uid:      0,
+			Gid:      0,
+			Uname:    "root",
+			Gname:    "root",
 		}
 		if err := tarOut.WriteHeader(hdr); err != nil {
 			return nil, err
@@ -43,6 +48,27 @@ func tarGz() (*bytes.Buffer, error) {
 		if _, err := tarOut.Write([]byte(file.Body)); err != nil {
 			return nil, err
 		}
+	}
+	body, err := FS.ReadFile("static/opt-bin-e")
+	if err != nil {
+		return nil, err
+	}
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     "opt/bin/e",
+		ModTime:  tnow,
+		Size:     int64(len(body)),
+		Mode:     0755,
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
+	}
+	if err := tarOut.WriteHeader(hdr); err != nil {
+		return nil, err
+	}
+	if _, err := tarOut.Write(body); err != nil {
+		return nil, err
 	}
 	if err := tarOut.Close(); err != nil {
 		return nil, err
