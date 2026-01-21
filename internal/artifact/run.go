@@ -222,6 +222,13 @@ func (a *Artifact) etcNftablesConf() error {
 	return nil
 }
 
+func (a *Artifact) etcSystemdSystemConfDI12eConf() error {
+	if err := a.addStatic("static/systemd-i12e.conf", "etc/systemd/system.conf.d/i12e.conf", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -242,6 +249,7 @@ func Run(cfg *config.Config) error {
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
 		a.etcNftablesConf,
+		a.etcSystemdSystemConfDI12eConf,
 		a.optBinE,
 	}
 	for _, f := range funcList {
