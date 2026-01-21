@@ -176,7 +176,7 @@ func (a *Artifact) etcI12eIfaceTxt() error {
 	if len(a.cfg.Flannel.Interface) < 1 {
 		log.Info("skipping: undefined 'flannel.interface'", "targetName", targetName)
 	}
-	body := []byte(a.cfg.Flannel.Interface)
+	body := []byte(a.cfg.Flannel.Interface + "\n")
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
 		Name:     targetName,
