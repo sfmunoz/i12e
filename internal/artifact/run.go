@@ -4,10 +4,13 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"crypto/sha256"
 	"fmt"
-	"os"
+	"os/exec"
+	"strings"
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/logit"
 )
@@ -24,7 +27,7 @@ type Artifact struct {
 
 func newArtifact(cfg *config.Config) (*Artifact, error) {
 	if cfg == nil {
-		return nil, fmt.Errorf("artifact.Run(): undefined config")
+		return nil, fmt.Errorf("newArtifact(): undefined config")
 	}
 	var obuf bytes.Buffer
 	gzOut := gzip.NewWriter(&obuf)
@@ -46,10 +49,6 @@ func (a *Artifact) Close() error {
 		return err
 	}
 	return nil
-}
-
-func (a *Artifact) Obuf() *bytes.Buffer {
-	return a.obuf
 }
 
 func (a *Artifact) folders() error {
@@ -292,6 +291,44 @@ func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 	return nil
 }
 
+func (a *Artifact) rclonePush() error {
+	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.RcloneRemote)
+	log.Info("rclonePush()", "remFile", remFile)
+	// --------
+	sha256_1 := fmt.Sprintf("%x", sha256.Sum256(a.obuf.Bytes())) // keep it before buffer read
+	// --------
+	cmd1 := exec.Command("rclone", "rcat", remFile)
+	cmd1.Stdin = a.obuf
+	bo1, be1, err1 := cmdutil.RunSimple(cmd1)
+	if err1 != nil {
+		return fmt.Errorf("'rclone rcat' failed': %s (stdout=%s, stderr=%s)", err1, bo1.String(), be1.String())
+	}
+	// --------
+	cmd2 := exec.Command("rclone", "cat", remFile)
+	bo2, be2, err2 := cmdutil.RunSimple(cmd2)
+	if err2 != nil {
+		return fmt.Errorf("'rclone cat' failed': %s (stdout=%s, stderr=%s)", err2, bo2.String(), be2.String())
+	}
+	// --------
+	sha256_2 := fmt.Sprintf("%x", sha256.Sum256(bo2.Bytes()))
+	log.Info("sha256(bef)", "sha256", sha256_1)
+	log.Info("sha256(aft)", "sha256", sha256_2)
+	if sha256_1 != sha256_2 {
+		return fmt.Errorf("sha256 checksum mismatch")
+	}
+	// --------
+	cmd3 := exec.Command("tar", "tvz")
+	cmd3.Stdin = bo2
+	bo3, be3, err3 := cmdutil.RunSimple(cmd3)
+	if err3 != nil {
+		return fmt.Errorf("'tar tvz' failed': %s (stdout=%s, stderr=%s)", err3, bo3.String(), be3.String())
+	}
+	for _, line := range strings.Split(bo3.String(), "\n") {
+		log.Info(">", "tgz", line)
+	}
+	return nil
+}
+
 func (a *Artifact) run() error {
 	funcList := []func() error{
 		a.folders,
@@ -318,7 +355,9 @@ func (a *Artifact) run() error {
 	if err := a.Close(); err != nil {
 		return err
 	}
-	fmt.Fprint(os.Stdout, a.Obuf().String())
+	if err := a.rclonePush(); err != nil {
+		return err
+	}
 	return nil
 }
 
