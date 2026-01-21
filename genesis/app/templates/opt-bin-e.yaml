@@ -1,4 +1,0 @@
-#!/bin/bash
-# e get / --prefix -w json | jq .
-D="/var/lib/rancher/k3s/server/tls/etcd"
-exec etcdctl --key=${D}/client.key --cert=${D}/client.crt --cacert=${D}/server-ca.crt "$@"
