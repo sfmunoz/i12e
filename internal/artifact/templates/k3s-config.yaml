@@ -1,0 +1,21 @@
+{{ if or (eq .I12eMode "main") (eq .I12eMode "server") -}}
+token: "{{ .K3sToken }}"
+agent-token: "{{ .K3sAgentToken }}"
+secrets-encryption: true
+secrets-encryption-provider: secretbox
+flannel-backend: "wireguard-native"
+
+{{- with .TlsSan }}
+tls-san: "{{ . }}"
+{{- end }}
+
+{{- if eq .I12eMode "main" }}
+cluster-init: true
+{{- else }}
+server: "{{ .K3sUrl }}"
+{{- end }}
+
+{{- else -}}
+token: "{{ .K3sAgentToken }}"
+server: "{{ .K3sUrl }}"
+{{- end }}

@@ -2,7 +2,6 @@ package butane
 
 import (
 	"bytes"
-	"embed"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -19,9 +18,6 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 var i12eVersion = "v0.0.18"
 var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
-
-//go:embed templates/*.yaml templates/*.sh
-var FS embed.FS
 
 func ignitionConfigMergeSource(cfg *config.Config) (*bytes.Buffer, error) {
 	fname := "butane-dev.yaml"
@@ -127,7 +123,7 @@ func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	tpl, err := tplNew("bash_b64.sh", false)
+	tpl, err := tplNew("bash_raw.sh", false)
 	if err != nil {
 		return nil, err
 	}
