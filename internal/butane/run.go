@@ -123,7 +123,7 @@ func bashRaw(cfg *config.Config, ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	tpl, err := tplNew("bash_b64.sh", false)
+	tpl, err := tplNew("bash_raw.sh", false)
 	if err != nil {
 		return nil, err
 	}
