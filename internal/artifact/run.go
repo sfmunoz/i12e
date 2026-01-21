@@ -282,6 +282,13 @@ func (a *Artifact) optLibexecI12eArtifactTuneSh() error {
 	return nil
 }
 
+func (a *Artifact) etcI12eFlagsArtifactPulled() error {
+	if err := a.addEmpty("etc/i12e/flags/artifact-pulled", 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
 func Run(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("artifact.Run(): undefined config")
@@ -301,6 +308,7 @@ func Run(cfg *config.Config) error {
 		a.etcRancherK3sConfigYaml,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
+		a.etcI12eFlagsArtifactPulled,
 	}
 	for _, f := range funcList {
 		if err := f(); err != nil {
