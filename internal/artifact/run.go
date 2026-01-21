@@ -254,6 +254,13 @@ func (a *Artifact) etcSystemdSystemK3sServiceDOverrideConf() error {
 	return nil
 }
 
+func (a *Artifact) etcSystemdSystemNftablesService() error {
+	if err := a.addStatic("static/nftables.service", "etc/systemd/system/nftables.service", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -276,6 +283,7 @@ func Run(cfg *config.Config) error {
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,
+		a.etcSystemdSystemNftablesService,
 		a.optBinE,
 	}
 	for _, f := range funcList {
