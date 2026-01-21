@@ -261,6 +261,13 @@ func (a *Artifact) etcSystemdSystemNftablesService() error {
 	return nil
 }
 
+func (a *Artifact) etcRancherK3sConfigYaml() error {
+	if err := a.addEmpty("etc/rancher/k3s/config.yaml", 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -284,6 +291,7 @@ func Run(cfg *config.Config) error {
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,
 		a.etcSystemdSystemNftablesService,
+		a.etcRancherK3sConfigYaml,
 		a.optBinE,
 	}
 	for _, f := range funcList {
