@@ -10,7 +10,8 @@
   - [sops](#sops)
   - [helm](#helm)
   - [helm-secrets](#helm-secrets)
-- [Genesis](#genesis)
+- [I12E Artifact](#i12e-artifact)
+- [I12E Butane](#i12e-butane)
 - Modules (not in this page)
   - [os](os/README.md)
   - [dhcpd](dhcpd/README.md)
@@ -117,9 +118,9 @@ NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
 secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
 ```
 
-## Genesis
+## I12E Artifact
 
-Help (artifact):
+Help:
 ```
 $ go run main.go artifact -h
 Artifact management:
@@ -136,30 +137,7 @@ Flags:
 Global Flags:
   -p, --prod   Environment: 'prod' if set (default: 'dev')
 ```
-Help (butane):
-```
-$ go run main.go butane -h
-Run butane to generate ignition code
-
-Examples:
-  Reset flatcar host over ssh (default: '-o bash_b64'):
-    $ i12e butane | ssh core@192.168.56.51 bash
-
-  Generate ignition file:
-    $ i12e butane -o ignition
-
-Usage:
-  i12e butane [flags]
-
-Flags:
-  -h, --help            help for butane
-  -m, --mode string     Set target mode: ["main" "server" "agent"] (default "main")
-  -o, --output string   Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
-
-Global Flags:
-  -p, --prod   Environment: 'prod' if set (default: 'dev')
-```
-Artifact generation:
+Generation:
 ```
 $ go run main.go artifact
 2026-01-21T19:19:30.815Z 0d00h00m00.193s [I] rclonePush() remFile=d00:artifact.tar.gz
@@ -191,14 +169,38 @@ $ go run main.go artifact
 2026-01-21T19:19:32.667Z 0d00h00m02.044s [I] > tgz=-rw------- root/root         0 2026-01-21 19:19 etc/i12e/flags/artifact-pulled
 2026-01-21T19:19:32.667Z 0d00h00m02.044s [I] > tgz=
 ```
-Butane generation:
+## I12E Butane
+Help:
+```
+$ go run main.go butane -h
+Run butane to generate ignition code
+
+Examples:
+  Reset flatcar host over ssh (default: '-o bash_b64'):
+    $ i12e butane | ssh core@192.168.56.51 bash
+
+  Generate ignition file:
+    $ i12e butane -o ignition
+
+Usage:
+  i12e butane [flags]
+
+Flags:
+  -h, --help            help for butane
+  -m, --mode string     Set target mode: ["main" "server" "agent"] (default "main")
+  -o, --output string   Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
+
+Global Flags:
+  -p, --prod   Environment: 'prod' if set (default: 'dev')
+```
+Generation:
 ```
 $ go run main.go butane
 base64 -d <<< "H4sIA...(quite long base64 encoded gzipped script)...oIAAA=" | gunzip | bash
 ```
-Butane injection (over ssh):
+Injection over ssh:
 ```
-$ go run main.go butane -o bash_b64 | ssh core@192.168.56.51 bash
+$ go run main.go butane | ssh core@192.168.56.51 bash
 + sudo rm -fv /oem/config.ign
 removed '/oem/config.ign'
 + base64 -d
