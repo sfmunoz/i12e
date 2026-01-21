@@ -18,4 +18,4 @@ server: "{{ .K3sUrl }}"
 {{- else -}}
 token: "{{ .K3sAgentToken }}"
 server: "{{ .K3sUrl }}"
-{{- end -}}
+{{- end }}
