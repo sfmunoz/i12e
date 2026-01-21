@@ -28,7 +28,7 @@ func newArtifact(cfg *config.Config) *Artifact {
 	tarOut := tar.NewWriter(gzOut)
 	return &Artifact{
 		cfg:    cfg,
-		tnow:   time.Now().UTC(),
+		tnow:   time.Now().UTC().Truncate(time.Second), // Truncate(): to prevent 'timestamp in the future' warnings
 		tarOut: tarOut,
 		gzOut:  gzOut,
 		obuf:   &obuf,
