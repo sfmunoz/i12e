@@ -275,6 +275,13 @@ func (a *Artifact) optBinE() error {
 	return nil
 }
 
+func (a *Artifact) optLibexecI12eArtifactTuneSh() error {
+	if err := a.addStatic("static/artifact-tune.sh", "opt/libexec/i12e/artifact-tune.sh", 0755); err != nil {
+		return err
+	}
+	return nil
+}
+
 func Run(cfg *config.Config) error {
 	if cfg == nil {
 		return fmt.Errorf("artifact.Run(): undefined config")
@@ -293,6 +300,7 @@ func Run(cfg *config.Config) error {
 		a.etcSystemdSystemNftablesService,
 		a.etcRancherK3sConfigYaml,
 		a.optBinE,
+		a.optLibexecI12eArtifactTuneSh,
 	}
 	for _, f := range funcList {
 		if err := f(); err != nil {
