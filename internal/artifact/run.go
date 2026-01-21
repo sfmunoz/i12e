@@ -105,6 +105,24 @@ func (a *Artifact) addStatic(staticFname, targetFname string, mode int64) error 
 	return nil
 }
 
+func (a *Artifact) addEmpty(targetFname string, mode int64) error {
+	hdr := &tar.Header{
+		Typeflag: tar.TypeReg,
+		Name:     targetFname,
+		ModTime:  a.tnow,
+		Size:     0,
+		Mode:     mode,
+		Uid:      0,
+		Gid:      0,
+		Uname:    "root",
+		Gname:    "root",
+	}
+	if err := a.tarOut.WriteHeader(hdr); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) addTemplate(templateFname, targetFname string, mode int64, data any) error {
 	tpl, err := tplNew(templateFname, true)
 	if err != nil {
@@ -229,6 +247,13 @@ func (a *Artifact) etcSystemdSystemConfDI12eConf() error {
 	return nil
 }
 
+func (a *Artifact) etcSystemdSystemK3sServiceDOverrideConf() error {
+	if err := a.addEmpty("etc/systemd/system/k3s.service.d/override.conf", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -250,6 +275,7 @@ func Run(cfg *config.Config) error {
 		a.etcI12eK3sOverrideConf,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
+		a.etcSystemdSystemK3sServiceDOverrideConf,
 		a.optBinE,
 	}
 	for _, f := range funcList {
