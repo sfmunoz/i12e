@@ -22,7 +22,10 @@ type Artifact struct {
 	obuf   *bytes.Buffer
 }
 
-func newArtifact(cfg *config.Config) *Artifact {
+func newArtifact(cfg *config.Config) (*Artifact, error) {
+	if cfg == nil {
+		return nil, fmt.Errorf("artifact.Run(): undefined config")
+	}
 	var obuf bytes.Buffer
 	gzOut := gzip.NewWriter(&obuf)
 	tarOut := tar.NewWriter(gzOut)
@@ -32,7 +35,7 @@ func newArtifact(cfg *config.Config) *Artifact {
 		tarOut: tarOut,
 		gzOut:  gzOut,
 		obuf:   &obuf,
-	}
+	}, nil
 }
 
 func (a *Artifact) Close() error {
@@ -289,11 +292,7 @@ func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 	return nil
 }
 
-func Run(cfg *config.Config) error {
-	if cfg == nil {
-		return fmt.Errorf("artifact.Run(): undefined config")
-	}
-	a := newArtifact(cfg)
+func (a *Artifact) run() error {
 	funcList := []func() error{
 		a.folders,
 		a.etcCrictlYaml,
@@ -321,4 +320,12 @@ func Run(cfg *config.Config) error {
 	}
 	fmt.Fprint(os.Stdout, a.Obuf().String())
 	return nil
+}
+
+func Run(cfg *config.Config) error {
+	a, err := newArtifact(cfg)
+	if err != nil {
+		return err
+	}
+	return a.run()
 }
