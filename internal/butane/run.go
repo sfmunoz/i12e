@@ -30,6 +30,13 @@ func newButane(cfg *config.Config) (*Butane, error) {
 	return &Butane{cfg: cfg}, nil
 }
 
+func (b *Butane) butaneCmd() *exec.Cmd {
+	if b.cfg.Bout == config.BoutDebug {
+		return exec.Command("butane", "-s", "-p")
+	}
+	return exec.Command("butane", "-s")
+}
+
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
 	fname := "butane-dev.yaml"
 	if b.cfg.Prod {
@@ -46,7 +53,7 @@ func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, b.cfg.Prod)
 	}
-	cmd := butaneCmd(b.cfg)
+	cmd := b.butaneCmd()
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -113,7 +120,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 }
 
 func (b *Butane) ignitionRender(buf *bytes.Buffer) (*bytes.Buffer, error) {
-	cmd := butaneCmd(b.cfg)
+	cmd := b.butaneCmd()
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
