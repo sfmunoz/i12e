@@ -24,15 +24,11 @@ func tplNew(fname string, addFuncs bool) (*template.Template, error) {
 func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
 	var ret bytes.Buffer
 	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
+	defer b64Enc.Close()
 	gzEnc := gzip.NewWriter(b64Enc)
+	defer gzEnc.Close()
 	_, err := gzEnc.Write(ibuf.Bytes())
 	if err != nil {
-		return nil, err
-	}
-	if err := gzEnc.Close(); err != nil {
-		return nil, err
-	}
-	if err := b64Enc.Close(); err != nil {
 		return nil, err
 	}
 	return &ret, nil
