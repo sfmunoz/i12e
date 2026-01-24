@@ -7,6 +7,10 @@ function error_and_exit {
 
 set -e -o pipefail
 
+WG_PORT="51820"
+IFACE="enp0s8"  # TODO: parametrize this
+WG_IPV4="$(ip -j -4 addr show dev $IFACE | jq -r '.[0].addr_info.[0].local')"
+[ "$WG_IPV4" = "" ] && error_and_exit "cannot get IPv4 address from IFACE='${IFACE}'"
 WG_FNAME="/etc/i12e/wg-privkey"
 TS="$(date +%Y%m%d_%H%M%S_%N)"
 MACHINE_ID="$(cat /etc/machine-id)"
@@ -27,12 +31,17 @@ WG_PUBKEY_HEX="$(base64 -d <<< "${WG_PUBKEY}"| xxd -p -c0)"
 
 echo "TS ................ '${TS}'"
 echo "MACHINE_ID ........ '${MACHINE_ID}'"
+echo "IFACE ............. '${IFACE}'"
+echo "WG_IPV4 ........... '${WG_IPV4}'"
+echo "WG_PORT ........... '${WG_PORT}'"
 echo "WG_PUBKEY ......... '${WG_PUBKEY}'"
 echo "WG_PUBKEY (HEX) ... '${WG_PUBKEY_HEX}'"
 
 set -x
 
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgpubkey/${WG_PUBKEY_HEX}"
+rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipv4/${WG_IPV4}"
+rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgport/${WG_PORT}"
 rclone touch "rem:mesh/${MACHINE_ID}/c/${TS}"
 rclone ls "rem:mesh/${MACHINE_ID}"
 
