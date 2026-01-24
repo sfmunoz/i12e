@@ -59,3 +59,21 @@ ip link add $WG_IFACE type wireguard
 ip addr add ${WG_IPINT}/16 dev $WG_IFACE
 wg set $WG_IFACE listen-port $WG_PORT private-key "${WG_FNAME}"
 ip link set $WG_IFACE up
+
+{ set +x; } 2> /dev/null
+
+rclone lsf -R rem:mesh | sort | awk \
+  -v m="$(cat /etc/machine-id)" \
+  -v WG_IFACE="$WG_IFACE" \
+  -F '/' 'BEGIN { print "set -x -e -o pipefail" }
+  {
+    if ( $1 == m ) next
+    if ( $4 == "wgipint" && $5 != "" ) WG_IPINT=$5
+    if ( $4 == "wgipv4" && $5 != "" ) WG_IPV4=$5
+    if ( $4 == "wgport" && $5 != "" ) WG_PORT=$5
+    if ( $4 == "wgpubkey" && $5 != "" ) WG_PUBKEY_HEX=$5
+    if ( WG_IPINT != "" && WG_IPV4 != "" && WG_PORT != "" && WG_PUBKEY_HEX != "" ) {
+      printf("wg set %s peer \"$(xxd -p -r <<< \"%s\" | base64)\" allowed-ips %s/32 endpoint %s:%s\n",WG_IFACE,WG_PUBKEY_HEX,WG_IPINT,WG_IPV4,WG_PORT);
+      WG_IPINT="" ; WG_IPV4="" ; WG_PORT="" ; WG_PUBKEY_HEX=""
+    }
+}' | bash
