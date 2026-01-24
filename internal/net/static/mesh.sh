@@ -15,6 +15,7 @@ WG_FNAME="/etc/i12e/wg-privkey"
 TS="$(date +%Y%m%d_%H%M%S_%N)"
 MACHINE_ID="$(cat /etc/machine-id)"
 [ ${#MACHINE_ID} -eq 32 ] || error_and_exit "MACHINE_ID="${MACHINE_ID}" length is '${#MACHINE_ID}' (32 expected)"
+WG_IPINT="10.56.$(awk '{ printf("%s.%s\n",strtonum("0x"substr($0,1,2)),strtonum("0x"substr($0,3,2))) }' <<< "${MACHINE_ID}")"
 
 if [ ! -f "$WG_FNAME" ]
 then
@@ -31,6 +32,7 @@ WG_PUBKEY_HEX="$(base64 -d <<< "${WG_PUBKEY}"| xxd -p -c0)"
 
 echo "TS ................ '${TS}'"
 echo "MACHINE_ID ........ '${MACHINE_ID}'"
+echo "WG_IPINT .......... '${WG_IPINT}'"
 echo "IFACE ............. '${IFACE}'"
 echo "WG_IPV4 ........... '${WG_IPV4}'"
 echo "WG_PORT ........... '${WG_PORT}'"
@@ -41,6 +43,7 @@ set -x
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgpubkey/${WG_PUBKEY_HEX}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipv4/${WG_IPV4}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgport/${WG_PORT}"
+rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipint/${WG_IPINT}"
 rclone touch "rem:mesh/${MACHINE_ID}/c/${TS}"
 { set +x; } 2> /dev/null
 
