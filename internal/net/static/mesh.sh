@@ -17,6 +17,7 @@ TS="$(date +%Y%m%d_%H%M%S_%N)"
 MACHINE_ID="$(cat /etc/machine-id)"
 [ ${#MACHINE_ID} -eq 32 ] || error_and_exit "MACHINE_ID="${MACHINE_ID}" length is '${#MACHINE_ID}' (32 expected)"
 WG_IPINT="10.56.$(awk '{ printf("%s.%s\n",strtonum("0x"substr($0,1,2)),strtonum("0x"substr($0,3,2))) }' <<< "${MACHINE_ID}")"
+HNAME="$(hostname -s)"
 
 if [ ! -f "$WG_FNAME" ]
 then
@@ -45,6 +46,7 @@ rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgpubkey/${WG_PUBKEY_HEX}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipv4/${WG_IPV4}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgport/${WG_PORT}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipint/${WG_IPINT}"
+rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/hostname/${HNAME}"
 rclone touch "rem:mesh/${MACHINE_ID}/c/${TS}"
 { set +x; } 2> /dev/null
 
