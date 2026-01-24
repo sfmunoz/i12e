@@ -57,5 +57,5 @@ ip link set $WG_IFACE down || true
 ip link del $WG_IFACE || true
 ip link add $WG_IFACE type wireguard
 ip addr add ${WG_IPINT}/16 dev $WG_IFACE
-wg set $WG_IFACE private-key "${WG_FNAME}"
+wg set $WG_IFACE listen-port $WG_PORT private-key "${WG_FNAME}"
 ip link set $WG_IFACE up
