@@ -62,7 +62,7 @@ ip link set $WG_IFACE up
 
 { set +x; } 2> /dev/null
 
-rclone lsf -R rem:mesh | sort | awk \
+rclone lsf -R --files-only rem:mesh | sort | awk \
   -v m="$(cat /etc/machine-id)" \
   -v WG_IFACE="$WG_IFACE" \
   -F '/' 'BEGIN { print "set -x -e -o pipefail" }
