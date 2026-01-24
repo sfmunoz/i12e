@@ -38,10 +38,14 @@ echo "WG_PUBKEY ......... '${WG_PUBKEY}'"
 echo "WG_PUBKEY (HEX) ... '${WG_PUBKEY_HEX}'"
 
 set -x
-
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgpubkey/${WG_PUBKEY_HEX}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipv4/${WG_IPV4}"
 rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgport/${WG_PORT}"
 rclone touch "rem:mesh/${MACHINE_ID}/c/${TS}"
-rclone ls "rem:mesh/${MACHINE_ID}"
+{ set +x; } 2> /dev/null
+
+rclone lsf "rem:mesh/${MACHINE_ID}/c" | sort -r | awk -v m_id="${MACHINE_ID}" 'BEGIN { print "set -x -e -o pipefail" } { if (NR<3) next ; printf("rclone delete rem:mesh/%s/c/%s\nrclone delete rem:mesh/%s/d/%s\n",m_id,$0,m_id,$0) }' | bash
+
+set -x
+rclone ls "rem:mesh/${MACHINE_ID}" | sort -k2
 
