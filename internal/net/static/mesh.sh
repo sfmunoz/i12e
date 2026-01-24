@@ -7,6 +7,7 @@ function error_and_exit {
 
 set -e -o pipefail
 
+WG_IFACE="wg0"
 WG_PORT="51820"
 IFACE="enp0s8"  # TODO: parametrize this
 WG_IPV4="$(ip -j -4 addr show dev $IFACE | jq -r '.[0].addr_info.[0].local')"
@@ -47,8 +48,14 @@ rclone touch "rem:mesh/${MACHINE_ID}/d/${TS}/wgipint/${WG_IPINT}"
 rclone touch "rem:mesh/${MACHINE_ID}/c/${TS}"
 { set +x; } 2> /dev/null
 
-rclone lsf "rem:mesh/${MACHINE_ID}/c" | sort -r | awk -v m_id="${MACHINE_ID}" 'BEGIN { print "set -x -e -o pipefail" } { if (NR<3) next ; printf("rclone delete rem:mesh/%s/c/%s\nrclone delete rem:mesh/%s/d/%s\n",m_id,$0,m_id,$0) }' | bash
+rclone lsf "rem:mesh/${MACHINE_ID}/c" | sort -r | awk -v m_id="${MACHINE_ID}" 'BEGIN { print "set -x -e -o pipefail" } { if (NR<2) next ; printf("rclone delete rem:mesh/%s/c/%s\nrclone delete rem:mesh/%s/d/%s\n",m_id,$0,m_id,$0) }' | bash
 
 set -x
 rclone ls "rem:mesh/${MACHINE_ID}" | sort -k2
 
+ip link set $WG_IFACE down || true
+ip link del $WG_IFACE || true
+ip link add $WG_IFACE type wireguard
+ip addr add ${WG_IPINT}/16 dev $WG_IFACE
+wg set $WG_IFACE private-key "${WG_FNAME}"
+ip link set $WG_IFACE up
