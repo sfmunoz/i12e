@@ -38,9 +38,9 @@ func (b *Butane) butaneCmd() *exec.Cmd {
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := "butane-dev.yaml"
+	fname := "config/dev/butane.enc.yaml"
 	if b.cfg.Prod {
-		fname = "butane-prod.yaml"
+		fname = "config/prod/butane.enc.yaml"
 	}
 	_, err := os.Stat(fname)
 	if err != nil {

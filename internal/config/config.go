@@ -139,9 +139,9 @@ func validateConfig(cfg *Config) error {
 }
 
 func LoadConfig(prod bool) (*Config, error) {
-	fname := "secrets-dev.yaml"
+	fname := "config/dev/i12e.enc.yaml"
 	if prod {
-		fname = "secrets-prod.yaml"
+		fname = "config/prod/i12e.enc.yaml"
 	}
 	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
 	if err != nil {
