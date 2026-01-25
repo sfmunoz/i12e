@@ -1,10 +1,7 @@
 package butane
 
 import (
-	"bytes"
-	"compress/gzip"
 	"embed"
-	"encoding/base64"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/tplutil"
@@ -19,17 +16,4 @@ func tplNew(fname string, addFuncs bool) (*template.Template, error) {
 		t = t.Funcs(tplutil.FuncMap())
 	}
 	return t.Option("missingkey=error").ParseFS(FS, "templates/"+fname)
-}
-
-func b64Gzip(ibuf *bytes.Buffer) (*bytes.Buffer, error) {
-	var ret bytes.Buffer
-	b64Enc := base64.NewEncoder(base64.StdEncoding, &ret)
-	defer b64Enc.Close()
-	gzEnc := gzip.NewWriter(b64Enc)
-	defer gzEnc.Close()
-	_, err := gzEnc.Write(ibuf.Bytes())
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
 }
