@@ -16,8 +16,8 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-var i12eVersion = "v0.0.18"
-var i12eSha256Sum = "cfe8d33bc00805344dbe4008d87b896ea0c3bb0618cc69bcf5bc0462af4a2709"
+var i12eVersion = "v0.0.19"
+var i12eSha256Sum = "3ae3df40d53d92705b74c74772ba7c321f2b468a80651c73f76b8416a245440d"
 
 type Butane struct {
 	cfg *config.Config
