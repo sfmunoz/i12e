@@ -9,6 +9,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+type ConfFiles struct {
+	I12eYaml      string
+	I12eEncYaml   string
+	ButaneEncYaml string
+}
+
 type I12e struct {
 	Version   string `mapstructure:"version"`
 	Sha256sum string `mapstructure:"sha256sum"`
@@ -30,9 +36,9 @@ type Pushover struct {
 }
 
 type Config struct {
-	Prod              bool
 	Mode              Mode
 	Bout              Bout
+	ConfFiles         *ConfFiles
 	I12e              *I12e     `mapstructure:"i12e"`
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
 	K3sToken          string    `mapstructure:"k3s_token"`
@@ -163,22 +169,23 @@ func validateConfig(cfg *Config) error {
 }
 
 func LoadConfig(prod bool) (*Config, error) {
-	fname := "config/dev/i12e.yaml"
+	e := "dev"
 	if prod {
-		fname = "config/prod/i12e.yaml"
+		e = "prod"
 	}
-	fp, err := os.Open(fname)
+	cf := ConfFiles{
+		I12eYaml:      fmt.Sprintf("config/%s/i12e.yaml", e),
+		I12eEncYaml:   fmt.Sprintf("config/%s/i12e.enc.yaml", e),
+		ButaneEncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e),
+	}
+	fp, err := os.Open(cf.I12eYaml)
 	if err != nil {
 		return nil, err
 	}
 	defer fp.Close()
-	fnameEnc := "config/dev/i12e.enc.yaml"
-	if prod {
-		fnameEnc = "config/prod/i12e.enc.yaml"
-	}
-	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fnameEnc))
+	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cf.I12eEncYaml))
 	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, bufErr, prod)
+		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 	}
 	v := viper.New()
 	//v.SetEnvPrefix("I12E")
@@ -190,11 +197,10 @@ func LoadConfig(prod bool) (*Config, error) {
 	if err := v.MergeConfig(bufOut); err != nil {
 		return nil, err
 	}
-	var cfg Config
+	cfg := Config{ConfFiles: &cf}
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
-	cfg.Prod = prod
 	if err := validateConfig(&cfg); err != nil {
 		return nil, err
 	}

@@ -35,10 +35,7 @@ func (b *Butane) butaneCmd() *exec.Cmd {
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := "config/dev/butane.enc.yaml"
-	if b.cfg.Prod {
-		fname = "config/prod/butane.enc.yaml"
-	}
+	fname := b.cfg.ConfFiles.ButaneEncYaml
 	_, err := os.Stat(fname)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -48,13 +45,13 @@ func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
 	}
 	bo1, be1, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
 	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, b.cfg.Prod)
+		return nil, fmt.Errorf("'sops decrypt %s' failed: err=%s; buf_err=%s", fname, err, be1)
 	}
 	cmd := b.butaneCmd()
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be2, b.cfg.Prod)
+		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be2)
 	}
 	var ret bytes.Buffer
 	_, err = ret.WriteString("data:;base64,")
@@ -121,7 +118,7 @@ func (b *Butane) ignitionRender(buf *bytes.Buffer) (*bytes.Buffer, error) {
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be, b.cfg.Prod)
+		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be)
 	}
 	if b.cfg.Bout == config.BoutDebug {
 		log.Info("======== ignition begin ========")
