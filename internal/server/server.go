@@ -3,6 +3,7 @@ package server
 import (
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/net"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
@@ -23,6 +24,7 @@ func (s *Server) run() error {
 	for {
 		log.Info("i12e running...")
 		pull.Pull()
+		net.Net()
 		log.Info("i12e sleeping...", "slumber", s.slumber)
 		time.Sleep(s.slumber)
 	}
