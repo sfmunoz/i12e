@@ -20,7 +20,7 @@ systemd:
       Restart=always
       RestartSec=5s
       ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "{{ .I12eSha256sum }}  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
-      ExecStart=/usr/bin/i12e
+      ExecStart=/usr/bin/i12e server
       [Install]
       WantedBy=multi-user.target
 storage:
