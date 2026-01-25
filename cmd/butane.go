@@ -43,7 +43,6 @@ func buildConfig(cmd *cobra.Command) (*config.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	cfg.Prod = prod
 	if err := getModeFlag(cmd, cfg); err != nil {
 		return nil, err
 	}

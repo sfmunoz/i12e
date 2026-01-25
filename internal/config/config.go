@@ -2,14 +2,23 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/sfmunoz/logit"
 	"github.com/spf13/viper"
 )
 
-var log = logit.Logit().WithLevel(logit.LevelInfo)
+type ConfFiles struct {
+	I12eYaml      string
+	I12eEncYaml   string
+	ButaneEncYaml string
+}
+
+type I12e struct {
+	Version   string `mapstructure:"version"`
+	Sha256sum string `mapstructure:"sha256sum"`
+}
 
 type KubeVip struct {
 	Vip       string `mapstructure:"vip"`
@@ -27,9 +36,10 @@ type Pushover struct {
 }
 
 type Config struct {
-	Prod              bool
 	Mode              Mode
 	Bout              Bout
+	ConfFiles         *ConfFiles
+	I12e              *I12e     `mapstructure:"i12e"`
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
 	K3sToken          string    `mapstructure:"k3s_token"`
 	K3sAgentToken     string    `mapstructure:"k3s_agent_token"`
@@ -40,6 +50,23 @@ type Config struct {
 	Flannel           *Flannel  `mapstructure:"flannel"`
 	Pushover          *Pushover `mapstructure:"pushover"`
 	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
+}
+
+func validateI12e(i12e *I12e) error {
+	if i12e == nil {
+		return fmt.Errorf("config: undefined 'i12e'")
+	}
+	s256_len := len(i12e.Sha256sum)
+	if s256_len < 1 {
+		return fmt.Errorf("config: undefined 'i12e.sha256sum'")
+	}
+	if s256_len != 64 {
+		return fmt.Errorf("config: len(i12e.sha256sum)=%d (64 expected)", s256_len)
+	}
+	if len(i12e.Version) < 1 {
+		return fmt.Errorf("config: undefined 'i12e.version'")
+	}
+	return nil
 }
 
 func validatePortKnocking(portKnocking []int) error {
@@ -120,6 +147,9 @@ func validateConfig(cfg *Config) error {
 	if len(cfg.TlsSan) < 1 {
 		return fmt.Errorf("config: undefined 'tls_san'")
 	}
+	if err := validateI12e(cfg.I12e); err != nil {
+		return err
+	}
 	if err := validatePortKnocking(cfg.PortKnocking); err != nil {
 		return err
 	}
@@ -139,24 +169,38 @@ func validateConfig(cfg *Config) error {
 }
 
 func LoadConfig(prod bool) (*Config, error) {
-	fname := "secrets-dev.yaml"
+	e := "dev"
 	if prod {
-		fname = "secrets-prod.yaml"
+		e = "prod"
 	}
-	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
+	cf := ConfFiles{
+		I12eYaml:      fmt.Sprintf("config/%s/i12e.yaml", e),
+		I12eEncYaml:   fmt.Sprintf("config/%s/i12e.enc.yaml", e),
+		ButaneEncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e),
+	}
+	fp, err := os.Open(cf.I12eYaml)
 	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, bufErr, prod)
+		return nil, err
+	}
+	defer fp.Close()
+	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cf.I12eEncYaml))
+	if err != nil {
+		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 	}
 	v := viper.New()
 	//v.SetEnvPrefix("I12E")
 	//v.AutomaticEnv()
 	v.SetConfigType("yaml")
-	v.ReadConfig(bufOut)
-	var cfg Config
+	if err := v.ReadConfig(fp); err != nil {
+		return nil, err
+	}
+	if err := v.MergeConfig(bufOut); err != nil {
+		return nil, err
+	}
+	cfg := Config{ConfFiles: &cf}
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
-	cfg.Prod = prod
 	if err := validateConfig(&cfg); err != nil {
 		return nil, err
 	}

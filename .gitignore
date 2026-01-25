@@ -1,4 +1,3 @@
 bin
 build
-/secrets.yaml
-/secrets-*.yaml
+*.enc.yaml

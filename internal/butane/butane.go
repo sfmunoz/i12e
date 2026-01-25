@@ -16,9 +16,6 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-var i12eVersion = "v0.0.19"
-var i12eSha256Sum = "3ae3df40d53d92705b74c74772ba7c321f2b468a80651c73f76b8416a245440d"
-
 type Butane struct {
 	cfg *config.Config
 }
@@ -38,10 +35,7 @@ func (b *Butane) butaneCmd() *exec.Cmd {
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := "butane-dev.yaml"
-	if b.cfg.Prod {
-		fname = "butane-prod.yaml"
-	}
+	fname := b.cfg.ConfFiles.ButaneEncYaml
 	_, err := os.Stat(fname)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -51,13 +45,13 @@ func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
 	}
 	bo1, be1, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
 	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s; prod=%t", err, be1, b.cfg.Prod)
+		return nil, fmt.Errorf("'sops decrypt %s' failed: err=%s; buf_err=%s", fname, err, be1)
 	}
 	cmd := b.butaneCmd()
 	cmd.Stdin = bo1
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be2, b.cfg.Prod)
+		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be2)
 	}
 	var ret bytes.Buffer
 	_, err = ret.WriteString("data:;base64,")
@@ -98,8 +92,8 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		RcloneConf                *bytes.Buffer
 	}{
 		IgnitionConfigMergeSource: icms,
-		I12eVersion:               i12eVersion,
-		I12eSha256sum:             i12eSha256Sum,
+		I12eVersion:               b.cfg.I12e.Version,
+		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.SshAuthorizedKeys,
 		RcloneConf:                rcloneConfig,
@@ -124,7 +118,7 @@ func (b *Butane) ignitionRender(buf *bytes.Buffer) (*bytes.Buffer, error) {
 	cmd.Stdin = buf
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s; prod=%t", err, be, b.cfg.Prod)
+		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be)
 	}
 	if b.cfg.Bout == config.BoutDebug {
 		log.Info("======== ignition begin ========")
