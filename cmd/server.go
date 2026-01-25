@@ -1,21 +1,12 @@
 package cmd
 
 import (
-	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/server"
 	"github.com/spf13/cobra"
 )
 
 func serverRun(cmd *cobra.Command, args []string) error {
-	prod, err := cmd.Flags().GetBool("prod")
-	if err != nil {
-		return err
-	}
-	cfg, err := config.LoadConfig(prod)
-	if err != nil {
-		return err
-	}
-	return server.Run(cfg)
+	return server.Run()
 }
 
 // serverCmd represents the server command

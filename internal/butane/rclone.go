@@ -45,7 +45,7 @@ func remotes(rc *RcloneConf, rem string) ([]string, error) {
 func RcloneConfig(cfg *config.Config) (*bytes.Buffer, error) {
 	bo, be, err := cmdutil.RunSimple(exec.Command("rclone", "config", "dump"))
 	if err != nil {
-		return nil, fmt.Errorf("'rclone config dump' failed: err=%s; buf_err=%s; prod=%t", err, be, cfg.Prod)
+		return nil, fmt.Errorf("'rclone config dump' failed: err=%s; buf_err=%s", err, be)
 	}
 	var rcloneConf RcloneConf
 	if err := json.Unmarshal(bo.Bytes(), &rcloneConf); err != nil {
