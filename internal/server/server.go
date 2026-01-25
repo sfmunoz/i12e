@@ -1,10 +1,8 @@
 package server
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
@@ -12,32 +10,24 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	cfg *config.Config
+	slumber time.Duration
 }
 
-func newServer(cfg *config.Config) (*Server, error) {
-	if cfg == nil {
-		return nil, fmt.Errorf("newServer(): undefined config")
-	}
+func newServer() *Server {
 	return &Server{
-		cfg: cfg,
-	}, nil
+		slumber: 3 * time.Second,
+	}
 }
 
 func (s *Server) run() error {
-	slumber := 3 * time.Second
 	for {
 		log.Info("i12e running...")
 		pull.Pull()
-		log.Info("i12e sleeping...", "slumber", slumber)
-		time.Sleep(slumber)
+		log.Info("i12e sleeping...", "slumber", s.slumber)
+		time.Sleep(s.slumber)
 	}
 }
 
-func Run(cfg *config.Config) error {
-	a, err := newServer(cfg)
-	if err != nil {
-		return err
-	}
-	return a.run()
+func Run() error {
+	return newServer().run()
 }
