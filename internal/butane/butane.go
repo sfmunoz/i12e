@@ -16,9 +16,6 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-var i12eVersion = "v0.0.19"
-var i12eSha256Sum = "3ae3df40d53d92705b74c74772ba7c321f2b468a80651c73f76b8416a245440d"
-
 type Butane struct {
 	cfg *config.Config
 }
@@ -98,8 +95,8 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		RcloneConf                *bytes.Buffer
 	}{
 		IgnitionConfigMergeSource: icms,
-		I12eVersion:               i12eVersion,
-		I12eSha256sum:             i12eSha256Sum,
+		I12eVersion:               b.cfg.I12e.Version,
+		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.SshAuthorizedKeys,
 		RcloneConf:                rcloneConfig,
