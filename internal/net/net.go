@@ -7,7 +7,13 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-func Net() {
+type Net struct{}
+
+func newNet() *Net {
+	return &Net{}
+}
+
+func (n *Net) run() error {
 	log.Info("Net()...")
 	iface := ""
 	ip := ""
@@ -16,5 +22,10 @@ func Net() {
 		iface = ii.Iface
 		ip = ii.IP
 	}
-	log.Info("Net()", "iface", iface, "ip", ip)
+	log.Info("Net.run()", "iface", iface, "ip", ip)
+	return nil
+}
+
+func Run() error {
+	return newNet().run()
 }

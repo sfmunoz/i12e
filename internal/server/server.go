@@ -24,7 +24,7 @@ func (s *Server) run() error {
 	for {
 		log.Info("i12e running...")
 		pull.Pull()
-		net.Net()
+		net.Run()
 		log.Info("i12e sleeping...", "slumber", s.slumber)
 		time.Sleep(s.slumber)
 	}
