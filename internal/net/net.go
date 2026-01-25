@@ -14,13 +14,14 @@ func newNet() *Net {
 }
 
 func (n *Net) run() error {
-	log.Info("Net()...")
-	iface := ""
-	ip := ""
-	ii := netutil.IfaceIP()
+	ii, err := netutil.IfaceIP()
+	if err != nil {
+		log.Error("Net.run(): 'netutil.IfaceIP()' failed", "err", err)
+		return err
+	}
+	iface, ip := "", ""
 	if ii != nil {
-		iface = ii.Iface
-		ip = ii.IP
+		iface, ip = ii.Iface, ii.IP
 	}
 	log.Info("Net.run()", "iface", iface, "ip", ip)
 	return nil

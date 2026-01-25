@@ -22,19 +22,21 @@ func newPull() *Pull {
 }
 
 func (p *Pull) run() error {
-	log.Info("Pull()...")
 	err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
 	if err != nil {
-		log.Error("rcloneScript failed", "err", err)
+		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
-	iface := ""
-	ip := ""
-	ii := netutil.IfaceIP()
-	if ii != nil {
-		iface = ii.Iface
-		ip = ii.IP
+	ii, err := netutil.IfaceIP()
+	if err != nil {
+		log.Error("Pull.run(): 'netutil.IfaceIP()' failed", "err", err)
+		return err
 	}
+	iface, ip := "", ""
+	if ii != nil {
+		iface, ip = ii.Iface, ii.IP
+	}
+	log.Info("Pull.run()", "iface", iface, "ip", ip)
 	err = cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
 	if err != nil {
 		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
