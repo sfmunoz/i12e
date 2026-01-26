@@ -26,12 +26,12 @@ func getMachineId() (string, error) {
 }
 
 type Net struct {
-	WgIface   string
-	WgPort    uint16
-	Iface     string
-	WgFname   string
-	Tnow      time.Time
-	MachineId string
+	Tnow           time.Time
+	MachineId      string
+	WgInterface    string
+	WgEndpointPort uint16
+	WgEndpointIp   string
+	WgPrivKey      string
 }
 
 func newNet() (*Net, error) {
@@ -50,22 +50,20 @@ func newNet() (*Net, error) {
 		return nil, err
 	}
 	return &Net{
-		WgIface:   "wg0",
-		WgPort:    51820,
-		Iface:     ii.Iface,
-		WgFname:   "/etc/i12e/wg-privkey",
-		Tnow:      time.Now().UTC(),
-		MachineId: machineId,
+		Tnow:           time.Now().UTC(),
+		MachineId:      machineId,
+		WgInterface:    "wgi",
+		WgEndpointIp:   ii.IP,
+		WgEndpointPort: 51830, // default '51820'
 	}, nil
 }
 
 func (n *Net) run() error {
-	log.Info("Net.run()", "WgIface", n.WgIface)
-	log.Info("Net.run()", "WgPort", n.WgPort)
-	log.Info("Net.run()", "Iface", n.Iface)
-	log.Info("Net.run()", "WgFname", n.WgFname)
 	log.Info("Net.run()", "Tnow", n.Tnow)
 	log.Info("Net.run()", "MachineId", n.MachineId)
+	log.Info("Net.run()", "WgInterface", n.WgInterface)
+	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
+	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	return nil
 }
 
