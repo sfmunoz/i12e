@@ -20,8 +20,7 @@ func newPull() *Pull {
 }
 
 func (p *Pull) run() error {
-	err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
-	if err != nil {
+	if err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript); err != nil {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
@@ -35,8 +34,7 @@ func (p *Pull) run() error {
 		iface, ip = ii.Iface, ii.IP
 	}
 	log.Info("Pull.run()", "iface", iface, "ip", ip)
-	err = cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
-	if err != nil {
+	if err := cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip); err != nil {
 		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
 		return err
 	}
