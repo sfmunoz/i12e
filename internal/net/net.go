@@ -1,14 +1,21 @@
 package net
 
 import (
+	"bytes"
+	_ "embed"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
+
+//go:embed static/wg-priv-key.sh
+var wgPrivKeySh []byte
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
@@ -23,6 +30,16 @@ func getMachineId() (string, error) {
 		return "", fmt.Errorf("getMachineId(): len(%s)=%d (32 expected)", mid, mid_len)
 	}
 	return mid, nil
+}
+
+func getWgPrivKey() (string, error) {
+	cmd := exec.Command("/bin/sh", "-s", "-", "/etc/i12e/wg-priv-key")
+	cmd.Stdin = bytes.NewBuffer(wgPrivKeySh)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return "", fmt.Errorf("'wg-priv-key.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return bo.String(), nil
 }
 
 type Net struct {
@@ -49,12 +66,18 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
+	wgPrivKey, err := getWgPrivKey()
+	if err != nil {
+		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
+		return nil, err
+	}
 	return &Net{
 		Tnow:           time.Now().UTC(),
 		MachineId:      machineId,
 		WgInterface:    "wgi",
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
+		WgPrivKey:      wgPrivKey,
 	}, nil
 }
 
@@ -64,6 +87,7 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
+	log.Info("Net.run()", "WgPrivKey", strings.Repeat("*", len(n.WgPrivKey)))
 	return nil
 }
 
