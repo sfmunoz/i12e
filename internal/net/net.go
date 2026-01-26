@@ -14,8 +14,8 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-//go:embed static/wg-priv-key.sh
-var wgPrivKeySh []byte
+//go:embed static/net.sh
+var netSh []byte
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
@@ -32,14 +32,22 @@ func getMachineId() (string, error) {
 	return mid, nil
 }
 
-func getWgPrivKey() (string, error) {
-	cmd := exec.Command("/bin/sh", "-s", "-", "/etc/i12e/wg-priv-key")
-	cmd.Stdin = bytes.NewBuffer(wgPrivKeySh)
+func getWgKey(c string) (string, error) {
+	cmd := exec.Command("/bin/sh", "-s", "-", c, "/etc/i12e/wg-priv-key")
+	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return "", fmt.Errorf("'wg-priv-key.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return "", fmt.Errorf("'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	return bo.String(), nil
+}
+
+func getWgPrivKey() (string, error) {
+	return getWgKey("priv-key")
+}
+
+func getWgPubKey() (string, error) {
+	return getWgKey("pub-key")
 }
 
 type Net struct {
@@ -49,6 +57,7 @@ type Net struct {
 	WgEndpointPort uint16
 	WgEndpointIp   string
 	WgPrivKey      string
+	WgPubKey       string
 }
 
 func newNet() (*Net, error) {
@@ -71,6 +80,11 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
 		return nil, err
 	}
+	wgPubKey, err := getWgPubKey()
+	if err != nil {
+		log.Error("newNet(): 'getWgPubKey(false)' failed", "err", err)
+		return nil, err
+	}
 	return &Net{
 		Tnow:           time.Now().UTC(),
 		MachineId:      machineId,
@@ -78,6 +92,7 @@ func newNet() (*Net, error) {
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
 		WgPrivKey:      wgPrivKey,
+		WgPubKey:       wgPubKey,
 	}, nil
 }
 
@@ -88,6 +103,7 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	log.Info("Net.run()", "WgPrivKey", strings.Repeat("*", len(n.WgPrivKey)))
+	log.Info("Net.run()", "WgPubKey", n.WgPubKey)
 	return nil
 }
 
