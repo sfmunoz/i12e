@@ -1,15 +1,12 @@
 package net
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
@@ -32,32 +29,14 @@ func getMachineId() (string, error) {
 	return mid, nil
 }
 
-func getWgKey(c string) (string, error) {
-	cmd := exec.Command("/bin/sh", "-s", "-", c, "/etc/i12e/wg-priv-key")
-	cmd.Stdin = bytes.NewBuffer(netSh)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return "", fmt.Errorf("'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	return bo.String(), nil
-}
-
-func getWgPrivKey() (string, error) {
-	return getWgKey("priv-key")
-}
-
-func getWgPubKey() (string, error) {
-	return getWgKey("pub-key")
-}
-
 type Net struct {
 	Tnow           time.Time
 	MachineId      string
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
-	WgPrivKey      string
-	WgPubKey       string
+	WgPrivKey      WgKey
+	WgPubKey       WgKey
 }
 
 func newNet() (*Net, error) {
@@ -75,14 +54,14 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
-	wgPrivKey, err := getWgPrivKey()
+	wgPrivKey, err := getWgKey(WgCmdPrivKey)
 	if err != nil {
-		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
+		log.Error("newNet(): 'getWgKey(WgcmdPrivKey)' failed", "err", err)
 		return nil, err
 	}
-	wgPubKey, err := getWgPubKey()
+	wgPubKey, err := getWgKey(WgCmdPubKey)
 	if err != nil {
-		log.Error("newNet(): 'getWgPubKey(false)' failed", "err", err)
+		log.Error("newNet(): 'getWgKey(WgCmdPubKey)' failed", "err", err)
 		return nil, err
 	}
 	return &Net{
@@ -102,8 +81,8 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
-	log.Info("Net.run()", "WgPrivKey", strings.Repeat("*", len(n.WgPrivKey)))
-	log.Info("Net.run()", "WgPubKey", n.WgPubKey)
+	log.Info("Net.run()", "WgPrivKey", strings.Repeat("*", len(n.WgPrivKey)), "WgPrivKeyLen", len(n.WgPrivKey))
+	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyLen", len(n.WgPubKey))
 	return nil
 }
 
