@@ -47,6 +47,14 @@ func (m *MachineId) NodeName() (string, error) {
 	return fmt.Sprintf("n-%03d-%03d", t[0], t[1]), nil
 }
 
+func (m *MachineId) PathName() (string, error) {
+	t, err := m.tuple()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%03d/%03d", t[0], t[1]), nil
+}
+
 func (m *MachineId) IP() (string, error) {
 	t, err := m.tuple()
 	if err != nil {

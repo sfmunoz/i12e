@@ -64,6 +64,10 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
+	pathName, err := n.MachineId.PathName()
+	if err != nil {
+		return err
+	}
 	nodeName, err := n.MachineId.NodeName()
 	if err != nil {
 		return err
@@ -73,7 +77,7 @@ func (n *Net) run() error {
 		return err
 	}
 	log.Info("Net.run()", "Tnow", n.Tnow)
-	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", nodeId, "NodeName", nodeName, "IP", ip)
+	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", nodeId, "NodeName", nodeName, "PathName", pathName, "IP", ip)
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
