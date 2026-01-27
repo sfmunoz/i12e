@@ -15,27 +15,36 @@ func (m *MachineId) String() string {
 	return m.data
 }
 
-func (m *MachineId) NodeId() (int, error) {
+func (m *MachineId) tuple() ([2]int, error) {
 	buf, err := hex.DecodeString(m.data)
+	if err != nil {
+		return [2]int{0, 0}, err
+	}
+	for i := 0; i < len(buf)-1; i++ {
+		a, b := int(buf[i]), int(buf[i+1])
+		if a == 0 && b == 0 || a == 255 && b == 255 {
+			// '/16' network -> skip network and broadcast addresses
+			continue
+		}
+		return [2]int{a, b}, nil
+	}
+	return [2]int{0, 0}, fmt.Errorf("MachineId.tuple(): cannot get properly value")
+}
+
+func (m *MachineId) NodeId() (int, error) {
+	t, err := m.tuple()
 	if err != nil {
 		return 0, err
 	}
-	for i := 0; i < len(buf)-1; i++ {
-		x := 256*int(buf[i]) + int(buf[i+1])
-		if x > 0 && x < 0xffff {
-			// '/16' network -> skip network and broadcast addresses
-			return x, nil
-		}
-	}
-	return 0, fmt.Errorf("MachineId.NodeId(): cannot get proper id")
+	return 256*t[0] + t[1], nil
 }
 
 func (m *MachineId) IP() (string, error) {
-	n, err := m.NodeId()
+	t, err := m.tuple()
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("10.56.%d.%d", n/256, n%256), nil
+	return fmt.Sprintf("10.56.%d.%d", t[0], t[1]), nil
 }
 
 func getMachineId() (*MachineId, error) {
