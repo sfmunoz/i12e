@@ -35,8 +35,8 @@ type Net struct {
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
-	WgPrivKey      WgKey
-	WgPubKey       WgKey
+	WgPrivKey      *WgKey
+	WgPubKey       *WgKey
 }
 
 func newNet() (*Net, error) {
@@ -54,14 +54,14 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
-	wgPrivKey, err := getWgKey(WgCmdPrivKey)
+	wgPrivKey, err := getWgKey(true)
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(WgcmdPrivKey)' failed", "err", err)
+		log.Error("newNet(): 'getWgKey(true)' failed", "err", err)
 		return nil, err
 	}
-	wgPubKey, err := getWgKey(WgCmdPubKey)
+	wgPubKey, err := getWgKey(false)
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(WgCmdPubKey)' failed", "err", err)
+		log.Error("newNet(): 'getWgKey(false)' failed", "err", err)
 		return nil, err
 	}
 	return &Net{
@@ -81,8 +81,8 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
-	log.Info("Net.run()", "WgPrivKey", strings.Repeat("*", len(n.WgPrivKey)), "WgPrivKeyLen", len(n.WgPrivKey))
-	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyLen", len(n.WgPubKey))
+	log.Info("Net.run()", "WgPrivKey", n.WgPrivKey, "WgPrivKeyLen", len(n.WgPrivKey.data))
+	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyLen", len(n.WgPubKey.data))
 	return nil
 }
 
