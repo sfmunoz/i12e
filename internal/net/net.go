@@ -1,9 +1,13 @@
 package net
 
 import (
+	"bytes"
 	_ "embed"
+	"fmt"
+	"os/exec"
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
@@ -59,6 +63,27 @@ func newNet() (*Net, error) {
 	}, nil
 }
 
+func (n *Net) push() error {
+	cmd := exec.Command(
+		"/bin/sh",
+		"-s",
+		"-",
+		"node-push",
+		n.MachineId.PathName(),
+		fmt.Sprintf("%s_%09d", n.Tnow.Format("20060102_150405"), n.Tnow.Nanosecond()),
+		n.WgPubKey.Hex(),
+		n.WgEndpointIp,
+		fmt.Sprintf("%d", n.WgEndpointPort),
+		n.MachineId.IP(),
+	)
+	cmd.Stdin = bytes.NewBuffer(netSh)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Net.push(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
+}
+
 func (n *Net) run() error {
 	log.Info("Net.run()", "Tnow", n.Tnow)
 	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", n.MachineId.NodeId(), "NodeName", n.MachineId.NodeName(), "PathName", n.MachineId.PathName(), "IP", n.MachineId.IP())
@@ -67,6 +92,9 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	log.Info("Net.run()", "WgPrivKey", n.WgPrivKey, "WgPrivKeyLen", n.WgPrivKey.Len())
 	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyHex", n.WgPubKey.Hex(), "WgPubKeyLen", n.WgPubKey.Len())
+	if err := n.push(); err != nil {
+		return err
+	}
 	return nil
 }
 
