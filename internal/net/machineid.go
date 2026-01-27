@@ -39,6 +39,14 @@ func (m *MachineId) NodeId() (int, error) {
 	return 256*t[0] + t[1], nil
 }
 
+func (m *MachineId) NodeName() (string, error) {
+	t, err := m.tuple()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("n-%03d-%03d", t[0], t[1]), nil
+}
+
 func (m *MachineId) IP() (string, error) {
 	t, err := m.tuple()
 	if err != nil {
