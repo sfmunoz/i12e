@@ -30,6 +30,14 @@ func (m *MachineId) NodeId() (int, error) {
 	return 0, fmt.Errorf("MachineId.NodeId(): cannot get proper id")
 }
 
+func (m *MachineId) IP() (string, error) {
+	n, err := m.NodeId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("10.56.%d.%d", n/256, n%256), nil
+}
+
 func getMachineId() (*MachineId, error) {
 	buf, err := os.ReadFile("/etc/machine-id")
 	if err != nil {

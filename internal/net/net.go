@@ -64,8 +64,12 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
+	ip, err := n.MachineId.IP()
+	if err != nil {
+		return err
+	}
 	log.Info("Net.run()", "Tnow", n.Tnow)
-	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", nodeId)
+	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", nodeId, "IP", ip)
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
