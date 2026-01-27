@@ -20,7 +20,11 @@ func (w *WgKey) String() string {
 	if w.Private {
 		return strings.Repeat("*", len(w.data))
 	}
-	return strings.Repeat("x", len(w.data))
+	return w.B64()
+}
+
+func (w *WgKey) B64() string {
+	return base64.StdEncoding.EncodeToString(w.data)
 }
 
 func getWgKey(private bool) (*WgKey, error) {
