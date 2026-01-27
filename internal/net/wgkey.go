@@ -32,6 +32,10 @@ func (w *WgKey) Hex() string {
 	return hex.EncodeToString(w.data)
 }
 
+func (w *WgKey) Len() int {
+	return len(w.data)
+}
+
 func getWgKey(private bool) (*WgKey, error) {
 	c := "pub-key"
 	if private {
