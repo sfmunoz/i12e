@@ -7,16 +7,8 @@ import (
 	"strings"
 )
 
-type MachineId struct {
-	data string
-}
-
-func (m *MachineId) String() string {
-	return m.data
-}
-
-func (m *MachineId) tuple() ([2]int, error) {
-	buf, err := hex.DecodeString(m.data)
+func getTuple(s string) ([2]int, error) {
+	buf, err := hex.DecodeString(s)
 	if err != nil {
 		return [2]int{0, 0}, err
 	}
@@ -28,39 +20,32 @@ func (m *MachineId) tuple() ([2]int, error) {
 		}
 		return [2]int{a, b}, nil
 	}
-	return [2]int{0, 0}, fmt.Errorf("MachineId.tuple(): cannot get properly value")
+	return [2]int{0, 0}, fmt.Errorf("getTuple(): cannot get proper value")
 }
 
-func (m *MachineId) NodeId() (int, error) {
-	t, err := m.tuple()
-	if err != nil {
-		return 0, err
-	}
-	return 256*t[0] + t[1], nil
+type MachineId struct {
+	data  string
+	tuple [2]int
 }
 
-func (m *MachineId) NodeName() (string, error) {
-	t, err := m.tuple()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("n-%03d-%03d", t[0], t[1]), nil
+func (m *MachineId) String() string {
+	return m.data
 }
 
-func (m *MachineId) PathName() (string, error) {
-	t, err := m.tuple()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%03d/%03d", t[0], t[1]), nil
+func (m *MachineId) NodeId() int {
+	return 256*m.tuple[0] + m.tuple[1]
 }
 
-func (m *MachineId) IP() (string, error) {
-	t, err := m.tuple()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("10.56.%d.%d", t[0], t[1]), nil
+func (m *MachineId) NodeName() string {
+	return fmt.Sprintf("n-%03d-%03d", m.tuple[0], m.tuple[1])
+}
+
+func (m *MachineId) PathName() string {
+	return fmt.Sprintf("%03d/%03d", m.tuple[0], m.tuple[1])
+}
+
+func (m *MachineId) IP() string {
+	return fmt.Sprintf("10.56.%d.%d", m.tuple[0], m.tuple[1])
 }
 
 func getMachineId() (*MachineId, error) {
@@ -73,7 +58,12 @@ func getMachineId() (*MachineId, error) {
 	if mid_len != 32 {
 		return nil, fmt.Errorf("getMachineId(): len(%s)=%d (32 expected)", mid, mid_len)
 	}
+	tuple, err := getTuple(mid)
+	if err != nil {
+		return nil, err
+	}
 	return &MachineId{
-		data: mid,
+		data:  mid,
+		tuple: tuple,
 	}, nil
 }
