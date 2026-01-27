@@ -95,6 +95,11 @@ func (n *Net) run() error {
 	if err := n.push(); err != nil {
 		return err
 	}
+	mesh, err := getMesh("rem:mesh")
+	if err != nil {
+		return err
+	}
+	log.Info("Net.run()", "mesh", mesh)
 	return nil
 }
 
