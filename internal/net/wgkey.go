@@ -2,7 +2,6 @@ package net
 
 import (
 	"bytes"
-	_ "embed"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"

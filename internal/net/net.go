@@ -2,9 +2,6 @@ package net
 
 import (
 	_ "embed"
-	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/netutil"
@@ -16,22 +13,9 @@ var netSh []byte
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-func getMachineId() (string, error) {
-	buf, err := os.ReadFile("/etc/machine-id")
-	if err != nil {
-		return "", err
-	}
-	mid := strings.TrimSpace(string(buf))
-	mid_len := len(mid)
-	if mid_len != 32 {
-		return "", fmt.Errorf("getMachineId(): len(%s)=%d (32 expected)", mid, mid_len)
-	}
-	return mid, nil
-}
-
 type Net struct {
 	Tnow           time.Time
-	MachineId      string
+	MachineId      *MachineId
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
