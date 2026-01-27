@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -25,6 +26,10 @@ func (w *WgKey) String() string {
 
 func (w *WgKey) B64() string {
 	return base64.StdEncoding.EncodeToString(w.data)
+}
+
+func (w *WgKey) Hex() string {
+	return hex.EncodeToString(w.data)
 }
 
 func getWgKey(private bool) (*WgKey, error) {

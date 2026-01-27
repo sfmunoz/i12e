@@ -82,7 +82,7 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	log.Info("Net.run()", "WgPrivKey", n.WgPrivKey, "WgPrivKeyLen", len(n.WgPrivKey.data))
-	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyLen", len(n.WgPubKey.data))
+	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyHex", n.WgPubKey.Hex())
 	return nil
 }
 
