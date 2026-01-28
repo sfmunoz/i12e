@@ -47,7 +47,26 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Net.push(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.NodePush(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
+}
+
+func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+	cmd := exec.Command(
+		"/bin/sh",
+		"-s",
+		"-",
+		"node-config",
+		wgInterface,
+		wgIpInt,
+		fmt.Sprintf("%d", wgEndpointPort),
+		wgPrivKeyFname,
+	)
+	cmd.Stdin = bytes.NewBuffer(netSh)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	return nil
 }

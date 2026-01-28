@@ -11,6 +11,8 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
+const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
+
 type WgKey struct {
 	Private bool
 	data    []byte
@@ -40,7 +42,7 @@ func getWgKey(private bool) (*WgKey, error) {
 	if private {
 		c = "priv-key"
 	}
-	cmd := exec.Command("/bin/sh", "-s", "-", c, "/etc/i12e/wg-priv-key")
+	cmd := exec.Command("/bin/sh", "-s", "-", c, WgPrivKeyFname)
 	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
