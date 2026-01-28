@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+	"slices"
 	"strings"
 	"time"
 
@@ -45,9 +46,7 @@ func getMesh(base string) (*Mesh, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getMesh() failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	buf := strings.TrimSpace(bo.String())
-	return &Mesh{
-		base: base,
-		data: strings.Split(buf, "\n"),
-	}, nil
+	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(data)
+	return &Mesh{base, data}, nil
 }
