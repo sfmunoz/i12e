@@ -74,7 +74,6 @@ func (n *Net) push() error {
 		n.WgPubKey.Hex(),
 		n.WgEndpointIp,
 		fmt.Sprintf("%d", n.WgEndpointPort),
-		n.MachineId.IP(),
 	)
 	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
