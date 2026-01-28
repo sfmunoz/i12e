@@ -35,8 +35,7 @@ case "$1" in
     [ "$WG_PUBKEY" = "" ] && error_and_exit "WG_PUBKEY argument must be provided"
     [ "$WG_ENDPOINT_IP" = "" ] && error_and_exit "WG_ENDPOINT_IP argument must be provided"
     [ "$WG_ENDPOINT_PORT" = "" ] && error_and_exit "WG_ENDPOINT_PORT argument must be provided"
-    rclone touch "rem:mesh/${NODE_PATH}/${TS}/wg/${WG_PUBKEY}/${WG_ENDPOINT_IP}/${WG_ENDPOINT_PORT}"
-    rclone touch "rem:mesh/${NODE_PATH}/${TS}/commit"
+    rclone touch "rem:mesh/${NODE_PATH}/${TS}/${WG_PUBKEY}/${WG_ENDPOINT_IP}/${WG_ENDPOINT_PORT}"
   ;;
 esac
 
