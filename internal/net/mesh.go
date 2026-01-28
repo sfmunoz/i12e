@@ -25,8 +25,9 @@ func (m *Mesh) String() string {
 func (m *Mesh) DumpToLog() {
 	for _, entry := range m.data {
 		x := m.re.FindStringSubmatch(entry)
+		log.Info("==", "entry", entry)
 		for i, v := range x {
-			log.Info(">>", "entry", entry, "i", i, "v", v)
+			log.Info(">>", "i", i, "v", v)
 		}
 	}
 }
@@ -51,8 +52,26 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	return nil
 }
 
+func getRegex() (*regexp.Regexp, error) {
+	// 252/158/20260128_152841_153793688/commit
+	// 252/158/20260128_152841_153793688/wg/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+	expr := "^" +
+		"([0-9]{3})" +
+		"/" +
+		"([0-9]{3})" +
+		"/" +
+		"([0-9]{8})_([0-9]{6})_([0-9]{9})" +
+		"/" +
+		`(commit|(?:(wg)/([0-9a-f]{64})/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/([0-9]+)))` +
+		"$"
+	return regexp.Compile(expr)
+}
+
 func getMesh(base string) (*Mesh, error) {
-	re, err := regexp.Compile("^([0-9]{3})/([0-9]{3})/([0-9]{8})_([0-9]{6})_([0-9]{9})/.*")
+	re, err := getRegex()
+	if err != nil {
+		return nil, err
+	}
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", base)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
