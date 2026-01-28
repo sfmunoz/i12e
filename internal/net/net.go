@@ -75,7 +75,7 @@ func (n *Net) run() error {
 		return err
 	}
 	// log.Info("Net.run()", "mesh", mesh)
-	mesh.DumpToLog()
+	//mesh.DumpToLog()
 	return nil
 }
 
