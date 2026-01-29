@@ -37,6 +37,18 @@ func (w *WgKey) Len() int {
 	return len(w.data)
 }
 
+func getWgKeyFromHex(s string, private bool) (*WgKey, error) {
+	s_len := len(s)
+	if s_len != 64 {
+		return nil, fmt.Errorf("len(hex)=%d (64 expected)", s_len)
+	}
+	data, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	return &WgKey{Private: private, data: data}, nil
+}
+
 func getWgKey(private bool) (*WgKey, error) {
 	c := "pub-key"
 	if private {
@@ -56,8 +68,5 @@ func getWgKey(private bool) (*WgKey, error) {
 	if data_len != 32 {
 		return nil, fmt.Errorf("getWgKey(): len(data)=%d (32 expected)", data_len)
 	}
-	return &WgKey{
-		Private: private,
-		data:    data,
-	}, nil
+	return &WgKey{Private: private, data: data}, nil
 }
