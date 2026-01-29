@@ -3,6 +3,7 @@ package server
 import (
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/net"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
@@ -20,9 +21,18 @@ func newServer() *Server {
 }
 
 func (s *Server) run() error {
+	firstTime := true
 	for {
 		log.Info("i12e running...")
-		pull.Pull()
+		if err := pull.Run(); err != nil {
+			log.Error("pull.Run() failed", "err", err)
+		}
+		if firstTime {
+			firstTime = false
+			if err := net.Run(); err != nil {
+				log.Error("net.Run() failed", "err", err)
+			}
+		}
 		log.Info("i12e sleeping...", "slumber", s.slumber)
 		time.Sleep(s.slumber)
 	}

@@ -1,100 +1,46 @@
 package pull
 
 import (
-	"errors"
-	"net"
-	"os"
-	"strings"
+	_ "embed"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-const rcloneScript = `#!/bin/sh
-[ -f /etc/i12e/flags/artifact-pulled ] && exit 0
-set -x -e -o pipefail
-rclone cat rem:artifact.tar.gz | tar -C / -xvz
-rm -f /etc/i12e/flags/artifact-tuned
-`
+//go:embed static/artifact-pull.sh
+var rcloneScript string
 
-type II struct {
-	Iface string
-	IP    string
+type Pull struct{}
+
+func newPull() *Pull {
+	return &Pull{}
 }
 
-func ifaceIP() *II {
-	path := "/etc/i12e/iface.txt"
-	_, err := os.Stat(path)
+func (p *Pull) run() error {
+	if err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript); err != nil {
+		log.Error("Pull.run(): rcloneScript failed", "err", err)
+		return err
+	}
+	ii, err := netutil.IfaceIP()
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Info("ifaceIP(): file does not exist", "path", path)
-		} else {
-			log.Error("ifaceIP(): os.Stat() failed", "path", path, "err", err)
-		}
-		return nil
+		log.Error("Pull.run(): 'netutil.IfaceIP()' failed", "err", err)
+		return err
 	}
-	buf, err := os.ReadFile(path)
-	if err != nil {
-		log.Error("ifaceIP(): os.ReadFile() failed", "path", path, "err", err)
-		return nil
+	iface, ip := "", ""
+	if ii != nil {
+		iface, ip = ii.Iface, ii.IP
 	}
-	iname := strings.TrimSpace(string(buf))
-	if len(iname) < 1 {
-		log.Error("ifaceIP(): file is empty", "path", path)
-		return nil
+	log.Info("Pull.run()", "iface", iface, "ip", ip)
+	if err := cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip); err != nil {
+		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
+		return err
 	}
-	iface, err := net.InterfaceByName(iname)
-	if err != nil {
-		log.Error("ifaceIP(): net.InterfaceByName() failed", "iname", iname, "err", err)
-		return nil
-	}
-	addrs, err := iface.Addrs()
-	if err != nil {
-		log.Error("ifaceIP(): iface.Addrs() failed", "iname", iname, "err", err)
-		return nil
-	}
-	for _, addr := range addrs {
-		ipNet, ok := addr.(*net.IPNet)
-		if !ok {
-			log.Info("ifaceIP(): cannot get ipNet", "iname", iname, "addr", addr)
-			continue
-		}
-		ip := ipNet.IP
-		if ip.To4() == nil {
-			log.Info("ifaceIP(): ip.To4() returned nil", "iname", iname, "addr", addr)
-			continue
-		}
-		ipStr := ip.String()
-		if len(ipStr) < 1 {
-			log.Info("ifaceIP(): empty ipStr", "iname", iname, "addr", addr)
-			continue
-		}
-		ret := &II{Iface: iname, IP: ip.String()}
-		log.Info("ifaceIP() ok", "Iface", ret.Iface, "IP", ret.IP)
-		return ret
-	}
-	log.Warn("ifaceIP(): no IPv4 address found")
 	return nil
 }
 
-func Pull() {
-	log.Info("Pull()...")
-	err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript)
-	if err != nil {
-		log.Error("rcloneScript failed", "err", err)
-		return
-	}
-	iface := ""
-	ip := ""
-	ii := ifaceIP()
-	if ii != nil {
-		iface = ii.Iface
-		ip = ii.IP
-	}
-	err = cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
-	if err != nil {
-		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
-	}
+func Run() error {
+	return newPull().run()
 }
