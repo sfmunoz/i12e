@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
 
@@ -24,13 +23,13 @@ type Net struct {
 }
 
 func newNet() (*Net, error) {
-	ii, err := netutil.IfaceIP()
+	ii, err := IfaceIP()
 	if err != nil {
-		log.Error("newNet(): 'netutil.IfaceIP()' failed", "err", err)
+		log.Error("newNet(): 'IfaceIP()' failed", "err", err)
 		return nil, err
 	}
 	if ii == nil {
-		log.Error("newNet(): 'netutil.IfaceIP()' returned 'nil'")
+		log.Error("newNet(): 'IfaceIP()' returned 'nil'")
 		return nil, err
 	}
 	machineId, err := getMachineId()
