@@ -37,14 +37,14 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
-	wgPrivKey, err := getWgKey(true)
+	wgPrivKey, err := getWgPrivKey()
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(true)' failed", "err", err)
+		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
 		return nil, err
 	}
-	wgPubKey, err := getWgKey(false)
+	wgPubKey, err := getWgPubKey()
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(false)' failed", "err", err)
+		log.Error("newNet(): 'getWgPubKey()' failed", "err", err)
 		return nil, err
 	}
 	return &Net{

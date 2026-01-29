@@ -72,15 +72,12 @@ func getWgPubKey() (*WgKey, error) {
 	return &WgKey{Private: false, data: data}, nil
 }
 
-func getWgKey(private bool) (*WgKey, error) {
-	if !private {
-		return getWgPubKey()
-	}
+func getWgPrivKey() (*WgKey, error) {
 	cmd := exec.Command("/bin/sh", "-s", "-", "priv-key", WgPrivKeyFname)
 	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("getWgKey(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return nil, fmt.Errorf("getWgPrivKey(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	data, err := base64.StdEncoding.DecodeString(bo.String())
 	if err != nil {
@@ -88,7 +85,7 @@ func getWgKey(private bool) (*WgKey, error) {
 	}
 	data_len := len(data)
 	if data_len != 32 {
-		return nil, fmt.Errorf("getWgKey(): len(data)=%d (32 expected)", data_len)
+		return nil, fmt.Errorf("getWgPrivKey(): len(data)=%d (32 expected)", data_len)
 	}
-	return &WgKey{Private: private, data: data}, nil
+	return &WgKey{Private: true, data: data}, nil
 }
