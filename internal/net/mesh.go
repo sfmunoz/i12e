@@ -95,16 +95,16 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 			log.Error("error getting 'wg-key'", "err", err, "hex", x[6])
 			continue
 		}
-		cmd := fmt.Sprintf(
-			"wg set %s peer %s allowed-ips 10.56.%s.%s/32 endpoint %s:%s",
-			wgInterface,
-			k.B64(),
-			strings.TrimLeft(x[1], "0"),
-			strings.TrimLeft(x[2], "0"),
-			x[7],
-			x[8],
+		cmd := exec.Command(
+			"wg", "set", wgInterface,
+			"peer", k.B64(),
+			"allowed-ips", fmt.Sprintf("10.56.%s.%s/32", strings.TrimLeft(x[1], "0"), strings.TrimLeft(x[2], "0")),
+			"endpoint", fmt.Sprintf("%s:%s", x[7], x[8]),
 		)
-		log.Info(cmd)
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
 	}
 	return nil
 }
