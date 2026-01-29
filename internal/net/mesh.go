@@ -12,6 +12,20 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
+func getRegex() (*regexp.Regexp, error) {
+	// 252/158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+	expr := "^([0-9]{3})" +
+		"/([0-9]{3})" +
+		"/([0-9]{8})" +
+		"_([0-9]{6})" +
+		"_([0-9]{9})" +
+		"/([0-9a-f]{64})" +
+		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
+		"/([0-9]+)" +
+		"$"
+	return regexp.Compile(expr)
+}
+
 type Mesh struct {
 	base string
 	re   *regexp.Regexp
@@ -69,20 +83,6 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 		return fmt.Errorf("Mesh.NodeConfig(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	return nil
-}
-
-func getRegex() (*regexp.Regexp, error) {
-	// 252/158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
-	expr := "^([0-9]{3})" +
-		"/([0-9]{3})" +
-		"/([0-9]{8})" +
-		"_([0-9]{6})" +
-		"_([0-9]{9})" +
-		"/([0-9a-f]{64})" +
-		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
-		"/([0-9]+)" +
-		"$"
-	return regexp.Compile(expr)
 }
 
 func getMesh(base string) (*Mesh, error) {
