@@ -66,7 +66,7 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	return nil
 }
 
-func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
 	cmd := exec.Command(
 		"/bin/sh",
 		"-s",
@@ -81,6 +81,30 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("Mesh.NodeConfig(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	for _, entry := range m.data {
+		x := m.re.FindStringSubmatch(entry)
+		if x == nil {
+			continue
+		}
+		if wgPathName == fmt.Sprintf("%s/%s", x[1], x[2]) {
+			continue // it's my entry
+		}
+		k, err := getWgKeyFromHex(x[6], false)
+		if err != nil {
+			log.Error("error getting 'wg-key'", "err", err, "hex", x[6])
+			continue
+		}
+		cmd := fmt.Sprintf(
+			"wg set %s peer %s allowed-ips 10.56.%s.%s/32 endpoint %s:%s",
+			wgInterface,
+			k.B64(),
+			strings.TrimLeft(x[1], "0"),
+			strings.TrimLeft(x[2], "0"),
+			x[7],
+			x[8],
+		)
+		log.Info(cmd)
 	}
 	return nil
 }
