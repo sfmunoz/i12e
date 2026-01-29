@@ -19,11 +19,6 @@ case "$1" in
     fi
     cat "$FNAME"
   ;;
-  pub-key)
-    FNAME="$2"
-    [ "$FNAME" = "" ] && error_and_exit "filename argument must be provided"
-    wg pubkey < /etc/i12e/wg-priv-key
-  ;;
   node-push)
     NODE_PATH="$2"
     TS="$3"

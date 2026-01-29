@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -49,12 +50,33 @@ func getWgKeyFromHex(s string, private bool) (*WgKey, error) {
 	return &WgKey{Private: private, data: data}, nil
 }
 
-func getWgKey(private bool) (*WgKey, error) {
-	c := "pub-key"
-	if private {
-		c = "priv-key"
+func getWgPubKey() (*WgKey, error) {
+	buf, err := os.ReadFile(WgPrivKeyFname)
+	if err != nil {
+		return nil, err
 	}
-	cmd := exec.Command("/bin/sh", "-s", "-", c, WgPrivKeyFname)
+	cmd := exec.Command("wg", "pubkey")
+	cmd.Stdin = bytes.NewBuffer(buf)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("getWgPubKey(): 'wg pubkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	data, err := base64.StdEncoding.DecodeString(bo.String())
+	if err != nil {
+		return nil, err
+	}
+	data_len := len(data)
+	if data_len != 32 {
+		return nil, fmt.Errorf("getWgPubKey(): len(data)=%d (32 expected)", data_len)
+	}
+	return &WgKey{Private: false, data: data}, nil
+}
+
+func getWgKey(private bool) (*WgKey, error) {
+	if !private {
+		return getWgPubKey()
+	}
+	cmd := exec.Command("/bin/sh", "-s", "-", "priv-key", WgPrivKeyFname)
 	cmd.Stdin = bytes.NewBuffer(netSh)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
