@@ -68,41 +68,45 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	return nil
 }
 
-func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
+func (m *Mesh) ifaceLocalConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string) error {
 	cmd := exec.Command("ip", "link", "set", wgInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		log.Notice("Mesh.NodeConfig(): 'ip link set' failed (it's OK)", "err", err)
+		log.Notice("Mesh.ifaceLocalConfig(): 'ip link set' failed (it's OK)", "err", err)
 	}
 	cmd = exec.Command("ip", "link", "del", wgInterface)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		log.Notice("Mesh.NodeConfig(): 'ip link del' failed (it's OK)", "err", err)
+		log.Notice("Mesh.ifaceLocalConfig(): 'ip link del' failed (it's OK)", "err", err)
 	}
 	cmd = exec.Command("ip", "link", "add", wgInterface, "type", "wireguard")
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", wgInterface)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	cmd = exec.Command("wg", "set", wgInterface, "listen-port", fmt.Sprintf("%d", wgEndpointPort), "private-key", wgPrivKeyFname)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	cmd = exec.Command("ip", "link", "set", wgInterface, "up")
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
-	bo, be, err = cmdutil.RunSimple(cmd)
+	return nil
+}
+
+func (m *Mesh) ifacePeersConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPathName string) error {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
+	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.ifacePeersConfig(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(data)
@@ -129,6 +133,16 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 		if err != nil {
 			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 		}
+	}
+	return nil
+}
+
+func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
+	if err := m.ifaceLocalConfig(wgInterface, wgIpInt, wgEndpointPort, wgPrivKeyFname); err != nil {
+		return err
+	}
+	if err := m.ifacePeersConfig(wgInterface, wgIpInt, wgEndpointPort, wgPathName); err != nil {
+		return err
 	}
 	return nil
 }
