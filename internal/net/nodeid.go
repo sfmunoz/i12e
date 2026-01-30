@@ -4,14 +4,18 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
 const nodeIdMin = 100
 const nodeIdMax = 65_534 // 65_535 = 255.255 = broadcast address
 const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeNet = "10.56"
+const etcHostname = "/etc/hostname"
 
 type nodeId struct {
 	nid uint16 // uint16 instead of uint8 to avoid pervasive type conversion
@@ -42,6 +46,18 @@ func (n *nodeId) NodePath() string {
 func (n *nodeId) NodeIP() string {
 	t := n.tuple()
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
+}
+
+func (n *nodeId) SetHostname() error {
+	if err := os.WriteFile(etcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
+		return err
+	}
+	cmd := exec.Command("hostname", "-F", etcHostname)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("SetHostname(): 'hostname -F' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
 }
 
 func loadNodeId() (*nodeId, error) {

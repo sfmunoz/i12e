@@ -36,6 +36,9 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getNodeIdLocal()' failed", "err", err)
 		return nil, err
 	}
+	if err := nodeIdLocal.SetHostname(); err != nil {
+		return nil, err
+	}
 	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
 	if err != nil {
 		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
