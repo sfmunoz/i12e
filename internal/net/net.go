@@ -13,7 +13,7 @@ const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
 
 type Net struct {
 	Tnow           time.Time
-	NodeId         *nodeId
+	nodeIdLocal    *nodeId
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
@@ -31,7 +31,7 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'IfaceIP()' returned 'nil'")
 		return nil, err
 	}
-	nodeId, err := getNodeIdLocal()
+	nodeIdLocal, err := getNodeIdLocal()
 	if err != nil {
 		log.Error("newNet(): 'getNodeIdLocal()' failed", "err", err)
 		return nil, err
@@ -48,7 +48,7 @@ func newNet() (*Net, error) {
 	}
 	return &Net{
 		Tnow:           time.Now().UTC(),
-		NodeId:         nodeId,
+		nodeIdLocal:    nodeIdLocal,
 		WgInterface:    "wgi",
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
@@ -58,7 +58,7 @@ func newNet() (*Net, error) {
 }
 
 func (n *Net) run() error {
-	log.Info("Net.run()", "nodeId", n.NodeId)
+	log.Info("Net.run()", "nodeIdLocal", n.nodeIdLocal)
 	log.Info("Net.run()", "Tnow", n.Tnow)
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
@@ -69,10 +69,10 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
-	if err := mesh.NodePush(n.NodeId.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
+	if err := mesh.NodePush(n.nodeIdLocal.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
 		return err
 	}
-	if err := mesh.NodeConfig(n.WgInterface, n.NodeId.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.NodeId.NodePath()); err != nil {
+	if err := mesh.NodeConfig(n.WgInterface, n.nodeIdLocal.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.nodeIdLocal.NodePath()); err != nil {
 		return err
 	}
 	log.Info("Net.run()", "mesh", mesh)
