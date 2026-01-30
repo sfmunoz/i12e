@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
-
-const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
 
 type WgKey struct {
 	Private bool
@@ -49,16 +49,16 @@ func getWgKeyFromHex(s string, private bool) (*WgKey, error) {
 	return &WgKey{Private: private, data: data}, nil
 }
 
-func getWgKey(private bool) (*WgKey, error) {
-	c := "pub-key"
-	if private {
-		c = "priv-key"
+func getWgPubKey(wgPrivKeyFname string) (*WgKey, error) {
+	buf, err := os.ReadFile(wgPrivKeyFname)
+	if err != nil {
+		return nil, err
 	}
-	cmd := exec.Command("/bin/sh", "-s", "-", c, WgPrivKeyFname)
-	cmd.Stdin = bytes.NewBuffer(netSh)
+	cmd := exec.Command("wg", "pubkey")
+	cmd.Stdin = bytes.NewBuffer(buf)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("getWgKey(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return nil, fmt.Errorf("getWgPubKey(): 'wg pubkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	data, err := base64.StdEncoding.DecodeString(bo.String())
 	if err != nil {
@@ -66,7 +66,40 @@ func getWgKey(private bool) (*WgKey, error) {
 	}
 	data_len := len(data)
 	if data_len != 32 {
-		return nil, fmt.Errorf("getWgKey(): len(data)=%d (32 expected)", data_len)
+		return nil, fmt.Errorf("getWgPubKey(): len(data)=%d (32 expected)", data_len)
 	}
-	return &WgKey{Private: private, data: data}, nil
+	return &WgKey{Private: false, data: data}, nil
+}
+
+func getWgPrivKey(wgPrivKeyFname string) (*WgKey, error) {
+	for i := range 2 {
+		_, err := os.Stat(wgPrivKeyFname)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) || i > 0 {
+			return nil, fmt.Errorf("getwgPrivKey(): 'os.Stat()' failed: %s", err)
+		}
+		cmd := exec.Command("wg", "genkey")
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return nil, fmt.Errorf("getWgPrivKey(): 'wg genkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
+		if err := os.WriteFile(wgPrivKeyFname, bo.Bytes(), 0600); err != nil {
+			return nil, fmt.Errorf("getWgPrivKey(): 'os.WriteFile()' failed: %s", err)
+		}
+	}
+	buf, err := os.ReadFile(wgPrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
+	data, err := base64.StdEncoding.DecodeString(string(buf))
+	if err != nil {
+		return nil, err
+	}
+	data_len := len(data)
+	if data_len != 32 {
+		return nil, fmt.Errorf("getWgPrivKey(): len(data)=%d (32 expected)", data_len)
+	}
+	return &WgKey{Private: true, data: data}, nil
 }

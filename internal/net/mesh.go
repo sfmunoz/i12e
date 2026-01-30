@@ -1,7 +1,6 @@
 package net
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -29,60 +28,90 @@ func getRegex() (*regexp.Regexp, error) {
 type Mesh struct {
 	base string
 	re   *regexp.Regexp
-	data []string
-}
-
-func (m *Mesh) String() string {
-	return strings.Join(m.data, "\n")
-}
-
-func (m *Mesh) DumpToLog() {
-	for _, entry := range m.data {
-		x := m.re.FindStringSubmatch(entry)
-		log.Info("==", "entry", entry)
-		for i, v := range x {
-			log.Info(">>", "i", i, "v", v)
-		}
-	}
 }
 
 func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
-	cmd := exec.Command(
-		"/bin/sh",
-		"-s",
-		"-",
-		"node-push",
+	touchPath := fmt.Sprintf(
+		"%s/%s/%s_%09d/%s/%s/%d",
+		m.base,
 		nodePath,
-		fmt.Sprintf("%s_%09d", ts.Format("20060102_150405"), ts.Nanosecond()),
+		ts.Format("20060102_150405"),
+		ts.Nanosecond(),
 		wgPubKey.Hex(),
 		wgEndpointIp,
-		fmt.Sprintf("%d", wgEndpointPort),
+		wgEndpointPort,
 	)
-	cmd.Stdin = bytes.NewBuffer(netSh)
+	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	nodePrefix := fmt.Sprintf("%s/%s", m.base, nodePath)
+	cmd = exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(entries)
+	slices.Reverse(entries)
+	for i, entry := range entries {
+		if i < 1 {
+			continue
+		}
+		deletePath := fmt.Sprintf("%s/%s/%s", m.base, nodePath, entry)
+		cmd := exec.Command("rclone", "delete", deletePath)
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
 	}
 	return nil
 }
 
-func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
-	cmd := exec.Command(
-		"/bin/sh",
-		"-s",
-		"-",
-		"node-config",
-		wgInterface,
-		wgIpInt,
-		fmt.Sprintf("%d", wgEndpointPort),
-		wgPrivKeyFname,
-	)
-	cmd.Stdin = bytes.NewBuffer(netSh)
+func (m *Mesh) ifaceLocalConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+	cmd := exec.Command("ip", "link", "set", wgInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		log.Notice("Mesh.ifaceLocalConfig(): 'ip link set' failed (it's OK)", "err", err)
 	}
-	for _, entry := range m.data {
+	cmd = exec.Command("ip", "link", "del", wgInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		log.Notice("Mesh.ifaceLocalConfig(): 'ip link del' failed (it's OK)", "err", err)
+	}
+	cmd = exec.Command("ip", "link", "add", wgInterface, "type", "wireguard")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", wgInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("wg", "set", wgInterface, "listen-port", fmt.Sprintf("%d", wgEndpointPort), "private-key", wgPrivKeyFname)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "link", "set", wgInterface, "up")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
+}
+
+func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.ifacePeersConfig(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(data)
+	for _, entry := range data {
 		x := m.re.FindStringSubmatch(entry)
 		if x == nil {
 			continue
@@ -109,17 +138,20 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 	return nil
 }
 
+func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
+	if err := m.ifaceLocalConfig(wgInterface, wgIpInt, wgEndpointPort, wgPrivKeyFname); err != nil {
+		return err
+	}
+	if err := m.ifacePeersConfig(wgInterface, wgPathName); err != nil {
+		return err
+	}
+	return nil
+}
+
 func getMesh(base string) (*Mesh, error) {
 	re, err := getRegex()
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", base)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("getMesh() failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
-	slices.Sort(data)
-	return &Mesh{base, re, data}, nil
+	return &Mesh{base, re}, nil
 }

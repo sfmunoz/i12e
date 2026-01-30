@@ -4,7 +4,7 @@ import (
 	_ "embed"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/sfmunoz/i12e/internal/netutil"
+	"github.com/sfmunoz/i12e/internal/net"
 	"github.com/sfmunoz/logit"
 )
 
@@ -24,9 +24,9 @@ func (p *Pull) run() error {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
-	ii, err := netutil.IfaceIP()
+	ii, err := net.IfaceIP()
 	if err != nil {
-		log.Error("Pull.run(): 'netutil.IfaceIP()' failed", "err", err)
+		log.Error("Pull.run(): 'net.IfaceIP()' failed", "err", err)
 		return err
 	}
 	iface, ip := "", ""

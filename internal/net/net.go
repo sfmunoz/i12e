@@ -1,17 +1,15 @@
 package net
 
 import (
-	_ "embed"
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/netutil"
 	"github.com/sfmunoz/logit"
 )
 
-//go:embed static/net.sh
-var netSh []byte
-
 var log = logit.Logit().WithLevel(logit.LevelInfo)
+
+const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
+const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
 
 type Net struct {
 	Tnow           time.Time
@@ -24,13 +22,13 @@ type Net struct {
 }
 
 func newNet() (*Net, error) {
-	ii, err := netutil.IfaceIP()
+	ii, err := IfaceIP()
 	if err != nil {
-		log.Error("newNet(): 'netutil.IfaceIP()' failed", "err", err)
+		log.Error("newNet(): 'IfaceIP()' failed", "err", err)
 		return nil, err
 	}
 	if ii == nil {
-		log.Error("newNet(): 'netutil.IfaceIP()' returned 'nil'")
+		log.Error("newNet(): 'IfaceIP()' returned 'nil'")
 		return nil, err
 	}
 	machineId, err := getMachineId()
@@ -38,14 +36,14 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
-	wgPrivKey, err := getWgKey(true)
+	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(true)' failed", "err", err)
+		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
 		return nil, err
 	}
-	wgPubKey, err := getWgKey(false)
+	wgPubKey, err := getWgPubKey(WgPrivKeyFname)
 	if err != nil {
-		log.Error("newNet(): 'getWgKey(false)' failed", "err", err)
+		log.Error("newNet(): 'getWgPubKey()' failed", "err", err)
 		return nil, err
 	}
 	return &Net{
@@ -67,18 +65,17 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	log.Info("Net.run()", "WgPrivKey", n.WgPrivKey, "WgPrivKeyLen", n.WgPrivKey.Len())
 	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyHex", n.WgPubKey.Hex(), "WgPubKeyLen", n.WgPubKey.Len())
-	mesh, err := getMesh("rem:mesh")
+	mesh, err := getMesh(remMeshBase)
 	if err != nil {
 		return err
 	}
-	//if err := mesh.NodePush(n.MachineId.PathName(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
-	//	return err
-	//}
+	if err := mesh.NodePush(n.MachineId.PathName(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
+		return err
+	}
 	if err := mesh.NodeConfig(n.WgInterface, n.MachineId.IP(), n.WgEndpointPort, WgPrivKeyFname, n.MachineId.PathName()); err != nil {
 		return err
 	}
-	// log.Info("Net.run()", "mesh", mesh)
-	//mesh.DumpToLog()
+	log.Info("Net.run()", "mesh", mesh)
 	return nil
 }
 
