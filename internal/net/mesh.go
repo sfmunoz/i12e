@@ -102,7 +102,7 @@ func (m *Mesh) ifaceLocalConfig(wgInterface string, wgIpInt string, wgEndpointPo
 	return nil
 }
 
-func (m *Mesh) ifacePeersConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPathName string) error {
+func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -141,7 +141,7 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 	if err := m.ifaceLocalConfig(wgInterface, wgIpInt, wgEndpointPort, wgPrivKeyFname); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(wgInterface, wgIpInt, wgEndpointPort, wgPathName); err != nil {
+	if err := m.ifacePeersConfig(wgInterface, wgPathName); err != nil {
 		return err
 	}
 	return nil
