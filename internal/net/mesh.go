@@ -47,21 +47,39 @@ func (m *Mesh) DumpToLog() {
 }
 
 func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
-	cmd := exec.Command(
-		"/bin/sh",
-		"-s",
-		"-",
-		"node-push",
+	touchPath := fmt.Sprintf(
+		"rem:mesh/%s/%s_%09d/%s/%s/%d",
 		nodePath,
-		fmt.Sprintf("%s_%09d", ts.Format("20060102_150405"), ts.Nanosecond()),
+		ts.Format("20060102_150405"),
+		ts.Nanosecond(),
 		wgPubKey.Hex(),
 		wgEndpointIp,
-		fmt.Sprintf("%d", wgEndpointPort),
+		wgEndpointPort,
 	)
-	cmd.Stdin = bytes.NewBuffer(netSh)
+	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	nodePrefix := fmt.Sprintf("rem:mesh/%s", nodePath)
+	cmd = exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(entries)
+	slices.Reverse(entries)
+	for i, entry := range entries {
+		if i < 1 {
+			continue
+		}
+		deletePath := fmt.Sprintf("rem:mesh/%s/%s", nodePath, entry)
+		cmd := exec.Command("rclone", "delete", deletePath)
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
 	}
 	return nil
 }

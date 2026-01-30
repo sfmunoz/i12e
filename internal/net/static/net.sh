@@ -8,20 +8,6 @@ function error_and_exit {
 set -e -o pipefail
 
 case "$1" in
-  node-push)
-    NODE_PATH="$2"
-    TS="$3"
-    WG_PUBKEY="$4"
-    WG_ENDPOINT_IP="$5"
-    WG_ENDPOINT_PORT="$6"
-    [ "$NODE_PATH" = "" ] && error_and_exit "NODE_PATH argument must be provided"
-    [ "$TS" = "" ] && error_and_exit "TS argument must be provided"
-    [ "$WG_PUBKEY" = "" ] && error_and_exit "WG_PUBKEY argument must be provided"
-    [ "$WG_ENDPOINT_IP" = "" ] && error_and_exit "WG_ENDPOINT_IP argument must be provided"
-    [ "$WG_ENDPOINT_PORT" = "" ] && error_and_exit "WG_ENDPOINT_PORT argument must be provided"
-    rclone touch "rem:mesh/${NODE_PATH}/${TS}/${WG_PUBKEY}/${WG_ENDPOINT_IP}/${WG_ENDPOINT_PORT}"
-    rclone lsf "rem:mesh/${NODE_PATH}" | sort -r | awk -v np="${NODE_PATH}" 'BEGIN { print "set -x -e -o pipefail" } { if (NR<2) next ; printf("rclone delete rem:mesh/%s/%s\n",np,$0) }' | bash
-  ;;
   node-config)
     WG_IFACE="$2"
     WG_IPINT="$3"
