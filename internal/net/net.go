@@ -9,6 +9,8 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
+const remMeshBase = "rem:mesh"
+
 type Net struct {
 	Tnow           time.Time
 	MachineId      *MachineId
@@ -63,7 +65,7 @@ func (n *Net) run() error {
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
 	log.Info("Net.run()", "WgPrivKey", n.WgPrivKey, "WgPrivKeyLen", n.WgPrivKey.Len())
 	log.Info("Net.run()", "WgPubKey", n.WgPubKey, "WgPubKeyHex", n.WgPubKey.Hex(), "WgPubKeyLen", n.WgPubKey.Len())
-	mesh, err := getMesh("rem:mesh")
+	mesh, err := getMesh(remMeshBase)
 	if err != nil {
 		return err
 	}

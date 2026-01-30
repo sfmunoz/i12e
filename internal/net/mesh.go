@@ -32,7 +32,8 @@ type Mesh struct {
 
 func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
 	touchPath := fmt.Sprintf(
-		"rem:mesh/%s/%s_%09d/%s/%s/%d",
+		"%s/%s/%s_%09d/%s/%s/%d",
+		m.base,
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
@@ -45,7 +46,7 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	if err != nil {
 		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	nodePrefix := fmt.Sprintf("rem:mesh/%s", nodePath)
+	nodePrefix := fmt.Sprintf("%s/%s", m.base, nodePath)
 	cmd = exec.Command("rclone", "lsf", nodePrefix)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -58,7 +59,7 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 		if i < 1 {
 			continue
 		}
-		deletePath := fmt.Sprintf("rem:mesh/%s/%s", nodePath, entry)
+		deletePath := fmt.Sprintf("%s/%s/%s", m.base, nodePath, entry)
 		cmd := exec.Command("rclone", "delete", deletePath)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
