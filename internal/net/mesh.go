@@ -28,21 +28,6 @@ func getRegex() (*regexp.Regexp, error) {
 type Mesh struct {
 	base string
 	re   *regexp.Regexp
-	data []string
-}
-
-func (m *Mesh) String() string {
-	return strings.Join(m.data, "\n")
-}
-
-func (m *Mesh) DumpToLog() {
-	for _, entry := range m.data {
-		x := m.re.FindStringSubmatch(entry)
-		log.Info("==", "entry", entry)
-		for i, v := range x {
-			log.Info(">>", "i", i, "v", v)
-		}
-	}
 }
 
 func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
@@ -114,7 +99,14 @@ func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uin
 	if err != nil {
 		return fmt.Errorf("Mesh.NodeConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	for _, entry := range m.data {
+	cmd = exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(data)
+	for _, entry := range data {
 		x := m.re.FindStringSubmatch(entry)
 		if x == nil {
 			continue
@@ -146,12 +138,5 @@ func getMesh(base string) (*Mesh, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", base)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("getMesh() failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
-	slices.Sort(data)
-	return &Mesh{base, re, data}, nil
+	return &Mesh{base, re}, nil
 }
