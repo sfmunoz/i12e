@@ -13,7 +13,7 @@ const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
 
 type Net struct {
 	Tnow           time.Time
-	MachineId      *MachineId
+	NodeId         *nodeId
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
@@ -31,9 +31,9 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'IfaceIP()' returned 'nil'")
 		return nil, err
 	}
-	machineId, err := getMachineId()
+	nodeId, err := getNodeIdLocal()
 	if err != nil {
-		log.Error("newNet(): 'getMachineId()' failed", "err", err)
+		log.Error("newNet(): 'getNodeIdLocal()' failed", "err", err)
 		return nil, err
 	}
 	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
@@ -48,7 +48,7 @@ func newNet() (*Net, error) {
 	}
 	return &Net{
 		Tnow:           time.Now().UTC(),
-		MachineId:      machineId,
+		NodeId:         nodeId,
 		WgInterface:    "wgi",
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
@@ -58,13 +58,8 @@ func newNet() (*Net, error) {
 }
 
 func (n *Net) run() error {
-	nodeId, err := getNodeIdLocal()
-	if err != nil {
-		return err
-	}
-	log.Info("Net.run()", "nodeId", nodeId)
+	log.Info("Net.run()", "nodeId", n.NodeId)
 	log.Info("Net.run()", "Tnow", n.Tnow)
-	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", n.MachineId.NodeId(), "NodeName", n.MachineId.NodeName(), "PathName", n.MachineId.PathName(), "IP", n.MachineId.IP())
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", n.WgEndpointPort)
@@ -74,10 +69,10 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
-	if err := mesh.NodePush(n.MachineId.PathName(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
+	if err := mesh.NodePush(n.NodeId.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
 		return err
 	}
-	if err := mesh.NodeConfig(n.WgInterface, n.MachineId.IP(), n.WgEndpointPort, WgPrivKeyFname, n.MachineId.PathName()); err != nil {
+	if err := mesh.NodeConfig(n.WgInterface, n.NodeId.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.NodeId.NodePath()); err != nil {
 		return err
 	}
 	log.Info("Net.run()", "mesh", mesh)
