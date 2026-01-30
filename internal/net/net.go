@@ -58,6 +58,11 @@ func newNet() (*Net, error) {
 }
 
 func (n *Net) run() error {
+	nodeId, err := getNodeIdLocal()
+	if err != nil {
+		return err
+	}
+	log.Info("Net.run()", "nodeId", nodeId)
 	log.Info("Net.run()", "Tnow", n.Tnow)
 	log.Info("Net.run()", "MachineId", n.MachineId, "NodeId", n.MachineId.NodeId(), "NodeName", n.MachineId.NodeName(), "PathName", n.MachineId.PathName(), "IP", n.MachineId.IP())
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
