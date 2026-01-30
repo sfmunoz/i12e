@@ -8,17 +8,6 @@ function error_and_exit {
 set -e -o pipefail
 
 case "$1" in
-  priv-key)
-    FNAME="$2"
-    [ "$FNAME" = "" ] && error_and_exit "filename argument must be provided"
-    if [ ! -f "$FNAME" ]
-    then
-      touch "$FNAME"
-      chmod 600 "$FNAME"
-      wg genkey > "$FNAME"
-    fi
-    cat "$FNAME"
-  ;;
   node-push)
     NODE_PATH="$2"
     TS="$3"
@@ -48,6 +37,9 @@ case "$1" in
     ip addr add ${WG_IPINT}/16 dev $WG_IFACE
     wg set $WG_IFACE listen-port $WG_PORT private-key "${WG_FNAME}"
     ip link set $WG_IFACE up
+  ;;
+  *)
+    error_and_exit "unknown command '$1'"
   ;;
 esac
 

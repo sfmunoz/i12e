@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -73,13 +74,28 @@ func getWgPubKey() (*WgKey, error) {
 }
 
 func getWgPrivKey() (*WgKey, error) {
-	cmd := exec.Command("/bin/sh", "-s", "-", "priv-key", WgPrivKeyFname)
-	cmd.Stdin = bytes.NewBuffer(netSh)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("getWgPrivKey(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	for i := range 2 {
+		_, err := os.Stat(WgPrivKeyFname)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) || i > 0 {
+			return nil, fmt.Errorf("getwgPrivKey(): 'os.Stat()' failed: %s", err)
+		}
+		cmd := exec.Command("wg", "genkey")
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return nil, fmt.Errorf("getWgPrivKey(): 'wg genkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
+		if err := os.WriteFile(WgPrivKeyFname, bo.Bytes(), 0600); err != nil {
+			return nil, fmt.Errorf("getWgPrivKey(): 'os.WriteFile()' failed: %s", err)
+		}
 	}
-	data, err := base64.StdEncoding.DecodeString(bo.String())
+	buf, err := os.ReadFile(WgPrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
+	data, err := base64.StdEncoding.DecodeString(string(buf))
 	if err != nil {
 		return nil, err
 	}
