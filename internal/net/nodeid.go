@@ -22,7 +22,7 @@ func (n *nodeId) tuple() [2]uint8 {
 }
 
 func (n *nodeId) String() string {
-	return fmt.Sprintf("[%s|%s|%s]", n.NodeName(), n.NodeIP(), n.NodePath())
+	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.nid, n.NodeName(), n.NodeIP(), n.NodePath())
 }
 
 func (n *nodeId) NodeId() uint16 {
@@ -64,7 +64,7 @@ func loadNodeId() (*nodeId, error) {
 
 func writeNodeId() error {
 	x := rand.Int32N(nodeIdMax-nodeIdMin+1) + nodeIdMin
-	if err := os.WriteFile(nodeIdFname, []byte(fmt.Sprintf("%d\n", x)), 0600); err != nil {
+	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
 		return err
 	}
 	return nil
