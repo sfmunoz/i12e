@@ -1,7 +1,6 @@
 package net
 
 import (
-	_ "embed"
 	"time"
 
 	"github.com/sfmunoz/logit"
