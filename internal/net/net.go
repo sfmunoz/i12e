@@ -9,7 +9,8 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-const remMeshBase = "rem:mesh"
+const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
+const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
 
 type Net struct {
 	Tnow           time.Time
@@ -36,12 +37,12 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'getMachineId()' failed", "err", err)
 		return nil, err
 	}
-	wgPrivKey, err := getWgPrivKey()
+	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
 	if err != nil {
 		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
 		return nil, err
 	}
-	wgPubKey, err := getWgPubKey()
+	wgPubKey, err := getWgPubKey(WgPrivKeyFname)
 	if err != nil {
 		log.Error("newNet(): 'getWgPubKey()' failed", "err", err)
 		return nil, err

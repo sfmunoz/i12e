@@ -13,8 +13,6 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
-const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
-
 type WgKey struct {
 	Private bool
 	data    []byte
@@ -51,8 +49,8 @@ func getWgKeyFromHex(s string, private bool) (*WgKey, error) {
 	return &WgKey{Private: private, data: data}, nil
 }
 
-func getWgPubKey() (*WgKey, error) {
-	buf, err := os.ReadFile(WgPrivKeyFname)
+func getWgPubKey(wgPrivKeyFname string) (*WgKey, error) {
+	buf, err := os.ReadFile(wgPrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +71,9 @@ func getWgPubKey() (*WgKey, error) {
 	return &WgKey{Private: false, data: data}, nil
 }
 
-func getWgPrivKey() (*WgKey, error) {
+func getWgPrivKey(wgPrivKeyFname string) (*WgKey, error) {
 	for i := range 2 {
-		_, err := os.Stat(WgPrivKeyFname)
+		_, err := os.Stat(wgPrivKeyFname)
 		if err == nil {
 			break
 		}
@@ -87,11 +85,11 @@ func getWgPrivKey() (*WgKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("getWgPrivKey(): 'wg genkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 		}
-		if err := os.WriteFile(WgPrivKeyFname, bo.Bytes(), 0600); err != nil {
+		if err := os.WriteFile(wgPrivKeyFname, bo.Bytes(), 0600); err != nil {
 			return nil, fmt.Errorf("getWgPrivKey(): 'os.WriteFile()' failed: %s", err)
 		}
 	}
-	buf, err := os.ReadFile(WgPrivKeyFname)
+	buf, err := os.ReadFile(wgPrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
