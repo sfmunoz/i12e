@@ -7,9 +7,6 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-//go:embed static/net.sh
-var netSh []byte
-
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Net struct {

@@ -1,7 +1,6 @@
 package net
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -85,20 +84,35 @@ func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpoi
 }
 
 func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
-	cmd := exec.Command(
-		"/bin/sh",
-		"-s",
-		"-",
-		"node-config",
-		wgInterface,
-		wgIpInt,
-		fmt.Sprintf("%d", wgEndpointPort),
-		wgPrivKeyFname,
-	)
-	cmd.Stdin = bytes.NewBuffer(netSh)
+	cmd := exec.Command("ip", "link", "set", wgInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodeConfig(): 'net.sh' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		log.Notice("Mesh.NodeConfig(): 'ip link set' failed (it's OK)", "err", err)
+	}
+	cmd = exec.Command("ip", "link", "del", wgInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		log.Notice("Mesh.NodeConfig(): 'ip link del' failed (it's OK)", "err", err)
+	}
+	cmd = exec.Command("ip", "link", "add", wgInterface, "type", "wireguard")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", wgInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("wg", "set", wgInterface, "listen-port", fmt.Sprintf("%d", wgEndpointPort), "private-key", wgPrivKeyFname)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "link", "set", wgInterface, "up")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodeConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	for _, entry := range m.data {
 		x := m.re.FindStringSubmatch(entry)
