@@ -72,7 +72,7 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
-	if err := mesh.NodePush(n.nodeLocal.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
+	if err := mesh.NodePush(n.nodeLocal, n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
 		return err
 	}
 	if err := mesh.NodeConfig(n.WgInterface, n.nodeLocal.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.nodeLocal.NodePath()); err != nil {

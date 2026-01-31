@@ -27,7 +27,8 @@ type Mesh struct {
 	re   *regexp.Regexp
 }
 
-func (m *Mesh) NodePush(nodePath string, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
+func (m *Mesh) NodePush(nodeLocal *node, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
+	nodePath := nodeLocal.NodePath()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		m.base,
