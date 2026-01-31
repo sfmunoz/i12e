@@ -94,7 +94,7 @@ func (m *Mesh) run() error {
 	if err := m.nodeLocal.hostnameConfig(); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.push(); err != nil {
+	if err := m.nodeLocal.pushToRemote(); err != nil {
 		return err
 	}
 	if err := m.nodeLocal.ifaceLocalConfig(); err != nil {

@@ -135,7 +135,7 @@ func (n *node) ifaceLocalConfig() error {
 	return nil
 }
 
-func (n *node) push() error {
+func (n *node) pushToRemote() error {
 	if !n.GetLocal() {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
@@ -154,13 +154,13 @@ func (n *node) push() error {
 	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
 	cmd = exec.Command("rclone", "lsf", nodePrefix)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
@@ -173,7 +173,7 @@ func (n *node) push() error {
 		cmd := exec.Command("rclone", "delete", deletePath)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
-			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+			return fmt.Errorf("'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 		}
 	}
 	return nil
