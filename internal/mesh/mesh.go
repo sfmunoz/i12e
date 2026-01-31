@@ -31,7 +31,7 @@ type Mesh struct {
 	nodeLocal *node
 }
 
-func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
+func (m *Mesh) getNodeList() ([]*node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -40,7 +40,7 @@ func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
 	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(data)
 	nodeList := make([]*node, 0)
-	wgPathNameLocal := nodeLocal.NodePath()
+	wgPathNameLocal := m.nodeLocal.NodePath()
 	for _, entry := range data {
 		x := regexItem.FindStringSubmatch(entry)
 		if x == nil {
@@ -117,11 +117,17 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func (m *Mesh) NodeConfig(nodeLocal *node) error {
-	if err := nodeLocal.ifaceLocalConfig(); err != nil {
+func (m *Mesh) run() error {
+	if err := m.nodeLocal.SetHostname(); err != nil {
 		return err
 	}
-	nodeList, err := m.getNodeList(nodeLocal)
+	if err := m.nodeLocal.Push(); err != nil {
+		return err
+	}
+	if err := m.nodeLocal.ifaceLocalConfig(); err != nil {
+		return err
+	}
+	nodeList, err := m.getNodeList()
 	if err != nil {
 		return err
 	}
@@ -137,25 +143,9 @@ func (m *Mesh) NodeConfig(nodeLocal *node) error {
 func newMesh() (*Mesh, error) {
 	nodeLocal, err := getNodeLocal()
 	if err != nil {
-		log.Error("newNet(): 'getNodeLocal()' failed", "err", err)
-		return nil, err
-	}
-	if err := nodeLocal.SetHostname(); err != nil {
 		return nil, err
 	}
 	return &Mesh{nodeLocal: nodeLocal}, nil
-}
-
-func (m *Mesh) run() error {
-	log.Info("Net.run()", "nodeLocal", m.nodeLocal)
-	if err := m.nodeLocal.Push(); err != nil {
-		return err
-	}
-	if err := m.NodeConfig(m.nodeLocal); err != nil {
-		return err
-	}
-	log.Info("Mesh.run()", "mesh", m)
-	return nil
 }
 
 func Run() error {
