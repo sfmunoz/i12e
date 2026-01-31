@@ -77,7 +77,7 @@ func (n *node) getWgPubKey() *WgKey {
 }
 
 func (n *node) getLocal() bool {
-	return n.wgPrivKey != nil
+	return n.getWgPrivKey() != nil
 }
 
 func (n *node) getWgEndpoint() string {
