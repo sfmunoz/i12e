@@ -67,7 +67,8 @@ func (m *Mesh) NodePush(nodeLocal *node, ts time.Time, wgPubKey *WgKey, wgEndpoi
 	return nil
 }
 
-func (m *Mesh) ifaceLocalConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+func (m *Mesh) ifaceLocalConfig(nodeLocal *node, wgInterface string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+	wgIpInt := nodeLocal.NodeIP()
 	cmd := exec.Command("ip", "link", "set", wgInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -101,7 +102,7 @@ func (m *Mesh) ifaceLocalConfig(wgInterface string, wgIpInt string, wgEndpointPo
 	return nil
 }
 
-func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
+func (m *Mesh) ifacePeersConfig(nodeLocal *node, wgInterface string) error {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -109,12 +110,13 @@ func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
 	}
 	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(data)
+	wgPathNameLocal := nodeLocal.NodePath()
 	for _, entry := range data {
 		x := m.re.FindStringSubmatch(entry)
 		if x == nil {
 			continue
 		}
-		if wgPathName == x[1] {
+		if wgPathNameLocal == x[1] {
 			continue // myself
 		}
 		node, err := getNodeFromPath(x[1])
@@ -141,11 +143,11 @@ func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
 	return nil
 }
 
-func (m *Mesh) NodeConfig(wgInterface string, wgIpInt string, wgEndpointPort uint16, wgPrivKeyFname string, wgPathName string) error {
-	if err := m.ifaceLocalConfig(wgInterface, wgIpInt, wgEndpointPort, wgPrivKeyFname); err != nil {
+func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgEndpointPort uint16, wgPrivKeyFname string) error {
+	if err := m.ifaceLocalConfig(nodeLocal, wgInterface, wgEndpointPort, wgPrivKeyFname); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(wgInterface, wgPathName); err != nil {
+	if err := m.ifacePeersConfig(nodeLocal, wgInterface); err != nil {
 		return err
 	}
 	return nil
