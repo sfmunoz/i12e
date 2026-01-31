@@ -60,6 +60,16 @@ func (n *node) SetHostname() error {
 	return nil
 }
 
+func validNodeId(nodeId int) error {
+	if nodeId < nodeIdMin {
+		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
+	}
+	if nodeId > nodeIdMax {
+		return fmt.Errorf("'%s' node-id is '%d' (max=%d)", nodeIdFname, nodeId, nodeIdMax)
+	}
+	return nil
+}
+
 func loadNode() (*node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
@@ -69,11 +79,8 @@ func loadNode() (*node, error) {
 	if err != nil {
 		return nil, err
 	}
-	if nodeId < nodeIdMin {
-		return nil, fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
-	}
-	if nodeId > nodeIdMax {
-		return nil, fmt.Errorf("'%s' node-id is '%d' (max=%d)", nodeIdFname, nodeId, nodeIdMax)
+	if err := validNodeId(nodeId); err != nil {
+		return nil, err
 	}
 	return &node{id: uint16(nodeId)}, nil
 }
@@ -95,4 +102,35 @@ func getNodeLocal() (*node, error) {
 		return nil, err
 	}
 	return loadNode()
+}
+
+func getNodeFromPath(path string) (*node, error) {
+	parts := strings.Split(path, "_")
+	parts_len := len(parts)
+	if parts_len != 2 {
+		return nil, fmt.Errorf("len(parts)=%d (2 expected)", parts_len)
+	}
+	ids := [2]uint16{0, 0}
+	for i := range 2 {
+		plen := len(parts[i])
+		if plen < 1 {
+			return nil, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
+		}
+		pint, err := strconv.Atoi(parts[i])
+		if err != nil {
+			return nil, err
+		}
+		if pint < 0 {
+			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, parts[i])
+		}
+		if pint > 255 {
+			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, parts[i])
+		}
+		ids[i] = uint16(pint)
+	}
+	nodeId := 256*int(ids[0]) + int(ids[1])
+	if err := validNodeId(nodeId); err != nil {
+		return nil, err
+	}
+	return &node{id: uint16(nodeId)}, nil
 }

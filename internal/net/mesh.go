@@ -13,11 +13,8 @@ import (
 
 func getRegex() (*regexp.Regexp, error) {
 	// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
-	expr := "^([0-9]{3})" +
-		"_([0-9]{3})" +
-		"/([0-9]{8})" +
-		"_([0-9]{6})" +
-		"_([0-9]{9})" +
+	expr := "^([0-9]{3}_[0-9]{3})" +
+		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
 		"/([0-9a-f]{64})" +
 		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
 		"/([0-9]+)" +
@@ -116,19 +113,24 @@ func (m *Mesh) ifacePeersConfig(wgInterface string, wgPathName string) error {
 		if x == nil {
 			continue
 		}
-		if wgPathName == fmt.Sprintf("%s/%s", x[1], x[2]) {
-			continue // it's my entry
+		if wgPathName == x[1] {
+			continue // myself
 		}
-		k, err := getWgKeyFromHex(x[6], false)
+		node, err := getNodeFromPath(x[1])
 		if err != nil {
-			log.Error("error getting 'wg-key'", "err", err, "hex", x[6])
+			log.Error("'getNodeFromPath()' failed", "err", err, "nodepath", x[1])
+			continue
+		}
+		k, err := getWgKeyFromHex(x[3], false)
+		if err != nil {
+			log.Error("'getWgKeyFromHex()' failed", "err", err, "hex", x[3])
 			continue
 		}
 		cmd := exec.Command(
 			"wg", "set", wgInterface,
 			"peer", k.B64(),
-			"allowed-ips", fmt.Sprintf("10.56.%s.%s/32", strings.TrimLeft(x[1], "0"), strings.TrimLeft(x[2], "0")),
-			"endpoint", fmt.Sprintf("%s:%s", x[7], x[8]),
+			"allowed-ips", fmt.Sprintf("%s/32", node.NodeIP()),
+			"endpoint", fmt.Sprintf("%s:%s", x[4], x[5]),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
