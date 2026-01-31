@@ -29,7 +29,7 @@ func (s *Server) run() error {
 		}
 		if firstTime {
 			firstTime = false
-			if err := net.Run(); err != nil {
+			if err := mesh.Run(); err != nil {
 				log.Error("net.Run() failed", "err", err)
 			}
 		}
