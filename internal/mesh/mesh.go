@@ -37,11 +37,9 @@ type Mesh struct {
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
-	WgPrivKey      *WgKey
-	WgPubKey       *WgKey
 }
 
-func (m *Mesh) NodePush(nodeLocal *node, ts time.Time, wgPubKey *WgKey, wgEndpointIp string, wgEndpointPort uint16) error {
+func (m *Mesh) NodePush(nodeLocal *node, ts time.Time, wgEndpointIp string, wgEndpointPort uint16) error {
 	nodePath := nodeLocal.NodePath()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
@@ -49,7 +47,7 @@ func (m *Mesh) NodePush(nodeLocal *node, ts time.Time, wgPubKey *WgKey, wgEndpoi
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		wgPubKey.Hex(),
+		nodeLocal.GetWgPubKey().Hex(),
 		wgEndpointIp,
 		wgEndpointPort,
 	)
@@ -142,7 +140,7 @@ func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
 			log.Error("'getWgKeyFromHex()' failed", "err", err, "hex", x[3])
 			continue
 		}
-		node.SetWgKey(k)
+		node.SetWgPubKey(k)
 		node.SetLocal(node.NodePath() == wgPathNameLocal)
 		node.SetEndPoint(fmt.Sprintf("%s:%s", x[4], x[5]))
 		nodeList = append(nodeList, node)
@@ -156,7 +154,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node, wgInterface string) error {
 			log.Info("skipping local node", "node", node)
 			continue
 		}
-		k := node.GetWgKey()
+		k := node.GetWgPubKey()
 		if k == nil {
 			return fmt.Errorf("'node.WgKey()' returned nil")
 		}
@@ -214,6 +212,10 @@ func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgEndpointPort ui
 }
 
 func newMesh(base string) (*Mesh, error) {
+	re, err := getRegex()
+	if err != nil {
+		return nil, err
+	}
 	ii, err := IfaceIP()
 	if err != nil {
 		log.Error("newNet(): 'IfaceIP()' failed", "err", err)
@@ -231,20 +233,6 @@ func newMesh(base string) (*Mesh, error) {
 	if err := nodeLocal.SetHostname(); err != nil {
 		return nil, err
 	}
-	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
-	if err != nil {
-		log.Error("newNet(): 'getWgPrivKey()' failed", "err", err)
-		return nil, err
-	}
-	wgPubKey, err := getWgPubKey(WgPrivKeyFname)
-	if err != nil {
-		log.Error("newNet(): 'getWgPubKey()' failed", "err", err)
-		return nil, err
-	}
-	re, err := getRegex()
-	if err != nil {
-		return nil, err
-	}
 	return &Mesh{
 		base:           base,
 		re:             re,
@@ -253,8 +241,6 @@ func newMesh(base string) (*Mesh, error) {
 		WgInterface:    "wgi",
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
-		WgPrivKey:      wgPrivKey,
-		WgPubKey:       wgPubKey,
 	}, nil
 }
 
@@ -264,9 +250,7 @@ func (m *Mesh) run() error {
 	log.Info("Net.run()", "WgInterface", m.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", m.WgEndpointIp)
 	log.Info("Net.run()", "WgEndpointPort", m.WgEndpointPort)
-	log.Info("Net.run()", "WgPrivKey", m.WgPrivKey, "WgPrivKeyLen", m.WgPrivKey.Len())
-	log.Info("Net.run()", "WgPubKey", m.WgPubKey, "WgPubKeyHex", m.WgPubKey.Hex(), "WgPubKeyLen", m.WgPubKey.Len())
-	if err := m.NodePush(m.nodeLocal, m.Tnow, m.WgPubKey, m.WgEndpointIp, m.WgEndpointPort); err != nil {
+	if err := m.NodePush(m.nodeLocal, m.Tnow, m.WgEndpointIp, m.WgEndpointPort); err != nil {
 		return err
 	}
 	if err := m.NodeConfig(m.nodeLocal, m.WgInterface, m.WgEndpointPort, WgPrivKeyFname); err != nil {

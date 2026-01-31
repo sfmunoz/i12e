@@ -18,10 +18,11 @@ const nodeNet = "10.56"
 const etcHostname = "/etc/hostname"
 
 type node struct {
-	id       uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	wgKey    *WgKey
-	local    bool
-	endPoint string
+	id        uint16 // uint16 instead of uint8 to avoid pervasive type conversion
+	local     bool
+	endPoint  string
+	wgPrivKey *WgKey
+	wgPubKey  *WgKey
 }
 
 func (n *node) tuple() [2]uint8 {
@@ -51,12 +52,16 @@ func (n *node) NodeIP() string {
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
 }
 
-func (n *node) SetWgKey(wgKey *WgKey) {
-	n.wgKey = wgKey
+func (n *node) GetWgPrivKey() *WgKey {
+	return n.wgPrivKey
 }
 
-func (n *node) GetWgKey() *WgKey {
-	return n.wgKey
+func (n *node) SetWgPubKey(wgPubKey *WgKey) {
+	n.wgPubKey = wgPubKey
+}
+
+func (n *node) GetWgPubKey() *WgKey {
+	return n.wgPubKey
 }
 
 func (n *node) SetLocal(local bool) {
@@ -109,11 +114,20 @@ func loadNode() (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
+	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
+	wgPubKey, err := getWgPubKey(WgPrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
 	return &node{
-		id:       uint16(nodeId),
-		wgKey:    nil,
-		local:    true,
-		endPoint: "",
+		id:        uint16(nodeId),
+		local:     true,
+		endPoint:  "",
+		wgPrivKey: wgPrivKey,
+		wgPubKey:  wgPubKey,
 	}, nil
 }
 
@@ -165,9 +179,10 @@ func getNodeFromPath(path string) (*node, error) {
 		return nil, err
 	}
 	return &node{
-		id:       uint16(nodeId),
-		wgKey:    nil,
-		local:    false,
-		endPoint: "",
+		id:        uint16(nodeId),
+		local:     false,
+		endPoint:  "",
+		wgPrivKey: nil,
+		wgPubKey:  nil,
 	}, nil
 }
