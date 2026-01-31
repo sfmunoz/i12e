@@ -256,10 +256,45 @@ func getNodeLocal() (*node, error) {
 	return loadNode()
 }
 
+func getNodeIdFromPath(path string) (uint16, error) {
+	parts := strings.Split(path, "_")
+	parts_len := len(parts)
+	if parts_len != 2 {
+		return 0, fmt.Errorf("path='%s' -> len(parts=%s)=%d (2 expected)", path, parts, parts_len)
+	}
+	ids := [2]uint16{0, 0}
+	for i, part := range parts {
+		plen := len(part)
+		if plen < 1 {
+			return 0, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
+		}
+		pint, err := strconv.Atoi(part)
+		if err != nil {
+			return 0, err
+		}
+		if pint < 0 {
+			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, part)
+		}
+		if pint > 255 {
+			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, part)
+		}
+		ids[i] = uint16(pint)
+	}
+	nodeId := 256*int(ids[0]) + int(ids[1])
+	if err := validNodeId(nodeId); err != nil {
+		return 0, err
+	}
+	return uint16(nodeId), nil
+}
+
 func getNodeRemote(entry string) (*node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'FindStringSubmatch()' returned nil (entry=%s)", entry)
+	}
+	nodeId, err := getNodeIdFromPath(arr[1])
+	if err != nil {
+		return nil, err
 	}
 	wgPubKey, err := getWgKeyFromHex(arr[3], false)
 	if err != nil {
@@ -269,36 +304,8 @@ func getNodeRemote(entry string) (*node, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'strconv.Atoi(%s)' failed: %s", arr[5], err)
 	}
-	path := arr[1]
-	parts := strings.Split(path, "_")
-	parts_len := len(parts)
-	if parts_len != 2 {
-		return nil, fmt.Errorf("path='%s' -> len(parts=%s)=%d (2 expected)", path, parts, parts_len)
-	}
-	ids := [2]uint16{0, 0}
-	for i, part := range parts {
-		plen := len(part)
-		if plen < 1 {
-			return nil, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
-		}
-		pint, err := strconv.Atoi(part)
-		if err != nil {
-			return nil, err
-		}
-		if pint < 0 {
-			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, part)
-		}
-		if pint > 255 {
-			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, part)
-		}
-		ids[i] = uint16(pint)
-	}
-	nodeId := 256*int(ids[0]) + int(ids[1])
-	if err := validNodeId(nodeId); err != nil {
-		return nil, err
-	}
 	return &node{
-		id:             uint16(nodeId),
+		id:             nodeId,
 		wgPrivKey:      nil,
 		wgPubKey:       wgPubKey,
 		wgEndpointIp:   arr[4],
