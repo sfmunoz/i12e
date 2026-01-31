@@ -18,11 +18,12 @@ const nodeNet = "10.56"
 const etcHostname = "/etc/hostname"
 
 type node struct {
-	id        uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	local     bool
-	endPoint  string
-	wgPrivKey *WgKey
-	wgPubKey  *WgKey
+	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
+	local          bool
+	wgPrivKey      *WgKey
+	wgPubKey       *WgKey
+	wgEndpointIp   string
+	wgEndpointPort uint16
 }
 
 func (n *node) tuple() [2]uint8 {
@@ -72,12 +73,24 @@ func (n *node) GetLocal() bool {
 	return n.local
 }
 
-func (n *node) SetEndPoint(endPoint string) {
-	n.endPoint = endPoint
+func (n *node) GetWgEndpoint() string {
+	return fmt.Sprintf("%s:%d", n.GetWgEndpointIp(), n.GetWgEndpointPort())
 }
 
-func (n *node) GetEndPoint() string {
-	return n.endPoint
+func (n *node) SetWgEndpointIp(endPointIp string) {
+	n.wgEndpointIp = endPointIp
+}
+
+func (n *node) GetWgEndpointIp() string {
+	return n.wgEndpointIp
+}
+
+func (n *node) SetWgEndpointPort(wgEndpointPort uint16) {
+	n.wgEndpointPort = wgEndpointPort
+}
+
+func (n *node) GetWgEndpointPort() uint16 {
+	return n.wgEndpointPort
 }
 
 func (n *node) SetHostname() error {
@@ -122,12 +135,20 @@ func loadNode() (*node, error) {
 	if err != nil {
 		return nil, err
 	}
+	ii, err := IfaceIP()
+	if err != nil {
+		return nil, err
+	}
+	if ii == nil {
+		return nil, fmt.Errorf("IfaceIP() returned empty value")
+	}
 	return &node{
-		id:        uint16(nodeId),
-		local:     true,
-		endPoint:  "",
-		wgPrivKey: wgPrivKey,
-		wgPubKey:  wgPubKey,
+		id:             uint16(nodeId),
+		local:          true,
+		wgPrivKey:      wgPrivKey,
+		wgPubKey:       wgPubKey,
+		wgEndpointIp:   ii.IP,
+		wgEndpointPort: 51830, // default '51820'
 	}, nil
 }
 
@@ -179,10 +200,11 @@ func getNodeFromPath(path string) (*node, error) {
 		return nil, err
 	}
 	return &node{
-		id:        uint16(nodeId),
-		local:     false,
-		endPoint:  "",
-		wgPrivKey: nil,
-		wgPubKey:  nil,
+		id:             uint16(nodeId),
+		local:          false,
+		wgPrivKey:      nil,
+		wgPubKey:       nil,
+		wgEndpointIp:   "",
+		wgEndpointPort: 51830, // default '51820'
 	}, nil
 }
