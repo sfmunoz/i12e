@@ -46,54 +46,54 @@ func (n *node) tuple() [2]uint8 {
 }
 
 func (n *node) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.NodeId(), n.NodeName(), n.NodeIP(), n.NodePath())
+	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.getNodeId(), n.getNodeName(), n.getNodeIP(), n.getNodePath())
 }
 
-func (n *node) NodeId() uint16 {
+func (n *node) getNodeId() uint16 {
 	return n.id
 }
 
-func (n *node) NodeName() string {
+func (n *node) getNodeName() string {
 	t := n.tuple()
 	return fmt.Sprintf("n-%03d-%03d", t[0], t[1])
 }
 
-func (n *node) NodePath() string {
+func (n *node) getNodePath() string {
 	t := n.tuple()
 	return fmt.Sprintf("%03d_%03d", t[0], t[1])
 }
 
-func (n *node) NodeIP() string {
+func (n *node) getNodeIP() string {
 	t := n.tuple()
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
 }
 
-func (n *node) GetWgPrivKey() *WgKey {
+func (n *node) getWgPrivKey() *WgKey {
 	return n.wgPrivKey
 }
 
-func (n *node) GetWgPubKey() *WgKey {
+func (n *node) getWgPubKey() *WgKey {
 	return n.wgPubKey
 }
 
-func (n *node) GetLocal() bool {
+func (n *node) getLocal() bool {
 	return n.wgPrivKey != nil
 }
 
-func (n *node) GetWgEndpoint() string {
-	return fmt.Sprintf("%s:%d", n.GetWgEndpointIp(), n.GetWgEndpointPort())
+func (n *node) getWgEndpoint() string {
+	return fmt.Sprintf("%s:%d", n.getWgEndpointIp(), n.getWgEndpointPort())
 }
 
-func (n *node) GetWgEndpointIp() string {
+func (n *node) getWgEndpointIp() string {
 	return n.wgEndpointIp
 }
 
-func (n *node) GetWgEndpointPort() uint16 {
+func (n *node) getWgEndpointPort() uint16 {
 	return n.wgEndpointPort
 }
 
 func (n *node) hostnameConfig() error {
-	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
+	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.getNodeName()), 0644); err != nil {
 		return err
 	}
 	cmd := exec.Command("hostname", "-F", nodeEtcHostname)
@@ -105,7 +105,7 @@ func (n *node) hostnameConfig() error {
 }
 
 func (n *node) ifaceLocalConfig() error {
-	wgIpInt := n.NodeIP()
+	wgIpInt := n.getNodeIP()
 	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	// ignore error: it's OK
@@ -122,7 +122,7 @@ func (n *node) ifaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.GetWgEndpointPort()), "private-key", nodePrivKeyFname)
+	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.getWgEndpointPort()), "private-key", nodePrivKeyFname)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -136,20 +136,20 @@ func (n *node) ifaceLocalConfig() error {
 }
 
 func (n *node) pushToRemote() error {
-	if !n.GetLocal() {
+	if !n.getLocal() {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
-	nodePath := n.NodePath()
+	nodePath := n.getNodePath()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.GetWgPubKey().Hex(),
-		n.GetWgEndpointIp(),
-		n.GetWgEndpointPort(),
+		n.getWgPubKey().Hex(),
+		n.getWgEndpointIp(),
+		n.getWgEndpointPort(),
 	)
 	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)

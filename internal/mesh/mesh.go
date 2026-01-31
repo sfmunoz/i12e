@@ -29,7 +29,7 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	nodeList := make([]*node, 0)
-	nodePathLocal := m.nodeLocal.NodePath()
+	nodePathLocal := m.nodeLocal.getNodePath()
 	nodePathLast := ""
 	for _, entry := range entries {
 		node, err := getNodeRemote(entry)
@@ -37,7 +37,7 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodePath := node.NodePath()
+		nodePath := node.getNodePath()
 		if nodePath == nodePathLast {
 			continue
 		}
@@ -53,15 +53,15 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 
 func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 	for _, node := range nodeList {
-		if node.GetLocal() {
+		if node.getLocal() {
 			log.Info("skipping local node", "node", node)
 			continue
 		}
-		k := node.GetWgPubKey()
+		k := node.getWgPubKey()
 		if k == nil {
 			return fmt.Errorf("'node.WgKey()' returned nil")
 		}
-		endPoint := node.GetWgEndpoint()
+		endPoint := node.getWgEndpoint()
 		if len(endPoint) < 1 {
 			return fmt.Errorf("'node.GetWgEndpoint()' returned empty data")
 		}
@@ -69,7 +69,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 			"wg", "set", nodeInterface,
 			"peer", k.B64(),
 			"endpoint", endPoint,
-			"allowed-ips", fmt.Sprintf("%s/32", node.NodeIP()),
+			"allowed-ips", fmt.Sprintf("%s/32", node.getNodeIP()),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
@@ -90,7 +90,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 		"::1 localhost",
 	}
 	for _, node := range nodeList {
-		lines = append(lines, fmt.Sprintf("%s %s", node.NodeIP(), node.NodeName()))
+		lines = append(lines, fmt.Sprintf("%s %s", node.getNodeIP(), node.getNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
 	buf := strings.Join(lines, "\n")
