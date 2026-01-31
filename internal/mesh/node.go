@@ -72,10 +72,6 @@ func (n *node) GetWgPrivKey() *WgKey {
 	return n.wgPrivKey
 }
 
-func (n *node) SetWgPubKey(wgPubKey *WgKey) {
-	n.wgPubKey = wgPubKey
-}
-
 func (n *node) GetWgPubKey() *WgKey {
 	return n.wgPubKey
 }
@@ -88,23 +84,15 @@ func (n *node) GetWgEndpoint() string {
 	return fmt.Sprintf("%s:%d", n.GetWgEndpointIp(), n.GetWgEndpointPort())
 }
 
-func (n *node) SetWgEndpointIp(endPointIp string) {
-	n.wgEndpointIp = endPointIp
-}
-
 func (n *node) GetWgEndpointIp() string {
 	return n.wgEndpointIp
-}
-
-func (n *node) SetWgEndpointPort(wgEndpointPort uint16) {
-	n.wgEndpointPort = wgEndpointPort
 }
 
 func (n *node) GetWgEndpointPort() uint16 {
 	return n.wgEndpointPort
 }
 
-func (n *node) SetHostname() error {
+func (n *node) hostnameConfig() error {
 	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
 		return err
 	}

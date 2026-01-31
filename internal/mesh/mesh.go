@@ -91,7 +91,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 }
 
 func (m *Mesh) run() error {
-	if err := m.nodeLocal.SetHostname(); err != nil {
+	if err := m.nodeLocal.hostnameConfig(); err != nil {
 		return err
 	}
 	if err := m.nodeLocal.push(); err != nil {
