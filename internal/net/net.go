@@ -13,7 +13,7 @@ const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
 
 type Net struct {
 	Tnow           time.Time
-	nodeIdLocal    *nodeId
+	nodeLocal      *node
 	WgInterface    string
 	WgEndpointPort uint16
 	WgEndpointIp   string
@@ -31,12 +31,12 @@ func newNet() (*Net, error) {
 		log.Error("newNet(): 'IfaceIP()' returned 'nil'")
 		return nil, err
 	}
-	nodeIdLocal, err := getNodeIdLocal()
+	nodeLocal, err := getNodeLocal()
 	if err != nil {
-		log.Error("newNet(): 'getNodeIdLocal()' failed", "err", err)
+		log.Error("newNet(): 'getNodeLocal()' failed", "err", err)
 		return nil, err
 	}
-	if err := nodeIdLocal.SetHostname(); err != nil {
+	if err := nodeLocal.SetHostname(); err != nil {
 		return nil, err
 	}
 	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
@@ -51,7 +51,7 @@ func newNet() (*Net, error) {
 	}
 	return &Net{
 		Tnow:           time.Now().UTC(),
-		nodeIdLocal:    nodeIdLocal,
+		nodeLocal:      nodeLocal,
 		WgInterface:    "wgi",
 		WgEndpointIp:   ii.IP,
 		WgEndpointPort: 51830, // default '51820'
@@ -61,7 +61,7 @@ func newNet() (*Net, error) {
 }
 
 func (n *Net) run() error {
-	log.Info("Net.run()", "nodeIdLocal", n.nodeIdLocal)
+	log.Info("Net.run()", "nodeLocal", n.nodeLocal)
 	log.Info("Net.run()", "Tnow", n.Tnow)
 	log.Info("Net.run()", "WgInterface", n.WgInterface)
 	log.Info("Net.run()", "WgEndpointIp", n.WgEndpointIp)
@@ -72,10 +72,10 @@ func (n *Net) run() error {
 	if err != nil {
 		return err
 	}
-	if err := mesh.NodePush(n.nodeIdLocal.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
+	if err := mesh.NodePush(n.nodeLocal.NodePath(), n.Tnow, n.WgPubKey, n.WgEndpointIp, n.WgEndpointPort); err != nil {
 		return err
 	}
-	if err := mesh.NodeConfig(n.WgInterface, n.nodeIdLocal.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.nodeIdLocal.NodePath()); err != nil {
+	if err := mesh.NodeConfig(n.WgInterface, n.nodeLocal.NodeIP(), n.WgEndpointPort, WgPrivKeyFname, n.nodeLocal.NodePath()); err != nil {
 		return err
 	}
 	log.Info("Net.run()", "mesh", mesh)

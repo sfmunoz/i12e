@@ -17,38 +17,38 @@ const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeNet = "10.56"
 const etcHostname = "/etc/hostname"
 
-type nodeId struct {
-	nid uint16 // uint16 instead of uint8 to avoid pervasive type conversion
+type node struct {
+	id uint16 // uint16 instead of uint8 to avoid pervasive type conversion
 }
 
-func (n *nodeId) tuple() [2]uint8 {
-	return [2]uint8{uint8(n.nid / 256), uint8(n.nid % 256)}
+func (n *node) tuple() [2]uint8 {
+	return [2]uint8{uint8(n.id / 256), uint8(n.id % 256)}
 }
 
-func (n *nodeId) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.nid, n.NodeName(), n.NodeIP(), n.NodePath())
+func (n *node) String() string {
+	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.NodeId(), n.NodeName(), n.NodeIP(), n.NodePath())
 }
 
-func (n *nodeId) NodeId() uint16 {
-	return n.nid
+func (n *node) NodeId() uint16 {
+	return n.id
 }
 
-func (n *nodeId) NodeName() string {
+func (n *node) NodeName() string {
 	t := n.tuple()
 	return fmt.Sprintf("n-%03d-%03d", t[0], t[1])
 }
 
-func (n *nodeId) NodePath() string {
+func (n *node) NodePath() string {
 	t := n.tuple()
 	return fmt.Sprintf("%03d_%03d", t[0], t[1])
 }
 
-func (n *nodeId) NodeIP() string {
+func (n *node) NodeIP() string {
 	t := n.tuple()
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
 }
 
-func (n *nodeId) SetHostname() error {
+func (n *node) SetHostname() error {
 	if err := os.WriteFile(etcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
 		return err
 	}
@@ -60,25 +60,25 @@ func (n *nodeId) SetHostname() error {
 	return nil
 }
 
-func loadNodeId() (*nodeId, error) {
+func loadNode() (*node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		return nil, err
 	}
-	nid, err := strconv.Atoi(strings.TrimSpace(string(buf)))
+	nodeId, err := strconv.Atoi(strings.TrimSpace(string(buf)))
 	if err != nil {
 		return nil, err
 	}
-	if nid < nodeIdMin {
-		return nil, fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nid, nodeIdMin)
+	if nodeId < nodeIdMin {
+		return nil, fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
 	}
-	if nid > nodeIdMax {
-		return nil, fmt.Errorf("'%s' node-id is '%d' (max=%d)", nodeIdFname, nid, nodeIdMax)
+	if nodeId > nodeIdMax {
+		return nil, fmt.Errorf("'%s' node-id is '%d' (max=%d)", nodeIdFname, nodeId, nodeIdMax)
 	}
-	return &nodeId{nid: uint16(nid)}, nil
+	return &node{id: uint16(nodeId)}, nil
 }
 
-func writeNodeId() error {
+func writeNode() error {
 	x := rand.Int32N(nodeIdMax-nodeIdMin+1) + nodeIdMin
 	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
 		return err
@@ -86,13 +86,13 @@ func writeNodeId() error {
 	return nil
 }
 
-func getNodeIdLocal() (*nodeId, error) {
-	nodeId, err := loadNodeId()
+func getNodeLocal() (*node, error) {
+	node, err := loadNode()
 	if err == nil {
-		return nodeId, nil
+		return node, nil
 	}
-	if err := writeNodeId(); err != nil {
+	if err := writeNode(); err != nil {
 		return nil, err
 	}
-	return loadNodeId()
+	return loadNode()
 }
