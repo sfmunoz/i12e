@@ -110,6 +110,81 @@ func (n *node) SetHostname() error {
 	return nil
 }
 
+func (n *node) ifaceLocalConfig() error {
+	wgIpInt := n.NodeIP()
+	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
+	bo, be, err := cmdutil.RunSimple(cmd)
+	// ignore error: it's OK
+	cmd = exec.Command("ip", "link", "del", nodeInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	// ignore error: it's OK
+	cmd = exec.Command("ip", "link", "add", nodeInterface, "type", "wireguard")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", nodeInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.GetWgEndpointPort()), "private-key", nodePrivKeyFname)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "link", "set", nodeInterface, "up")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
+}
+
+func (n *node) push() error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot push node: is not local")
+	}
+	ts := time.Now().UTC()
+	nodePath := n.NodePath()
+	touchPath := fmt.Sprintf(
+		"%s/%s/%s_%09d/%s/%s/%d",
+		remMeshBase,
+		nodePath,
+		ts.Format("20060102_150405"),
+		ts.Nanosecond(),
+		n.GetWgPubKey().Hex(),
+		n.GetWgEndpointIp(),
+		n.GetWgEndpointPort(),
+	)
+	cmd := exec.Command("rclone", "touch", touchPath)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
+	cmd = exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(entries)
+	slices.Reverse(entries)
+	for i, entry := range entries {
+		if i < 1 {
+			continue
+		}
+		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodePath, entry)
+		cmd := exec.Command("rclone", "delete", deletePath)
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
+	}
+	return nil
+}
+
 func validNodeId(nodeId int) error {
 	if nodeId < nodeIdMin {
 		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
@@ -212,79 +287,4 @@ func getNodeFromPath(path string) (*node, error) {
 		wgEndpointIp:   "",
 		wgEndpointPort: nodeEndpointPort,
 	}, nil
-}
-
-func (n *node) ifaceLocalConfig() error {
-	wgIpInt := n.NodeIP()
-	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
-	bo, be, err := cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "del", nodeInterface)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "add", nodeInterface, "type", "wireguard")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", nodeInterface)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.GetWgEndpointPort()), "private-key", nodePrivKeyFname)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "link", "set", nodeInterface, "up")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	return nil
-}
-
-func (n *node) Push() error {
-	if !n.GetLocal() {
-		return fmt.Errorf("cannot push node: is not local")
-	}
-	ts := time.Now().UTC()
-	nodePath := n.NodePath()
-	touchPath := fmt.Sprintf(
-		"%s/%s/%s_%09d/%s/%s/%d",
-		remMeshBase,
-		nodePath,
-		ts.Format("20060102_150405"),
-		ts.Nanosecond(),
-		n.GetWgPubKey().Hex(),
-		n.GetWgEndpointIp(),
-		n.GetWgEndpointPort(),
-	)
-	cmd := exec.Command("rclone", "touch", touchPath)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
-	cmd = exec.Command("rclone", "lsf", nodePrefix)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
-	slices.Sort(entries)
-	slices.Reverse(entries)
-	for i, entry := range entries {
-		if i < 1 {
-			continue
-		}
-		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodePath, entry)
-		cmd := exec.Command("rclone", "delete", deletePath)
-		bo, be, err := cmdutil.RunSimple(cmd)
-		if err != nil {
-			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-		}
-	}
-	return nil
 }

@@ -121,7 +121,7 @@ func (m *Mesh) run() error {
 	if err := m.nodeLocal.SetHostname(); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.Push(); err != nil {
+	if err := m.nodeLocal.push(); err != nil {
 		return err
 	}
 	if err := m.nodeLocal.ifaceLocalConfig(); err != nil {
