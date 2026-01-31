@@ -4,7 +4,7 @@ import (
 	_ "embed"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/sfmunoz/i12e/internal/net"
+	"github.com/sfmunoz/i12e/internal/mesh"
 	"github.com/sfmunoz/logit"
 )
 

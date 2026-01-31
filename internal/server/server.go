@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/net"
+	"github.com/sfmunoz/i12e/internal/mesh"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
