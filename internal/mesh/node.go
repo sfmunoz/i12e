@@ -5,6 +5,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -22,9 +23,18 @@ const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeEtcHostname = "/etc/hostname"
 
+// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+var nodeRegex = regexp.MustCompile(
+	"^([0-9]{3}_[0-9]{3})" +
+		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
+		"/([0-9a-f]{64})" +
+		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
+		"/([0-9]+)" +
+		"$",
+)
+
 type node struct {
 	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	local          bool
 	wgPrivKey      *WgKey
 	wgPubKey       *WgKey
 	wgEndpointIp   string
@@ -70,12 +80,8 @@ func (n *node) GetWgPubKey() *WgKey {
 	return n.wgPubKey
 }
 
-func (n *node) SetLocal(local bool) {
-	n.local = local
-}
-
 func (n *node) GetLocal() bool {
-	return n.local
+	return n.wgPrivKey != nil
 }
 
 func (n *node) GetWgEndpoint() string {
@@ -143,7 +149,7 @@ func (n *node) ifaceLocalConfig() error {
 
 func (n *node) push() error {
 	if !n.GetLocal() {
-		return fmt.Errorf("cannot push node: is not local")
+		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
 	nodePath := n.NodePath()
@@ -224,7 +230,6 @@ func loadNode() (*node, error) {
 	}
 	return &node{
 		id:             uint16(nodeId),
-		local:          true,
 		wgPrivKey:      wgPrivKey,
 		wgPubKey:       wgPubKey,
 		wgEndpointIp:   ii.IP,
@@ -251,27 +256,40 @@ func getNodeLocal() (*node, error) {
 	return loadNode()
 }
 
-func getNodeFromPath(path string) (*node, error) {
+func getNodeRemote(entry string) (*node, error) {
+	arr := nodeRegex.FindStringSubmatch(entry)
+	if arr == nil {
+		return nil, fmt.Errorf("'FindStringSubmatch()' returned nil (entry=%s)", entry)
+	}
+	wgPubKey, err := getWgKeyFromHex(arr[3], false)
+	if err != nil {
+		return nil, fmt.Errorf("'getWgKeyFromHex(%s)' failed: %s", arr[3], err)
+	}
+	wgEndpointPort, err := strconv.Atoi(arr[5])
+	if err != nil {
+		return nil, fmt.Errorf("'strconv.Atoi(%s)' failed: %s", arr[5], err)
+	}
+	path := arr[1]
 	parts := strings.Split(path, "_")
 	parts_len := len(parts)
 	if parts_len != 2 {
-		return nil, fmt.Errorf("len(parts)=%d (2 expected)", parts_len)
+		return nil, fmt.Errorf("path='%s' -> len(parts=%s)=%d (2 expected)", path, parts, parts_len)
 	}
 	ids := [2]uint16{0, 0}
-	for i := range 2 {
-		plen := len(parts[i])
+	for i, part := range parts {
+		plen := len(part)
 		if plen < 1 {
 			return nil, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
 		}
-		pint, err := strconv.Atoi(parts[i])
+		pint, err := strconv.Atoi(part)
 		if err != nil {
 			return nil, err
 		}
 		if pint < 0 {
-			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, parts[i])
+			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, part)
 		}
 		if pint > 255 {
-			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, parts[i])
+			return nil, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, part)
 		}
 		ids[i] = uint16(pint)
 	}
@@ -281,10 +299,9 @@ func getNodeFromPath(path string) (*node, error) {
 	}
 	return &node{
 		id:             uint16(nodeId),
-		local:          false,
 		wgPrivKey:      nil,
-		wgPubKey:       nil,
-		wgEndpointIp:   "",
-		wgEndpointPort: nodeEndpointPort,
+		wgPubKey:       wgPubKey,
+		wgEndpointIp:   arr[4],
+		wgEndpointPort: uint16(wgEndpointPort),
 	}, nil
 }

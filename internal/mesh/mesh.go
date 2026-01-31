@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -16,16 +14,6 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
-
-// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
-var regexItem = regexp.MustCompile(
-	"^([0-9]{3}_[0-9]{3})" +
-		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
-		"/([0-9a-f]{64})" +
-		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
-		"/([0-9]+)" +
-		"$",
-)
 
 type Mesh struct {
 	nodeLocal *node
@@ -42,31 +30,16 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 	nodeList := make([]*node, 0)
 	wgPathNameLocal := m.nodeLocal.NodePath()
 	for _, entry := range data {
-		x := regexItem.FindStringSubmatch(entry)
-		if x == nil {
-			log.Error("'FindStringSubmatch()' failed", "entry", entry)
-			continue
-		}
-		node, err := getNodeFromPath(x[1])
+		node, err := getNodeRemote(entry)
 		if err != nil {
-			log.Error("'getNodeFromPath()' failed", "err", err, "nodepath", x[1])
+			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
 		}
-		k, err := getWgKeyFromHex(x[3], false)
-		if err != nil {
-			log.Error("'getWgKeyFromHex()' failed", "err", err, "hex", x[3])
-			continue
+		if node.NodePath() == wgPathNameLocal {
+			nodeList = append(nodeList, m.nodeLocal)
+		} else {
+			nodeList = append(nodeList, node)
 		}
-		node.SetWgPubKey(k)
-		node.SetLocal(node.NodePath() == wgPathNameLocal)
-		node.SetWgEndpointIp(x[4])
-		port, err := strconv.Atoi(x[5])
-		if err != nil {
-			log.Error("'strconv.Atoi()' failed", "err", err, "data", x[5])
-			continue
-		}
-		node.SetWgEndpointPort(uint16(port)) // XXX will be properly handled when moved to node
-		nodeList = append(nodeList, node)
 	}
 	return nodeList, nil
 }
