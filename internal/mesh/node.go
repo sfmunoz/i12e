@@ -5,8 +5,10 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
@@ -239,6 +241,50 @@ func (n *node) ifaceLocalConfig() error {
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
+}
+
+func (n *node) Push() error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot push node: is not local")
+	}
+	ts := time.Now().UTC()
+	nodePath := n.NodePath()
+	touchPath := fmt.Sprintf(
+		"%s/%s/%s_%09d/%s/%s/%d",
+		remMeshBase,
+		nodePath,
+		ts.Format("20060102_150405"),
+		ts.Nanosecond(),
+		n.GetWgPubKey().Hex(),
+		n.GetWgEndpointIp(),
+		n.GetWgEndpointPort(),
+	)
+	cmd := exec.Command("rclone", "touch", touchPath)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
+	cmd = exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(entries)
+	slices.Reverse(entries)
+	for i, entry := range entries {
+		if i < 1 {
+			continue
+		}
+		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodePath, entry)
+		cmd := exec.Command("rclone", "delete", deletePath)
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
 	}
 	return nil
 }

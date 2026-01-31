@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/logit"
@@ -30,54 +29,12 @@ func getRegex() (*regexp.Regexp, error) {
 }
 
 type Mesh struct {
-	base      string
 	re        *regexp.Regexp
-	Tnow      time.Time
 	nodeLocal *node
 }
 
-func (m *Mesh) NodePush(nodeLocal *node, ts time.Time) error {
-	nodePath := nodeLocal.NodePath()
-	touchPath := fmt.Sprintf(
-		"%s/%s/%s_%09d/%s/%s/%d",
-		m.base,
-		nodePath,
-		ts.Format("20060102_150405"),
-		ts.Nanosecond(),
-		nodeLocal.GetWgPubKey().Hex(),
-		nodeLocal.GetWgEndpointIp(),
-		nodeLocal.GetWgEndpointPort(),
-	)
-	cmd := exec.Command("rclone", "touch", touchPath)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	nodePrefix := fmt.Sprintf("%s/%s", m.base, nodePath)
-	cmd = exec.Command("rclone", "lsf", nodePrefix)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.NodePush(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
-	slices.Sort(entries)
-	slices.Reverse(entries)
-	for i, entry := range entries {
-		if i < 1 {
-			continue
-		}
-		deletePath := fmt.Sprintf("%s/%s/%s", m.base, nodePath, entry)
-		cmd := exec.Command("rclone", "delete", deletePath)
-		bo, be, err := cmdutil.RunSimple(cmd)
-		if err != nil {
-			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-		}
-	}
-	return nil
-}
-
 func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -179,7 +136,7 @@ func (m *Mesh) NodeConfig(nodeLocal *node) error {
 	return nil
 }
 
-func newMesh(base string) (*Mesh, error) {
+func newMesh() (*Mesh, error) {
 	re, err := getRegex()
 	if err != nil {
 		return nil, err
@@ -193,17 +150,14 @@ func newMesh(base string) (*Mesh, error) {
 		return nil, err
 	}
 	return &Mesh{
-		base:      base,
 		re:        re,
-		Tnow:      time.Now().UTC(),
 		nodeLocal: nodeLocal,
 	}, nil
 }
 
 func (m *Mesh) run() error {
 	log.Info("Net.run()", "nodeLocal", m.nodeLocal)
-	log.Info("Net.run()", "Tnow", m.Tnow)
-	if err := m.NodePush(m.nodeLocal, m.Tnow); err != nil {
+	if err := m.nodeLocal.Push(); err != nil {
 		return err
 	}
 	if err := m.NodeConfig(m.nodeLocal); err != nil {
@@ -214,7 +168,7 @@ func (m *Mesh) run() error {
 }
 
 func Run() error {
-	mesh, err := newMesh(remMeshBase)
+	mesh, err := newMesh()
 	if err != nil {
 		return err
 	}
