@@ -17,19 +17,17 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
-func getRegex() (*regexp.Regexp, error) {
-	// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
-	expr := "^([0-9]{3}_[0-9]{3})" +
+// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+var regexItem = regexp.MustCompile(
+	"^([0-9]{3}_[0-9]{3})" +
 		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
 		"/([0-9a-f]{64})" +
 		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
 		"/([0-9]+)" +
-		"$"
-	return regexp.Compile(expr)
-}
+		"$",
+)
 
 type Mesh struct {
-	re        *regexp.Regexp
 	nodeLocal *node
 }
 
@@ -44,7 +42,7 @@ func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
 	nodeList := make([]*node, 0)
 	wgPathNameLocal := nodeLocal.NodePath()
 	for _, entry := range data {
-		x := m.re.FindStringSubmatch(entry)
+		x := regexItem.FindStringSubmatch(entry)
 		if x == nil {
 			log.Error("'FindStringSubmatch()' failed", "entry", entry)
 			continue
@@ -137,10 +135,6 @@ func (m *Mesh) NodeConfig(nodeLocal *node) error {
 }
 
 func newMesh() (*Mesh, error) {
-	re, err := getRegex()
-	if err != nil {
-		return nil, err
-	}
 	nodeLocal, err := getNodeLocal()
 	if err != nil {
 		log.Error("newNet(): 'getNodeLocal()' failed", "err", err)
@@ -149,10 +143,7 @@ func newMesh() (*Mesh, error) {
 	if err := nodeLocal.SetHostname(); err != nil {
 		return nil, err
 	}
-	return &Mesh{
-		re:        re,
-		nodeLocal: nodeLocal,
-	}, nil
+	return &Mesh{nodeLocal: nodeLocal}, nil
 }
 
 func (m *Mesh) run() error {
