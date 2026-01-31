@@ -16,8 +16,7 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-const WgPrivKeyFname = "/etc/i12e/wg-priv-key" // FIXME unhardcode this
-const remMeshBase = "rem:mesh"                 // FIXME unhardcode this
+const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
 func getRegex() (*regexp.Regexp, error) {
 	// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
@@ -31,11 +30,10 @@ func getRegex() (*regexp.Regexp, error) {
 }
 
 type Mesh struct {
-	base        string
-	re          *regexp.Regexp
-	Tnow        time.Time
-	nodeLocal   *node
-	WgInterface string
+	base      string
+	re        *regexp.Regexp
+	Tnow      time.Time
+	nodeLocal *node
 }
 
 func (m *Mesh) NodePush(nodeLocal *node, ts time.Time) error {
@@ -74,41 +72,6 @@ func (m *Mesh) NodePush(nodeLocal *node, ts time.Time) error {
 		if err != nil {
 			return fmt.Errorf("Mesh.NodePush(): 'rclone delete' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 		}
-	}
-	return nil
-}
-
-func (m *Mesh) ifaceLocalConfig(nodeLocal *node, wgInterface string, wgPrivKeyFname string) error {
-	wgIpInt := nodeLocal.NodeIP()
-	cmd := exec.Command("ip", "link", "set", wgInterface, "down")
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		log.Notice("Mesh.ifaceLocalConfig(): 'ip link set' failed (it's OK)", "err", err)
-	}
-	cmd = exec.Command("ip", "link", "del", wgInterface)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		log.Notice("Mesh.ifaceLocalConfig(): 'ip link del' failed (it's OK)", "err", err)
-	}
-	cmd = exec.Command("ip", "link", "add", wgInterface, "type", "wireguard")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", wgInterface)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("wg", "set", wgInterface, "listen-port", fmt.Sprintf("%d", nodeLocal.GetWgEndpointPort()), "private-key", wgPrivKeyFname)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "link", "set", wgInterface, "up")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("Mesh.ifaceLocalConfig(): 'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	return nil
 }
@@ -153,7 +116,7 @@ func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
 	return nodeList, nil
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node, wgInterface string) error {
+func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 	for _, node := range nodeList {
 		if node.GetLocal() {
 			log.Info("skipping local node", "node", node)
@@ -168,10 +131,10 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node, wgInterface string) error {
 			return fmt.Errorf("'node.GetWgEndpoint()' returned empty data")
 		}
 		cmd := exec.Command(
-			"wg", "set", wgInterface,
+			"wg", "set", nodeInterface,
 			"peer", k.B64(),
-			"allowed-ips", fmt.Sprintf("%s/32", node.NodeIP()),
 			"endpoint", endPoint,
+			"allowed-ips", fmt.Sprintf("%s/32", node.NodeIP()),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
@@ -199,15 +162,15 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgPrivKeyFname string) error {
-	if err := m.ifaceLocalConfig(nodeLocal, wgInterface, wgPrivKeyFname); err != nil {
+func (m *Mesh) NodeConfig(nodeLocal *node) error {
+	if err := nodeLocal.ifaceLocalConfig(); err != nil {
 		return err
 	}
 	nodeList, err := m.getNodeList(nodeLocal)
 	if err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(nodeList, wgInterface); err != nil {
+	if err := m.ifacePeersConfig(nodeList); err != nil {
 		return err
 	}
 	if err := m.etcHostsUpdate(nodeList); err != nil {
@@ -230,22 +193,20 @@ func newMesh(base string) (*Mesh, error) {
 		return nil, err
 	}
 	return &Mesh{
-		base:        base,
-		re:          re,
-		Tnow:        time.Now().UTC(),
-		nodeLocal:   nodeLocal,
-		WgInterface: "wgi",
+		base:      base,
+		re:        re,
+		Tnow:      time.Now().UTC(),
+		nodeLocal: nodeLocal,
 	}, nil
 }
 
 func (m *Mesh) run() error {
 	log.Info("Net.run()", "nodeLocal", m.nodeLocal)
 	log.Info("Net.run()", "Tnow", m.Tnow)
-	log.Info("Net.run()", "WgInterface", m.WgInterface)
 	if err := m.NodePush(m.nodeLocal, m.Tnow); err != nil {
 		return err
 	}
-	if err := m.NodeConfig(m.nodeLocal, m.WgInterface, WgPrivKeyFname); err != nil {
+	if err := m.NodeConfig(m.nodeLocal); err != nil {
 		return err
 	}
 	log.Info("Mesh.run()", "mesh", m)

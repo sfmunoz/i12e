@@ -12,10 +12,13 @@ import (
 )
 
 const nodeIdMin = 100
-const nodeIdMax = 65_534 // 65_535 = 255.255 = broadcast address
-const nodeIdFname = "/etc/i12e/node-id.txt"
+const nodeIdMax = 65_534       // 65_535 = 255.255 = broadcast address
+const nodeEndpointPort = 51830 // default '51820'
 const nodeNet = "10.56"
-const etcHostname = "/etc/hostname"
+const nodeInterface = "wgi"
+const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
+const nodeIdFname = "/etc/i12e/node-id.txt"
+const nodeEtcHostname = "/etc/hostname"
 
 type node struct {
 	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
@@ -94,10 +97,10 @@ func (n *node) GetWgEndpointPort() uint16 {
 }
 
 func (n *node) SetHostname() error {
-	if err := os.WriteFile(etcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
+	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.NodeName()), 0644); err != nil {
 		return err
 	}
-	cmd := exec.Command("hostname", "-F", etcHostname)
+	cmd := exec.Command("hostname", "-F", nodeEtcHostname)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("SetHostname(): 'hostname -F' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -127,11 +130,11 @@ func loadNode() (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	wgPrivKey, err := getWgPrivKey(WgPrivKeyFname)
+	wgPrivKey, err := getWgPrivKey(nodePrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
-	wgPubKey, err := getWgPubKey(WgPrivKeyFname)
+	wgPubKey, err := getWgPubKey(nodePrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +151,7 @@ func loadNode() (*node, error) {
 		wgPrivKey:      wgPrivKey,
 		wgPubKey:       wgPubKey,
 		wgEndpointIp:   ii.IP,
-		wgEndpointPort: 51830, // default '51820'
+		wgEndpointPort: nodeEndpointPort,
 	}, nil
 }
 
@@ -205,6 +208,37 @@ func getNodeFromPath(path string) (*node, error) {
 		wgPrivKey:      nil,
 		wgPubKey:       nil,
 		wgEndpointIp:   "",
-		wgEndpointPort: 51830, // default '51820'
+		wgEndpointPort: nodeEndpointPort,
 	}, nil
+}
+
+func (n *node) ifaceLocalConfig() error {
+	wgIpInt := n.NodeIP()
+	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
+	bo, be, err := cmdutil.RunSimple(cmd)
+	// ignore error: it's OK
+	cmd = exec.Command("ip", "link", "del", nodeInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	// ignore error: it's OK
+	cmd = exec.Command("ip", "link", "add", nodeInterface, "type", "wireguard")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", nodeInterface)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.GetWgEndpointPort()), "private-key", nodePrivKeyFname)
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	cmd = exec.Command("ip", "link", "set", nodeInterface, "up")
+	bo, be, err = cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	return nil
 }
