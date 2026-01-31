@@ -102,22 +102,21 @@ func (m *Mesh) ifaceLocalConfig(nodeLocal *node, wgInterface string, wgEndpointP
 	return nil
 }
 
-func (m *Mesh) ifacePeersConfig(nodeLocal *node, wgInterface string) error {
+func (m *Mesh) getNodeList(nodeLocal *node) ([]*node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.base)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("Mesh.ifacePeersConfig(): 'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(data)
+	nodeList := make([]*node, 0)
 	wgPathNameLocal := nodeLocal.NodePath()
 	for _, entry := range data {
 		x := m.re.FindStringSubmatch(entry)
 		if x == nil {
+			log.Error("'FindStringSubmatch()' failed", "entry", entry)
 			continue
-		}
-		if wgPathNameLocal == x[1] {
-			continue // myself
 		}
 		node, err := getNodeFromPath(x[1])
 		if err != nil {
@@ -129,11 +128,33 @@ func (m *Mesh) ifacePeersConfig(nodeLocal *node, wgInterface string) error {
 			log.Error("'getWgKeyFromHex()' failed", "err", err, "hex", x[3])
 			continue
 		}
+		node.SetWgKey(k)
+		node.SetLocal(node.NodePath() == wgPathNameLocal)
+		node.SetEndPoint(fmt.Sprintf("%s:%s", x[4], x[5]))
+		nodeList = append(nodeList, node)
+	}
+	return nodeList, nil
+}
+
+func (m *Mesh) ifacePeersConfig(nodeList []*node, wgInterface string) error {
+	for _, node := range nodeList {
+		if node.GetLocal() {
+			log.Info("skipping local node", "node", node)
+			continue
+		}
+		k := node.GetWgKey()
+		if k == nil {
+			return fmt.Errorf("'node.WgKey()' returned nil")
+		}
+		endPoint := node.GetEndPoint()
+		if len(endPoint) < 1 {
+			return fmt.Errorf("'node.GetEndPoint()' returned empty data")
+		}
 		cmd := exec.Command(
 			"wg", "set", wgInterface,
 			"peer", k.B64(),
 			"allowed-ips", fmt.Sprintf("%s/32", node.NodeIP()),
-			"endpoint", fmt.Sprintf("%s:%s", x[4], x[5]),
+			"endpoint", endPoint,
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
@@ -147,7 +168,11 @@ func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgEndpointPort ui
 	if err := m.ifaceLocalConfig(nodeLocal, wgInterface, wgEndpointPort, wgPrivKeyFname); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(nodeLocal, wgInterface); err != nil {
+	nodeList, err := m.getNodeList(nodeLocal)
+	if err != nil {
+		return err
+	}
+	if err := m.ifacePeersConfig(nodeList, wgInterface); err != nil {
 		return err
 	}
 	return nil

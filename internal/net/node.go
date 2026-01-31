@@ -18,7 +18,10 @@ const nodeNet = "10.56"
 const etcHostname = "/etc/hostname"
 
 type node struct {
-	id uint16 // uint16 instead of uint8 to avoid pervasive type conversion
+	id       uint16 // uint16 instead of uint8 to avoid pervasive type conversion
+	wgKey    *WgKey
+	local    bool
+	endPoint string
 }
 
 func (n *node) tuple() [2]uint8 {
@@ -46,6 +49,30 @@ func (n *node) NodePath() string {
 func (n *node) NodeIP() string {
 	t := n.tuple()
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
+}
+
+func (n *node) SetWgKey(wgKey *WgKey) {
+	n.wgKey = wgKey
+}
+
+func (n *node) GetWgKey() *WgKey {
+	return n.wgKey
+}
+
+func (n *node) SetLocal(local bool) {
+	n.local = local
+}
+
+func (n *node) GetLocal() bool {
+	return n.local
+}
+
+func (n *node) SetEndPoint(endPoint string) {
+	n.endPoint = endPoint
+}
+
+func (n *node) GetEndPoint() string {
+	return n.endPoint
 }
 
 func (n *node) SetHostname() error {
@@ -82,7 +109,12 @@ func loadNode() (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	return &node{id: uint16(nodeId)}, nil
+	return &node{
+		id:       uint16(nodeId),
+		wgKey:    nil,
+		local:    true,
+		endPoint: "",
+	}, nil
 }
 
 func writeNode() error {
@@ -132,5 +164,10 @@ func getNodeFromPath(path string) (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	return &node{id: uint16(nodeId)}, nil
+	return &node{
+		id:       uint16(nodeId),
+		wgKey:    nil,
+		local:    false,
+		endPoint: "",
+	}, nil
 }
