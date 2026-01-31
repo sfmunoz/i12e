@@ -25,17 +25,24 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	data := strings.Split(strings.TrimSpace(bo.String()), "\n")
-	slices.Sort(data)
+	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	slices.Sort(entries)
+	slices.Reverse(entries)
 	nodeList := make([]*node, 0)
-	wgPathNameLocal := m.nodeLocal.NodePath()
-	for _, entry := range data {
+	nodePathLocal := m.nodeLocal.NodePath()
+	nodePathLast := ""
+	for _, entry := range entries {
 		node, err := getNodeRemote(entry)
 		if err != nil {
 			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
 		}
-		if node.NodePath() == wgPathNameLocal {
+		nodePath := node.NodePath()
+		if nodePath == nodePathLast {
+			continue
+		}
+		nodePathLast = nodePath
+		if nodePath == nodePathLocal {
 			nodeList = append(nodeList, m.nodeLocal)
 		} else {
 			nodeList = append(nodeList, node)
