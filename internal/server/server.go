@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/net"
+	"github.com/sfmunoz/i12e/internal/mesh"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
@@ -29,7 +29,7 @@ func (s *Server) run() error {
 		}
 		if firstTime {
 			firstTime = false
-			if err := net.Run(); err != nil {
+			if err := mesh.Run(); err != nil {
 				log.Error("net.Run() failed", "err", err)
 			}
 		}
