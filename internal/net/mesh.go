@@ -2,6 +2,7 @@ package net
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"slices"
@@ -164,6 +165,16 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node, wgInterface string) error {
 	return nil
 }
 
+func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
+	lines := []string{"127.0.0.1 localhost", "::1 localhost"} // Flatcar's default
+	for _, node := range nodeList {
+		lines = append(lines, fmt.Sprintf("%s %s", node.NodeIP(), node.NodeName()))
+	}
+	lines = append(lines, "") // NL to the end
+	buf := strings.Join(lines, "\n")
+	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
+}
+
 func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgEndpointPort uint16, wgPrivKeyFname string) error {
 	if err := m.ifaceLocalConfig(nodeLocal, wgInterface, wgEndpointPort, wgPrivKeyFname); err != nil {
 		return err
@@ -173,6 +184,9 @@ func (m *Mesh) NodeConfig(nodeLocal *node, wgInterface string, wgEndpointPort ui
 		return err
 	}
 	if err := m.ifacePeersConfig(nodeList, wgInterface); err != nil {
+		return err
+	}
+	if err := m.etcHostsUpdate(nodeList); err != nil {
 		return err
 	}
 	return nil
