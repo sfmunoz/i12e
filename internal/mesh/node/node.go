@@ -1,4 +1,4 @@
-package mesh
+package node
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/mesh/ifaceip"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
@@ -36,55 +37,59 @@ var nodeRegex = regexp.MustCompile(
 		"$",
 )
 
-type node struct {
+func GetNodeInterface() string {
+	return nodeInterface
+}
+
+type Node struct {
 	id         uint16 // uint16 instead of byte to avoid pervasive type conversion
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
 }
 
-func (n *node) tuple() [2]byte {
+func (n *Node) tuple() [2]byte {
 	return [2]byte{byte(n.id / 256), byte(n.id % 256)}
 }
 
-func (n *node) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.getNodeId(), n.getNodeName(), n.getNodeIP(), n.getNodePath())
+func (n *Node) String() string {
+	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.GetNodeId(), n.GetNodeName(), n.GetNodeIP(), n.GetNodePath())
 }
 
-func (n *node) getNodeId() uint16 {
+func (n *Node) GetNodeId() uint16 {
 	return n.id
 }
 
-func (n *node) getNodeName() string {
+func (n *Node) GetNodeName() string {
 	t := n.tuple()
 	return fmt.Sprintf("n-%03d-%03d", t[0], t[1])
 }
 
-func (n *node) getNodePath() string {
+func (n *Node) GetNodePath() string {
 	t := n.tuple()
 	return fmt.Sprintf("%03d_%03d", t[0], t[1])
 }
 
-func (n *node) getNodeIP() *netip.Addr {
+func (n *Node) GetNodeIP() *netip.Addr {
 	x := nodeNet.Addr().As4()
 	t := n.tuple()
 	addr := netip.AddrFrom4([4]byte{x[0], x[1], t[0], t[1]})
 	return &addr
 }
 
-func (n *node) getWgKey() *wgkey.WgKey {
+func (n *Node) GetWgKey() *wgkey.WgKey {
 	return n.wgKey
 }
 
-func (n *node) getLocal() bool {
-	return n.getWgKey().GetLocal()
+func (n *Node) GetLocal() bool {
+	return n.GetWgKey().GetLocal()
 }
 
-func (n *node) getWgEndpoint() *netip.AddrPort {
+func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
 }
 
-func (n *node) hostnameConfig() error {
-	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.getNodeName()), 0644); err != nil {
+func (n *Node) HostnameConfig() error {
+	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.GetNodeName()), 0644); err != nil {
 		return err
 	}
 	cmd := exec.Command("hostname", "-F", nodeEtcHostname)
@@ -95,29 +100,30 @@ func (n *node) hostnameConfig() error {
 	return nil
 }
 
-func (n *node) ifaceLocalConfig() error {
-	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
+func (n *Node) IfaceLocalConfig() error {
+	nodeInt := GetNodeInterface()
+	cmd := exec.Command("ip", "link", "set", nodeInt, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "del", nodeInterface)
+	cmd = exec.Command("ip", "link", "del", nodeInt)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "add", nodeInterface, "type", "wireguard")
+	cmd = exec.Command("ip", "link", "add", nodeInt, "type", "wireguard")
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.getNodeIP(), nodeNet.Bits()), "dev", nodeInterface)
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetNodeIP(), nodeNet.Bits()), "dev", nodeInt)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.getWgEndpoint().Port()), "private-key", nodePrivKeyFname)
+	cmd = exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "link", "set", nodeInterface, "up")
+	cmd = exec.Command("ip", "link", "set", nodeInt, "up")
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -125,20 +131,20 @@ func (n *node) ifaceLocalConfig() error {
 	return nil
 }
 
-func (n *node) pushToRemote() error {
-	if !n.getLocal() {
+func (n *Node) PushToRemote(remMeshBase string) error {
+	if !n.GetLocal() {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
-	nodePath := n.getNodePath()
-	wgEndpoint := n.getWgEndpoint()
+	nodePath := n.GetNodePath()
+	wgEndpoint := n.GetWgEndpoint()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.getWgKey().GetPubKey().Hex(),
+		n.GetWgKey().GetPubKey().Hex(),
 		wgEndpoint.Addr(),
 		wgEndpoint.Port(),
 	)
@@ -180,7 +186,7 @@ func validNodeId(nodeId int) error {
 	return nil
 }
 
-func loadNode() (*node, error) {
+func loadNode() (*Node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		return nil, err
@@ -196,7 +202,7 @@ func loadNode() (*node, error) {
 	if err != nil {
 		return nil, err
 	}
-	ii, err := IfaceIP()
+	ii, err := ifaceip.IfaceIP()
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +210,7 @@ func loadNode() (*node, error) {
 		return nil, fmt.Errorf("IfaceIP() returned empty value")
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
-	return &node{
+	return &Node{
 		id:         uint16(nodeId),
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
@@ -219,7 +225,7 @@ func writeNode() error {
 	return nil
 }
 
-func getNodeLocal() (*node, error) {
+func GetNodeLocal() (*Node, error) {
 	node, err := loadNode()
 	if err == nil {
 		return node, nil
@@ -261,7 +267,7 @@ func getNodeIdFromPath(path string) (uint16, error) {
 	return uint16(nodeId), nil
 }
 
-func getNodeRemote(entry string) (*node, error) {
+func GetNodeRemote(entry string) (*Node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
@@ -283,7 +289,7 @@ func getNodeRemote(entry string) (*node, error) {
 		return nil, fmt.Errorf("'strconv.Atoi(%s)' failed: %s", arr[5], err)
 	}
 	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
-	return &node{
+	return &Node{
 		id:         nodeId,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
