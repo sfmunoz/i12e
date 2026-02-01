@@ -34,7 +34,7 @@ func TestAdd100(t *testing.T) {
 }
 
 func TestNetMinMax(t *testing.T) {
-	netPref := netip.MustParsePrefix("10.119.0.0/16")
+	netPref := netip.MustParsePrefix("10.119.0.5/16") // net = 10.119.0.0/16
 	addrMin1 := netip.AddrFrom4([4]byte{10, 119, 0, 0})
 	addrMin2 := netMin(&netPref)
 	res := addrMin1.Compare(*addrMin2)

@@ -6,15 +6,16 @@ import (
 
 func netMin(net *netip.Prefix) *netip.Addr {
 	addr := net.Addr()
-	return &addr
+	u := addrToU32(&addr)
+	b := net.Bits()
+	return u32ToAddr((u >> b) << b)
 }
 
 func netMax(net *netip.Prefix) *netip.Addr {
 	addr := net.Addr()
 	u := addrToU32(&addr)
 	x := uint32(0xffffffff) >> net.Bits()
-	addr2 := u32ToAddr(u | x)
-	return addr2
+	return u32ToAddr(u | x)
 }
 
 func addrToU32(addr *netip.Addr) uint32 {
