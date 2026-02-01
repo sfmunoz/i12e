@@ -1,7 +1,6 @@
 package node
 
 import (
-	"fmt"
 	"net/netip"
 )
 
@@ -12,20 +11,14 @@ func netMin(net *netip.Prefix) *netip.Addr {
 
 func netMax(net *netip.Prefix) *netip.Addr {
 	addr := net.Addr()
-	u, err := addrToU32(&addr)
-	if err != nil {
-		panic(err)
-	}
+	u := addrToU32(&addr)
 	x := uint32(0xffffffff) >> net.Bits()
 	addr2 := u32ToAddr(u | x)
 	return addr2
 }
 
-func addrToU32(addr *netip.Addr) (uint32, error) {
-	if addr.Is6() {
-		return 0, fmt.Errorf("cannot convert IPv6 address %s to uint32", addr)
-	}
-	return b4ToU32(addr.As4()), nil
+func addrToU32(addr *netip.Addr) uint32 {
+	return b4ToU32(addr.As4()) // panic("As4 called on IPv6 address")
 }
 
 func u32ToAddr(u uint32) *netip.Addr {
@@ -38,10 +31,5 @@ func b4ToU32(ip [4]byte) uint32 {
 }
 
 func u32ToB4(u uint32) [4]byte {
-	return [4]byte{
-		byte(u >> 24),
-		byte(u >> 16),
-		byte(u >> 8),
-		byte(u),
-	}
+	return [4]byte{byte(u >> 24), byte(u >> 16), byte(u >> 8), byte(u)}
 }

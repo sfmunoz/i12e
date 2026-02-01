@@ -13,10 +13,7 @@ func TestBackAndForth(t *testing.T) {
 	}
 	for _, b4 := range addrs {
 		addr := netip.AddrFrom4(b4)
-		u, err := addrToU32(&addr)
-		if err != nil {
-			t.Errorf("addrToU32(%q) failed: %v", addr, err)
-		}
+		u := addrToU32(&addr)
 		addr2 := u32ToAddr(u)
 		res := addr.Compare(*addr2)
 		if res != 0 {
@@ -28,10 +25,7 @@ func TestBackAndForth(t *testing.T) {
 func TestAdd100(t *testing.T) {
 	addr0 := netip.AddrFrom4([4]byte{192, 168, 88, 199})
 	addr1 := netip.AddrFrom4([4]byte{192, 168, 89, 43})
-	u, err := addrToU32(&addr0)
-	if err != nil {
-		t.Errorf("addrToU32(%q) failed: %v", addr0, err)
-	}
+	u := addrToU32(&addr0)
 	addr2 := u32ToAddr(u + 100)
 	res := addr2.Compare(addr1)
 	if res != 0 {
