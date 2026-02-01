@@ -12,7 +12,7 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
-func GetWgKeyRemote(s string) (*WgKey, error) {
+func getWgKeyRemote(s string) (*WgKey, error) {
 	s_len := len(s)
 	if s_len != 64 {
 		return nil, fmt.Errorf("len(hex)=%d (64 expected)", s_len)
@@ -45,7 +45,7 @@ func privToPub(kPriv *wgKeyPriv) (*wgKeyPub, error) {
 	return &wgKeyPub{data}, nil
 }
 
-func GetWgKeyLocal(wgPrivKeyFname string) (*WgKey, error) {
+func getWgKeyLocal(wgPrivKeyFname string) (*WgKey, error) {
 	for i := range 2 {
 		_, err := os.Stat(wgPrivKeyFname)
 		if err == nil {
@@ -81,4 +81,22 @@ func GetWgKeyLocal(wgPrivKeyFname string) (*WgKey, error) {
 		return nil, err
 	}
 	return &WgKey{privKey, pubKey}, nil
+}
+
+type WgKeyOption func() (*WgKey, error)
+
+func WithLocal(fname string) WgKeyOption {
+	return func() (*WgKey, error) {
+		return getWgKeyLocal(fname)
+	}
+}
+
+func WithRemote(entry string) WgKeyOption {
+	return func() (*WgKey, error) {
+		return getWgKeyRemote(entry)
+	}
+}
+
+func NewWgKey(opt WgKeyOption) (*WgKey, error) {
+	return opt()
 }
