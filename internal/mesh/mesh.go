@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 )
 
@@ -16,10 +17,10 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
 type Mesh struct {
-	nodeLocal *node
+	nodeLocal *node.Node
 }
 
-func (m *Mesh) getNodeList() ([]*node, error) {
+func (m *Mesh) getNodeList() ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -28,16 +29,16 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
-	nodeList := make([]*node, 0)
-	nodePathLocal := m.nodeLocal.getNodePath()
+	nodeList := make([]*node.Node, 0)
+	nodePathLocal := m.nodeLocal.GetNodePath()
 	nodePathLast := ""
 	for _, entry := range entries {
-		node, err := getNodeRemote(entry)
+		n, err := node.NewNode(node.WithRemote(entry))
 		if err != nil {
 			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodePath := node.getNodePath()
+		nodePath := n.GetNodePath()
 		if nodePath == nodePathLast {
 			continue
 		}
@@ -45,23 +46,23 @@ func (m *Mesh) getNodeList() ([]*node, error) {
 		if nodePath == nodePathLocal {
 			nodeList = append(nodeList, m.nodeLocal)
 		} else {
-			nodeList = append(nodeList, node)
+			nodeList = append(nodeList, n)
 		}
 	}
 	return nodeList, nil
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
-	for _, node := range nodeList {
-		if node.getLocal() {
-			log.Info("skipping local node", "node", node)
+func (m *Mesh) ifacePeersConfig(nodeList []*node.Node) error {
+	for _, n := range nodeList {
+		if n.GetLocal() {
+			log.Info("skipping local node", "node", n)
 			continue
 		}
 		cmd := exec.Command(
-			"wg", "set", nodeInterface,
-			"peer", node.getWgKey().GetPubKey().B64(),
-			"endpoint", node.getWgEndpoint().String(),
-			"allowed-ips", fmt.Sprintf("%s/32", node.getNodeIP()),
+			"wg", "set", node.GetNodeInterface(),
+			"peer", n.GetWgKey().GetPubKey().B64(),
+			"endpoint", n.GetWgEndpoint().String(),
+			"allowed-ips", fmt.Sprintf("%s/32", n.GetNodeIP()),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
@@ -71,7 +72,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 	return nil
 }
 
-func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
+func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 	// Flatcar's default
 	lines := []string{
 		"#",
@@ -81,8 +82,8 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 		"127.0.0.1 localhost",
 		"::1 localhost",
 	}
-	for _, node := range nodeList {
-		lines = append(lines, fmt.Sprintf("%s %s", node.getNodeIP(), node.getNodeName()))
+	for _, n := range nodeList {
+		lines = append(lines, fmt.Sprintf("%s %s", n.GetNodeIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
 	buf := strings.Join(lines, "\n")
@@ -90,13 +91,13 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node) error {
 }
 
 func (m *Mesh) run() error {
-	if err := m.nodeLocal.hostnameConfig(); err != nil {
+	if err := m.nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.pushToRemote(); err != nil {
+	if err := m.nodeLocal.PushToRemote(remMeshBase); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.ifaceLocalConfig(); err != nil {
+	if err := m.nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
 	nodeList, err := m.getNodeList()
@@ -113,7 +114,7 @@ func (m *Mesh) run() error {
 }
 
 func newMesh() (*Mesh, error) {
-	nodeLocal, err := getNodeLocal()
+	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
 		return nil, err
 	}
