@@ -33,7 +33,7 @@ func (m *Mesh) getNodeList() ([]*node.Node, error) {
 	nodePathLocal := m.nodeLocal.GetNodePath()
 	nodePathLast := ""
 	for _, entry := range entries {
-		n, err := node.GetNodeRemote(entry)
+		n, err := node.NewNode(node.WithRemote(entry))
 		if err != nil {
 			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
@@ -114,7 +114,7 @@ func (m *Mesh) run() error {
 }
 
 func newMesh() (*Mesh, error) {
-	nodeLocal, err := node.GetNodeLocal()
+	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
 		return nil, err
 	}

@@ -61,7 +61,7 @@ func writeNode() error {
 	return nil
 }
 
-func GetNodeLocal() (*Node, error) {
+func getNodeLocal() (*Node, error) {
 	node, err := loadNode()
 	if err == nil {
 		return node, nil
@@ -103,7 +103,7 @@ func getNodeIdFromPath(path string) (uint16, error) {
 	return uint16(nodeId), nil
 }
 
-func GetNodeRemote(entry string) (*Node, error) {
+func getNodeRemote(entry string) (*Node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
@@ -130,4 +130,22 @@ func GetNodeRemote(entry string) (*Node, error) {
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
+}
+
+type NodeOption func() (*Node, error)
+
+func WithLocal() NodeOption {
+	return func() (*Node, error) {
+		return getNodeLocal()
+	}
+}
+
+func WithRemote(entry string) NodeOption {
+	return func() (*Node, error) {
+		return getNodeRemote(entry)
+	}
+}
+
+func NewNode(opt NodeOption) (*Node, error) {
+	return opt()
 }
