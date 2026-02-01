@@ -3,6 +3,7 @@ package mesh
 import (
 	"fmt"
 	"math/rand/v2"
+	"net/netip"
 	"os"
 	"os/exec"
 	"regexp"
@@ -18,11 +19,12 @@ import (
 const nodeIdMin = 100
 const nodeIdMax = 65_534       // 65_535 = 255.255 = broadcast address
 const nodeEndpointPort = 51830 // default '51820'
-const nodeNet = "10.56"
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeEtcHostname = "/etc/hostname"
+
+var nodeNet = []byte{10, 56}
 
 // 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -35,14 +37,13 @@ var nodeRegex = regexp.MustCompile(
 )
 
 type node struct {
-	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	wgKey          *wgkey.WgKey
-	wgEndpointIp   string
-	wgEndpointPort uint16
+	id         uint16 // uint16 instead of byte to avoid pervasive type conversion
+	wgKey      *wgkey.WgKey
+	wgEndpoint *netip.AddrPort
 }
 
-func (n *node) tuple() [2]uint8 {
-	return [2]uint8{uint8(n.id / 256), uint8(n.id % 256)}
+func (n *node) tuple() [2]byte {
+	return [2]byte{byte(n.id / 256), byte(n.id % 256)}
 }
 
 func (n *node) String() string {
@@ -63,9 +64,10 @@ func (n *node) getNodePath() string {
 	return fmt.Sprintf("%03d_%03d", t[0], t[1])
 }
 
-func (n *node) getNodeIP() string {
+func (n *node) getNodeIP() *netip.Addr {
 	t := n.tuple()
-	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
+	addr := netip.AddrFrom4([4]byte{nodeNet[0], nodeNet[1], t[0], t[1]})
+	return &addr
 }
 
 func (n *node) getWgKey() *wgkey.WgKey {
@@ -76,16 +78,8 @@ func (n *node) getLocal() bool {
 	return n.getWgKey().GetLocal()
 }
 
-func (n *node) getWgEndpoint() string {
-	return fmt.Sprintf("%s:%d", n.getWgEndpointIp(), n.getWgEndpointPort())
-}
-
-func (n *node) getWgEndpointIp() string {
-	return n.wgEndpointIp
-}
-
-func (n *node) getWgEndpointPort() uint16 {
-	return n.wgEndpointPort
+func (n *node) getWgEndpoint() *netip.AddrPort {
+	return n.wgEndpoint
 }
 
 func (n *node) hostnameConfig() error {
@@ -118,7 +112,7 @@ func (n *node) ifaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.getWgEndpointPort()), "private-key", nodePrivKeyFname)
+	cmd = exec.Command("wg", "set", nodeInterface, "listen-port", fmt.Sprintf("%d", n.getWgEndpoint().Port()), "private-key", nodePrivKeyFname)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -137,6 +131,7 @@ func (n *node) pushToRemote() error {
 	}
 	ts := time.Now().UTC()
 	nodePath := n.getNodePath()
+	wgEndpoint := n.getWgEndpoint()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
@@ -144,8 +139,8 @@ func (n *node) pushToRemote() error {
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
 		n.getWgKey().GetPubKey().Hex(),
-		n.getWgEndpointIp(),
-		n.getWgEndpointPort(),
+		wgEndpoint.Addr(),
+		wgEndpoint.Port(),
 	)
 	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -208,11 +203,11 @@ func loadNode() (*node, error) {
 	if ii == nil {
 		return nil, fmt.Errorf("IfaceIP() returned empty value")
 	}
+	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &node{
-		id:             uint16(nodeId),
-		wgKey:          wgKey,
-		wgEndpointIp:   ii.IP,
-		wgEndpointPort: nodeEndpointPort,
+		id:         uint16(nodeId),
+		wgKey:      wgKey,
+		wgEndpoint: &wgEndpoint,
 	}, nil
 }
 
@@ -279,14 +274,18 @@ func getNodeRemote(entry string) (*node, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'getWgKeyRemote(%s)' failed: %s", arr[3], err)
 	}
+	addr, err := netip.ParseAddr(arr[4])
+	if err != nil {
+		return nil, fmt.Errorf("'netip.ParseAddr(%s)' failed: %s", arr[4], err)
+	}
 	wgEndpointPort, err := strconv.Atoi(arr[5])
 	if err != nil {
 		return nil, fmt.Errorf("'strconv.Atoi(%s)' failed: %s", arr[5], err)
 	}
+	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
 	return &node{
-		id:             nodeId,
-		wgKey:          wgKey,
-		wgEndpointIp:   arr[4],
-		wgEndpointPort: uint16(wgEndpointPort),
+		id:         nodeId,
+		wgKey:      wgKey,
+		wgEndpoint: &wgEndpoint,
 	}, nil
 }

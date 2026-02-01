@@ -31,7 +31,7 @@ func (p *Pull) run() error {
 	}
 	iface, ip := "", ""
 	if ii != nil {
-		iface, ip = ii.Iface, ii.IP
+		iface, ip = ii.Iface, ii.IP.String()
 	}
 	log.Info("Pull.run()", "iface", iface, "ip", ip)
 	if err := cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip); err != nil {

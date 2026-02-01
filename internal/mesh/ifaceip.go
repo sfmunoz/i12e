@@ -4,13 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"strings"
 )
 
 type II struct {
 	Iface string
-	IP    string
+	IP    *netip.Addr
 }
 
 func IfaceIP() (*II, error) {
@@ -43,15 +44,12 @@ func IfaceIP() (*II, error) {
 		if !ok {
 			continue
 		}
-		ip := ipNet.IP
-		if ip.To4() == nil {
+		ip4 := ipNet.IP.To4()
+		if ip4 == nil {
 			continue
 		}
-		ipStr := ip.String()
-		if len(ipStr) < 1 {
-			continue
-		}
-		return &II{Iface: iname, IP: ip.String()}, nil
+		addr := netip.AddrFrom4([4]byte(ip4))
+		return &II{Iface: iname, IP: &addr}, nil
 	}
 	return nil, nil
 }
