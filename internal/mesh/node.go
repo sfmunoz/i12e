@@ -35,8 +35,7 @@ var nodeRegex = regexp.MustCompile(
 
 type node struct {
 	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	wgPrivKey      *WgKey
-	wgPubKey       *WgKey
+	wgKey          *wgKey
 	wgEndpointIp   string
 	wgEndpointPort uint16
 }
@@ -68,16 +67,12 @@ func (n *node) getNodeIP() string {
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
 }
 
-func (n *node) getWgPrivKey() *WgKey {
-	return n.wgPrivKey
-}
-
-func (n *node) getWgPubKey() *WgKey {
-	return n.wgPubKey
+func (n *node) getWgKey() *wgKey {
+	return n.wgKey
 }
 
 func (n *node) getLocal() bool {
-	return n.getWgPrivKey() != nil
+	return n.getWgKey().getLocal()
 }
 
 func (n *node) getWgEndpoint() string {
@@ -147,7 +142,7 @@ func (n *node) pushToRemote() error {
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.getWgPubKey().Hex(),
+		n.getWgKey().getPubKey().Hex(),
 		n.getWgEndpointIp(),
 		n.getWgEndpointPort(),
 	)
@@ -201,11 +196,7 @@ func loadNode() (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	wgPrivKey, err := getWgPrivKey(nodePrivKeyFname)
-	if err != nil {
-		return nil, err
-	}
-	wgPubKey, err := getWgPubKey(nodePrivKeyFname)
+	wgKey, err := getWgKeyLocal(nodePrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -218,8 +209,7 @@ func loadNode() (*node, error) {
 	}
 	return &node{
 		id:             uint16(nodeId),
-		wgPrivKey:      wgPrivKey,
-		wgPubKey:       wgPubKey,
+		wgKey:          wgKey,
 		wgEndpointIp:   ii.IP,
 		wgEndpointPort: nodeEndpointPort,
 	}, nil
@@ -278,15 +268,15 @@ func getNodeIdFromPath(path string) (uint16, error) {
 func getNodeRemote(entry string) (*node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
-		return nil, fmt.Errorf("'FindStringSubmatch()' returned nil (entry=%s)", entry)
+		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
 	nodeId, err := getNodeIdFromPath(arr[1])
 	if err != nil {
 		return nil, err
 	}
-	wgPubKey, err := getWgKeyFromHex(arr[3], false)
+	wgKey, err := getWgKeyRemote(arr[3])
 	if err != nil {
-		return nil, fmt.Errorf("'getWgKeyFromHex(%s)' failed: %s", arr[3], err)
+		return nil, fmt.Errorf("'getWgKeyRemote(%s)' failed: %s", arr[3], err)
 	}
 	wgEndpointPort, err := strconv.Atoi(arr[5])
 	if err != nil {
@@ -294,8 +284,7 @@ func getNodeRemote(entry string) (*node, error) {
 	}
 	return &node{
 		id:             nodeId,
-		wgPrivKey:      nil,
-		wgPubKey:       wgPubKey,
+		wgKey:          wgKey,
 		wgEndpointIp:   arr[4],
 		wgEndpointPort: uint16(wgEndpointPort),
 	}, nil
