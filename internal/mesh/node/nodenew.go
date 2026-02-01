@@ -12,6 +12,12 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
+const nodeEndpointPort = 51830 // default '51820'
+const nodeIdFname = "/etc/i12e/node-id.txt"
+const nodeIdMin = 100
+
+var nodeIdMax = int(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
+
 func validNodeId(nodeId int) error {
 	if nodeId < nodeIdMin {
 		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
