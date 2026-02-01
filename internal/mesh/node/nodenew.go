@@ -14,11 +14,12 @@ import (
 
 const nodeEndpointPort = 51830 // default '51820'
 const nodeIdFname = "/etc/i12e/node-id.txt"
-const nodeIdMin = 100
 
-var nodeIdMax = int(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
+const nodeIdMin uint16 = 100
 
-func validNodeId(nodeId int) error {
+var nodeIdMax = uint16(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
+
+func validNodeId(nodeId uint16) error {
 	if nodeId < nodeIdMin {
 		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
 	}
@@ -33,10 +34,11 @@ func loadNode() (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	nodeId, err := strconv.Atoi(strings.TrimSpace(string(buf)))
+	nodeIdInt, err := strconv.Atoi(strings.TrimSpace(string(buf)))
 	if err != nil {
 		return nil, err
 	}
+	nodeId := uint16(nodeIdInt)
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
@@ -60,7 +62,7 @@ func loadNode() (*Node, error) {
 }
 
 func writeNode() error {
-	x := rand.Int32N(int32(nodeIdMax-nodeIdMin+1)) + nodeIdMin
+	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
 	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
 		return err
 	}
@@ -102,7 +104,7 @@ func getNodeIdFromPath(path string) (uint16, error) {
 		}
 		ids[i] = uint16(pint)
 	}
-	nodeId := 256*int(ids[0]) + int(ids[1])
+	nodeId := ids[0]<<8 + ids[1]
 	if err := validNodeId(nodeId); err != nil {
 		return 0, err
 	}
