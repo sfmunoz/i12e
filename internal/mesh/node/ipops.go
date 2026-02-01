@@ -5,6 +5,22 @@ import (
 	"net/netip"
 )
 
+func netMin(net *netip.Prefix) *netip.Addr {
+	addr := net.Addr()
+	return &addr
+}
+
+func netMax(net *netip.Prefix) *netip.Addr {
+	addr := net.Addr()
+	u, err := addrToU32(&addr)
+	if err != nil {
+		panic(err)
+	}
+	x := uint32(0xffffffff) >> net.Bits()
+	addr2 := u32ToAddr(u | x)
+	return addr2
+}
+
 func addrToU32(addr *netip.Addr) (uint32, error) {
 	if addr.Is6() {
 		return 0, fmt.Errorf("cannot convert IPv6 address %s to uint32", addr)

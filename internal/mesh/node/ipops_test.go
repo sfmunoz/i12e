@@ -38,3 +38,19 @@ func TestAdd100(t *testing.T) {
 		t.Errorf("%q != %q", addr1, addr2)
 	}
 }
+
+func TestNetMinMax(t *testing.T) {
+	netPref := netip.MustParsePrefix("10.119.0.0/16")
+	addrMin1 := netip.AddrFrom4([4]byte{10, 119, 0, 0})
+	addrMin2 := netMin(&netPref)
+	res := addrMin1.Compare(*addrMin2)
+	if res != 0 {
+		t.Errorf("%q != %q", addrMin2, addrMin1)
+	}
+	addrMax1 := netip.AddrFrom4([4]byte{10, 119, 255, 255})
+	addrMax2 := netMax(&netPref)
+	res = addrMax1.Compare(*addrMax2)
+	if res != 0 {
+		t.Errorf("%q != %q", addrMax2, addrMax1)
+	}
+}
