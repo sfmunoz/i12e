@@ -1,4 +1,4 @@
-package mesh
+package wgkey
 
 import (
 	"bytes"
@@ -8,77 +8,28 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 )
 
-type wgKeyPriv struct {
-	data []byte
-}
-
-func (w *wgKeyPriv) String() string {
-	return strings.Repeat("*", len(w.data))
-}
-
-func (w *wgKeyPriv) Raw() []byte {
-	return w.data
-}
-
-func (w *wgKeyPriv) B64() string {
-	return base64.StdEncoding.EncodeToString(w.data)
-}
-
-func (w *wgKeyPriv) Hex() string {
-	return hex.EncodeToString(w.data)
-}
-
-func (w *wgKeyPriv) Len() int {
-	return len(w.data)
-}
-
-type wgKeyPub struct {
-	data []byte
-}
-
-func (w *wgKeyPub) String() string {
-	return w.B64()
-}
-
-func (w *wgKeyPub) Raw() []byte {
-	return w.data
-}
-
-func (w *wgKeyPub) B64() string {
-	return base64.StdEncoding.EncodeToString(w.data)
-}
-
-func (w *wgKeyPub) Hex() string {
-	return hex.EncodeToString(w.data)
-}
-
-func (w *wgKeyPub) Len() int {
-	return len(w.data)
-}
-
-type wgKey struct {
+type WgKey struct {
 	privKey *wgKeyPriv
 	pubKey  *wgKeyPub
 }
 
-func (w *wgKey) getPrivKey() *wgKeyPriv {
+func (w *WgKey) GetPrivKey() *wgKeyPriv {
 	return w.privKey
 }
 
-func (w *wgKey) getPubKey() *wgKeyPub {
+func (w *WgKey) GetPubKey() *wgKeyPub {
 	return w.pubKey
 }
 
-func (w *wgKey) getLocal() bool {
-	return w.getPrivKey() != nil
+func (w *WgKey) GetLocal() bool {
+	return w.GetPrivKey() != nil
 }
 
-func getWgKeyRemote(s string) (*wgKey, error) {
+func GetWgKeyRemote(s string) (*WgKey, error) {
 	s_len := len(s)
 	if s_len != 64 {
 		return nil, fmt.Errorf("len(hex)=%d (64 expected)", s_len)
@@ -87,7 +38,7 @@ func getWgKeyRemote(s string) (*wgKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &wgKey{
+	return &WgKey{
 		privKey: nil,
 		pubKey:  &wgKeyPub{data},
 	}, nil
@@ -111,7 +62,7 @@ func privToPub(kPriv *wgKeyPriv) (*wgKeyPub, error) {
 	return &wgKeyPub{data}, nil
 }
 
-func getWgKeyLocal(wgPrivKeyFname string) (*wgKey, error) {
+func GetWgKeyLocal(wgPrivKeyFname string) (*WgKey, error) {
 	for i := range 2 {
 		_, err := os.Stat(wgPrivKeyFname)
 		if err == nil {
@@ -146,5 +97,5 @@ func getWgKeyLocal(wgPrivKeyFname string) (*wgKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &wgKey{privKey, pubKey}, nil
+	return &WgKey{privKey, pubKey}, nil
 }

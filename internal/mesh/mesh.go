@@ -63,7 +63,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 		}
 		cmd := exec.Command(
 			"wg", "set", nodeInterface,
-			"peer", node.getWgKey().getPubKey().B64(),
+			"peer", node.getWgKey().GetPubKey().B64(),
 			"endpoint", endPoint,
 			"allowed-ips", fmt.Sprintf("%s/32", node.getNodeIP()),
 		)

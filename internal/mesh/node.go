@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
 const nodeIdMin = 100
@@ -35,7 +36,7 @@ var nodeRegex = regexp.MustCompile(
 
 type node struct {
 	id             uint16 // uint16 instead of uint8 to avoid pervasive type conversion
-	wgKey          *wgKey
+	wgKey          *wgkey.WgKey
 	wgEndpointIp   string
 	wgEndpointPort uint16
 }
@@ -67,12 +68,12 @@ func (n *node) getNodeIP() string {
 	return fmt.Sprintf("%s.%d.%d", nodeNet, t[0], t[1])
 }
 
-func (n *node) getWgKey() *wgKey {
+func (n *node) getWgKey() *wgkey.WgKey {
 	return n.wgKey
 }
 
 func (n *node) getLocal() bool {
-	return n.getWgKey().getLocal()
+	return n.getWgKey().GetLocal()
 }
 
 func (n *node) getWgEndpoint() string {
@@ -142,7 +143,7 @@ func (n *node) pushToRemote() error {
 		nodePath,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.getWgKey().getPubKey().Hex(),
+		n.getWgKey().GetPubKey().Hex(),
 		n.getWgEndpointIp(),
 		n.getWgEndpointPort(),
 	)
@@ -196,7 +197,7 @@ func loadNode() (*node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	wgKey, err := getWgKeyLocal(nodePrivKeyFname)
+	wgKey, err := wgkey.GetWgKeyLocal(nodePrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +275,7 @@ func getNodeRemote(entry string) (*node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKey, err := getWgKeyRemote(arr[3])
+	wgKey, err := wgkey.GetWgKeyRemote(arr[3])
 	if err != nil {
 		return nil, fmt.Errorf("'getWgKeyRemote(%s)' failed: %s", arr[3], err)
 	}
