@@ -24,7 +24,7 @@ const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeEtcHostname = "/etc/hostname"
 
-var nodeNet = []byte{10, 56}
+var nodeNet = netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
 
 // 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -65,8 +65,9 @@ func (n *node) getNodePath() string {
 }
 
 func (n *node) getNodeIP() *netip.Addr {
+	x := nodeNet.Addr().As4()
 	t := n.tuple()
-	addr := netip.AddrFrom4([4]byte{nodeNet[0], nodeNet[1], t[0], t[1]})
+	addr := netip.AddrFrom4([4]byte{x[0], x[1], t[0], t[1]})
 	return &addr
 }
 
@@ -95,7 +96,6 @@ func (n *node) hostnameConfig() error {
 }
 
 func (n *node) ifaceLocalConfig() error {
-	wgIpInt := n.getNodeIP()
 	cmd := exec.Command("ip", "link", "set", nodeInterface, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	// ignore error: it's OK
@@ -107,7 +107,7 @@ func (n *node) ifaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/16", wgIpInt), "dev", nodeInterface)
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.getNodeIP(), nodeNet.Bits()), "dev", nodeInterface)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
