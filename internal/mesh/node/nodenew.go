@@ -34,7 +34,7 @@ func loadNode() (*Node, error) {
 	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
-	wgKey, err := wgkey.GetWgKeyLocal(nodePrivKeyFname)
+	wgKey, err := wgkey.NewWgKey(wgkey.WithLocal(nodePrivKeyFname))
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func getNodeRemote(entry string) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKey, err := wgkey.GetWgKeyRemote(arr[3])
+	wgKey, err := wgkey.NewWgKey(wgkey.WithRemote((arr[3])))
 	if err != nil {
 		return nil, fmt.Errorf("'getWgKeyRemote(%s)' failed: %s", arr[3], err)
 	}
