@@ -57,14 +57,10 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node) error {
 			log.Info("skipping local node", "node", node)
 			continue
 		}
-		endPoint := node.getWgEndpoint()
-		if len(endPoint) < 1 {
-			return fmt.Errorf("'node.getWgEndpoint()' returned empty data")
-		}
 		cmd := exec.Command(
 			"wg", "set", nodeInterface,
 			"peer", node.getWgKey().GetPubKey().B64(),
-			"endpoint", endPoint,
+			"endpoint", node.getWgEndpoint().String(),
 			"allowed-ips", fmt.Sprintf("%s/32", node.getNodeIP()),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
