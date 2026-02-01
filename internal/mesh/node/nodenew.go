@@ -54,7 +54,7 @@ func loadNode() (*Node, error) {
 }
 
 func writeNode() error {
-	x := rand.Int32N(nodeIdMax-nodeIdMin+1) + nodeIdMin
+	x := rand.Int32N(int32(nodeIdMax-nodeIdMin+1)) + nodeIdMin
 	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
 		return err
 	}

@@ -14,15 +14,19 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
-const nodeIdMin = 100
-const nodeIdMax = 65_534       // 65_535 = 255.255 = broadcast address
 const nodeEndpointPort = 51830 // default '51820'
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 const nodeIdFname = "/etc/i12e/node-id.txt"
 const nodeEtcHostname = "/etc/hostname"
+const nodeIdMin = 100
 
-var nodeNet = netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
+var nodeNet = func() *netip.Prefix {
+	x := netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
+	return &x
+}()
+
+var nodeIdMax = int(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
 
 // 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
