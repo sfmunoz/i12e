@@ -88,7 +88,7 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	nodeLocal, err := node.NewNode(node.WithLocal(nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
+	nodeLocal, err := node.NewNode(node.WithLocal(&nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
 	if err != nil {
 		return err
 	}

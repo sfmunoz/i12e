@@ -52,20 +52,20 @@ func resetNodeLocal() error {
 	return err
 }
 
-func procNodeList(nodeList []*Node, nodeLocal *Node, remMeshBase string) error {
+func procNodeList(nodeList *[]*Node, nodeLocal *Node, remMeshBase string) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
-	for i, n := range nodeList {
+	for i, n := range *nodeList {
 		if n.GetNodeId() != nodeIdLocal {
 			continue
 		}
-		nodeList[i] = nodeLocal
+		(*nodeList)[i] = nodeLocal
 		return nil
 	}
 	if err := nodeLocal.pushToRemote(remMeshBase); err != nil {
 		return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList but pushToRemote() failed: %q", err)
 	}
-	// FIXME add nodeLocal to nodeList
-	return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList; pushToRemote() performed")
+	*nodeList = append(*nodeList, nodeLocal)
+	return nil
 }
 
 func writeNode() error {
@@ -76,7 +76,7 @@ func writeNode() error {
 	return nil
 }
 
-func getNodeLocal(nodeList []*Node, remMeshBase string) (*Node, error) {
+func getNodeLocal(nodeList *[]*Node, remMeshBase string) (*Node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		if err := writeNode(); err != nil {
@@ -169,7 +169,7 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal(nodeList []*Node, remMeshBase string) NodeOption {
+func WithLocal(nodeList *[]*Node, remMeshBase string) NodeOption {
 	return func() (*Node, error) {
 		return getNodeLocal(nodeList, remMeshBase)
 	}
