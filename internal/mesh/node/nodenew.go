@@ -117,11 +117,15 @@ func getNodeIdFromNodeName(nodeName string) (uint16, error) {
 	if n0 != 'n' {
 		return 0, fmt.Errorf("nodename='%s' starts with '%c' ('n' expected)", nodeName, n0)
 	}
-	x, err := strconv.ParseInt(nodeName[1:], 36, 64)
+	nodeIdInt64, err := strconv.ParseInt(nodeName[1:], 36, 64)
 	if err != nil {
 		return 0, err
 	}
-	return uint16(x), nil
+	nodeId := uint16(nodeIdInt64)
+	if err := validNodeId(nodeId); err != nil {
+		return 0, err
+	}
+	return nodeId, nil
 }
 
 func getNodeRemote(entry string) (*Node, error) {
