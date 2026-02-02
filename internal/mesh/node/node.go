@@ -45,7 +45,7 @@ func (n *Node) tuple() [2]byte {
 }
 
 func (n *Node) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.GetNodeId(), n.GetNodeName(), n.GetNodeIP(), n.GetNodePath())
+	return fmt.Sprintf("id=%d|name=%s|ip=%s", n.GetNodeId(), n.GetNodeName(), n.GetNodeIP())
 }
 
 func (n *Node) GetNodeId() uint16 {
@@ -55,10 +55,6 @@ func (n *Node) GetNodeId() uint16 {
 func (n *Node) GetNodeName() string {
 	s := strconv.FormatUint(uint64(n.GetNodeId()), 36) // 36^4 > 2^20
 	return "n" + padLeft(s, 4, "0")
-}
-
-func (n *Node) GetNodePath() string {
-	return n.GetNodeName()
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
@@ -128,12 +124,12 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
-	nodePath := n.GetNodePath()
+	nodeName := n.GetNodeName()
 	wgEndpoint := n.GetWgEndpoint()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
-		nodePath,
+		nodeName,
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
 		n.GetWgKey().GetPubKey().Hex(),
@@ -145,7 +141,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	if err != nil {
 		return fmt.Errorf("'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
+	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
 	cmd = exec.Command("rclone", "lsf", nodePrefix)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -158,7 +154,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		if i < 1 {
 			continue
 		}
-		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodePath, entry)
+		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodeName, entry)
 		cmd := exec.Command("rclone", "delete", deletePath)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {

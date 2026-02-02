@@ -30,20 +30,20 @@ func (m *Mesh) getNodeList() ([]*node.Node, error) {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	nodeList := make([]*node.Node, 0)
-	nodePathLocal := m.nodeLocal.GetNodePath()
-	nodePathLast := ""
+	nodeNameLocal := m.nodeLocal.GetNodeName()
+	nodeNameLast := ""
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
 		if err != nil {
 			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodePath := n.GetNodePath()
-		if nodePath == nodePathLast {
+		nodeName := n.GetNodeName()
+		if nodeName == nodeNameLast {
 			continue
 		}
-		nodePathLast = nodePath
-		if nodePath == nodePathLocal {
+		nodeNameLast = nodeName
+		if nodeName == nodeNameLocal {
 			nodeList = append(nodeList, m.nodeLocal)
 		} else {
 			nodeList = append(nodeList, n)
