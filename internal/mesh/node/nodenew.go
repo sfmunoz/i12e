@@ -68,8 +68,22 @@ func procNodeList(nodeList []*Node, nodeLocal *Node, remMeshBase string) error {
 	return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList; pushToRemote() performed")
 }
 
-func loadNode(nodeList []*Node, remMeshBase string) (*Node, error) {
+func writeNode() error {
+	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
+	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getNodeLocal(nodeList []*Node, remMeshBase string) (*Node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
+	if err != nil {
+		if err := writeNode(); err != nil {
+			return nil, err
+		}
+	}
+	buf, err = os.ReadFile(nodeIdFname)
 	if err != nil {
 		return nil, err
 	}
@@ -102,25 +116,6 @@ func loadNode(nodeList []*Node, remMeshBase string) (*Node, error) {
 		return nil, err
 	}
 	return nodeLocal, nil
-}
-
-func writeNode() error {
-	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
-	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func getNodeLocal(nodeList []*Node, remMeshBase string) (*Node, error) {
-	node, err := loadNode(nodeList, remMeshBase)
-	if err == nil {
-		return node, nil
-	}
-	if err := writeNode(); err != nil {
-		return nil, err
-	}
-	return loadNode(nodeList, remMeshBase)
 }
 
 func getNodeIdFromNodeName(nodeName string) (uint16, error) {
