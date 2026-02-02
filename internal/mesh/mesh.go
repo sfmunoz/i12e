@@ -16,11 +16,9 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
-type Mesh struct {
-	nodeLocal *node.Node
-}
+type Mesh struct{}
 
-func (m *Mesh) getNodeList() ([]*node.Node, error) {
+func (m *Mesh) getNodeList(nodeLocal *node.Node) ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -30,7 +28,7 @@ func (m *Mesh) getNodeList() ([]*node.Node, error) {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	nodeList := make([]*node.Node, 0)
-	nodeNameLocal := m.nodeLocal.GetNodeName()
+	nodeNameLocal := nodeLocal.GetNodeName()
 	nodeNameLast := ""
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
@@ -44,7 +42,7 @@ func (m *Mesh) getNodeList() ([]*node.Node, error) {
 		}
 		nodeNameLast = nodeName
 		if nodeName == nodeNameLocal {
-			nodeList = append(nodeList, m.nodeLocal)
+			nodeList = append(nodeList, nodeLocal)
 		} else {
 			nodeList = append(nodeList, n)
 		}
@@ -91,16 +89,20 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	if err := m.nodeLocal.HostnameConfig(); err != nil {
+	nodeLocal, err := node.NewNode(node.WithLocal(true))
+	if err != nil {
 		return err
 	}
-	if err := m.nodeLocal.PushToRemote(remMeshBase); err != nil {
+	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.IfaceLocalConfig(); err != nil {
+	if err := nodeLocal.PushToRemote(remMeshBase); err != nil {
 		return err
 	}
-	nodeList, err := m.getNodeList()
+	if err := nodeLocal.IfaceLocalConfig(); err != nil {
+		return err
+	}
+	nodeList, err := m.getNodeList(nodeLocal)
 	if err != nil {
 		return err
 	}
@@ -113,18 +115,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh() (*Mesh, error) {
-	nodeLocal, err := node.NewNode(node.WithLocal(true))
-	if err != nil {
-		return nil, err
-	}
-	return &Mesh{nodeLocal: nodeLocal}, nil
+func newMesh() *Mesh {
+	return &Mesh{}
 }
 
 func Run() error {
-	mesh, err := newMesh()
-	if err != nil {
-		return err
-	}
-	return mesh.run()
+	return newMesh().run()
 }
