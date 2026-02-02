@@ -97,35 +97,20 @@ func getNodeLocal(keep bool) (*Node, error) {
 	return loadNode()
 }
 
-func getNodeIdFromPath(path string) (uint16, error) {
-	parts := strings.Split(path, "_")
-	parts_len := len(parts)
-	if parts_len != 2 {
-		return 0, fmt.Errorf("path='%s' -> len(parts=%s)=%d (2 expected)", path, parts, parts_len)
+func getNodeIdFromNodeName(nodeName string) (uint16, error) {
+	nodeNameLen := len(nodeName)
+	if nodeNameLen != 5 {
+		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
 	}
-	ids := [2]uint16{0, 0}
-	for i, part := range parts {
-		plen := len(part)
-		if plen < 1 {
-			return 0, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
-		}
-		pint, err := strconv.Atoi(part)
-		if err != nil {
-			return 0, err
-		}
-		if pint < 0 {
-			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, part)
-		}
-		if pint > 255 {
-			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, part)
-		}
-		ids[i] = uint16(pint)
+	n0 := nodeName[0]
+	if n0 != 'n' {
+		return 0, fmt.Errorf("nodename='%s' starts with '%c' ('n' expected)", nodeName, n0)
 	}
-	nodeId := ids[0]<<8 + ids[1]
-	if err := validNodeId(nodeId); err != nil {
+	x, err := strconv.ParseInt(nodeName[1:], 36, 64)
+	if err != nil {
 		return 0, err
 	}
-	return uint16(nodeId), nil
+	return uint16(x), nil
 }
 
 func getNodeRemote(entry string) (*Node, error) {
@@ -133,7 +118,7 @@ func getNodeRemote(entry string) (*Node, error) {
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
-	nodeId, err := getNodeIdFromPath(arr[1])
+	nodeId, err := getNodeIdFromNodeName(arr[1])
 	if err != nil {
 		return nil, err
 	}

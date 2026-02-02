@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,9 +24,9 @@ var nodeNet = func() *netip.Prefix {
 	return &x
 }()
 
-// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+// ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
-	"^([0-9]{3}_[0-9]{3})" +
+	"^(n[0-9a-z]{4})" +
 		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
 		"/([0-9a-f]{64})" +
 		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
@@ -35,6 +36,13 @@ var nodeRegex = regexp.MustCompile(
 
 func GetNodeInterface() string {
 	return nodeInterface
+}
+
+func padLeft(s string, tot int, pad string) string {
+	if len(s) >= tot {
+		return s
+	}
+	return strings.Repeat(pad, tot-len(s)) + s
 }
 
 type Node struct {
@@ -56,13 +64,12 @@ func (n *Node) GetNodeId() uint16 {
 }
 
 func (n *Node) GetNodeName() string {
-	t := n.tuple()
-	return fmt.Sprintf("n-%03d-%03d", t[0], t[1])
+	s := strconv.FormatUint(uint64(n.GetNodeId()), 36) // 36^4 > 2^20
+	return "n" + padLeft(s, 4, "0")
 }
 
 func (n *Node) GetNodePath() string {
-	t := n.tuple()
-	return fmt.Sprintf("%03d_%03d", t[0], t[1])
+	return n.GetNodeName()
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
