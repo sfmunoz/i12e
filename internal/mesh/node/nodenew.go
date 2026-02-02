@@ -41,7 +41,34 @@ func validNodeId(nodeId uint16) error {
 	return nil
 }
 
-func loadNode() (*Node, error) {
+func resetNodeLocal() error {
+	_, err := os.Stat(nodeIdFname)
+	if err == nil {
+		return os.Remove(nodeIdFname)
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+func procNodeList(nodeList []*Node, nodeLocal *Node, remMeshBase string) error {
+	nodeIdLocal := nodeLocal.GetNodeId()
+	for i, n := range nodeList {
+		if n.GetNodeId() != nodeIdLocal {
+			continue
+		}
+		nodeList[i] = nodeLocal
+		return nil
+	}
+	if err := nodeLocal.pushToRemote(remMeshBase); err != nil {
+		return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList but pushToRemote() failed: %q", err)
+	}
+	// FIXME add nodeLocal to nodeList
+	return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList; pushToRemote() performed")
+}
+
+func loadNode(nodeList []*Node, remMeshBase string) (*Node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		return nil, err
@@ -66,11 +93,15 @@ func loadNode() (*Node, error) {
 		return nil, fmt.Errorf("IfaceIP() returned empty value")
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
-	return &Node{
+	nodeLocal := &Node{
 		id:         uint16(nodeId),
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
-	}, nil
+	}
+	if err := procNodeList(nodeList, nodeLocal, remMeshBase); err != nil {
+		return nil, err
+	}
+	return nodeLocal, nil
 }
 
 func writeNode() error {
@@ -81,31 +112,15 @@ func writeNode() error {
 	return nil
 }
 
-func resetNodeLocal() error {
-	_, err := os.Stat(nodeIdFname)
-	if err == nil {
-		return os.Remove(nodeIdFname)
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	return err
-}
-
-func getNodeLocal(keep bool) (*Node, error) {
-	if !keep {
-		if err := resetNodeLocal(); err != nil {
-			return nil, err
-		}
-	}
-	node, err := loadNode()
+func getNodeLocal(nodeList []*Node, remMeshBase string) (*Node, error) {
+	node, err := loadNode(nodeList, remMeshBase)
 	if err == nil {
 		return node, nil
 	}
 	if err := writeNode(); err != nil {
 		return nil, err
 	}
-	return loadNode()
+	return loadNode(nodeList, remMeshBase)
 }
 
 func getNodeIdFromNodeName(nodeName string) (uint16, error) {
@@ -159,9 +174,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal(keep bool) NodeOption {
+func WithLocal(nodeList []*Node, remMeshBase string) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal(keep)
+		return getNodeLocal(nodeList, remMeshBase)
 	}
 }
 

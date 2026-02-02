@@ -18,7 +18,7 @@ const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
 type Mesh struct{}
 
-func (m *Mesh) getNodeList(nodeLocal *node.Node) ([]*node.Node, error) {
+func (m *Mesh) getNodeList() ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -28,7 +28,6 @@ func (m *Mesh) getNodeList(nodeLocal *node.Node) ([]*node.Node, error) {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	nodeList := make([]*node.Node, 0)
-	nodeNameLocal := nodeLocal.GetNodeName()
 	nodeNameLast := ""
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
@@ -41,11 +40,7 @@ func (m *Mesh) getNodeList(nodeLocal *node.Node) ([]*node.Node, error) {
 			continue
 		}
 		nodeNameLast = nodeName
-		if nodeName == nodeNameLocal {
-			nodeList = append(nodeList, nodeLocal)
-		} else {
-			nodeList = append(nodeList, n)
-		}
+		nodeList = append(nodeList, n)
 	}
 	return nodeList, nil
 }
@@ -89,21 +84,18 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal(true))
+	nodeList, err := m.getNodeList()
+	if err != nil {
+		return err
+	}
+	nodeLocal, err := node.NewNode(node.WithLocal(nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
 	if err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := nodeLocal.PushToRemote(remMeshBase); err != nil {
-		return err
-	}
 	if err := nodeLocal.IfaceLocalConfig(); err != nil {
-		return err
-	}
-	nodeList, err := m.getNodeList(nodeLocal)
-	if err != nil {
 		return err
 	}
 	if err := m.ifacePeersConfig(nodeList); err != nil {
