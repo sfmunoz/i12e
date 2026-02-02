@@ -114,7 +114,7 @@ func (m *Mesh) run() error {
 }
 
 func newMesh() (*Mesh, error) {
-	nodeLocal, err := node.NewNode(node.WithLocal(false))
+	nodeLocal, err := node.NewNode(node.WithLocal(true))
 	if err != nil {
 		return nil, err
 	}

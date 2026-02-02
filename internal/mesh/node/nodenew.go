@@ -81,8 +81,8 @@ func resetNodeLocal() error {
 	return err
 }
 
-func getNodeLocal(reset bool) (*Node, error) {
-	if reset {
+func getNodeLocal(keep bool) (*Node, error) {
+	if !keep {
 		if err := resetNodeLocal(); err != nil {
 			return nil, err
 		}
@@ -159,9 +159,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal(reset bool) NodeOption {
+func WithLocal(keep bool) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal(reset)
+		return getNodeLocal(keep)
 	}
 }
 
