@@ -45,7 +45,14 @@ func (n *Node) tuple() [2]byte {
 }
 
 func (n *Node) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s", n.GetNodeId(), n.GetNodeName(), n.GetNodeIP())
+	return fmt.Sprintf(
+		"id=%d|name=%s|ip=%s|local=%t|wgkey=%s",
+		n.GetNodeId(),
+		n.GetNodeName(),
+		n.GetNodeIP(),
+		n.GetLocal(),
+		n.GetWgKey(),
+	)
 }
 
 func (n *Node) GetNodeId() uint16 {
