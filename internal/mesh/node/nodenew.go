@@ -1,6 +1,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"net/netip"
@@ -69,7 +70,23 @@ func writeNode() error {
 	return nil
 }
 
-func getNodeLocal() (*Node, error) {
+func resetNodeLocal() error {
+	_, err := os.Stat(nodeIdFname)
+	if err == nil {
+		return os.Remove(nodeIdFname)
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+func getNodeLocal(reset bool) (*Node, error) {
+	if reset {
+		if err := resetNodeLocal(); err != nil {
+			return nil, err
+		}
+	}
 	node, err := loadNode()
 	if err == nil {
 		return node, nil
@@ -142,9 +159,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal() NodeOption {
+func WithLocal(reset bool) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal()
+		return getNodeLocal(reset)
 	}
 }
 
