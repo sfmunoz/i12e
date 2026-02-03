@@ -84,6 +84,9 @@ func (n *Node) GetWgEndpoint() *netip.AddrPort {
 }
 
 func (n *Node) HostnameConfig() error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot set hostname: not local node")
+	}
 	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.GetNodeName()), 0644); err != nil {
 		return err
 	}
