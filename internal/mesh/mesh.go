@@ -47,8 +47,8 @@ type Mesh struct {
 	nodeList []*node.Node
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node.Node) error {
-	for _, n := range nodeList {
+func (m *Mesh) ifacePeersConfig() error {
+	for _, n := range m.nodeList {
 		if n.GetLocal() {
 			log.Info("skipping local node", "node", n)
 			continue
@@ -67,7 +67,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node) error {
 	return nil
 }
 
-func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
+func (m *Mesh) etcHostsUpdate() error {
 	// Flatcar's default
 	lines := []string{
 		"#",
@@ -77,7 +77,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 		"127.0.0.1 localhost",
 		"::1 localhost",
 	}
-	for _, n := range nodeList {
+	for _, n := range m.nodeList {
 		lines = append(lines, fmt.Sprintf("%s %s", n.GetNodeIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
@@ -96,10 +96,10 @@ func (m *Mesh) run() error {
 	if err := nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(m.nodeList); err != nil {
+	if err := m.ifacePeersConfig(); err != nil {
 		return err
 	}
-	if err := m.etcHostsUpdate(m.nodeList); err != nil {
+	if err := m.etcHostsUpdate(); err != nil {
 		return err
 	}
 	return nil
