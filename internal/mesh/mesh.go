@@ -16,8 +16,8 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
-func getNodeList() ([]*node.Node, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
+func getNodeList(remBase string) ([]*node.Node, error) {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -44,7 +44,24 @@ func getNodeList() ([]*node.Node, error) {
 }
 
 type Mesh struct {
+	remBase  string
 	nodeList []*node.Node
+}
+
+func (m *Mesh) procNodeList(nodeLocal *node.Node) error {
+	nodeIdLocal := nodeLocal.GetNodeId()
+	for i, n := range m.nodeList {
+		if n.GetNodeId() != nodeIdLocal {
+			continue
+		}
+		m.nodeList[i] = nodeLocal
+		return nil
+	}
+	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+		return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList but PushToRemote() failed: %q", err)
+	}
+	m.nodeList = append(m.nodeList, nodeLocal)
+	return nil
 }
 
 func (m *Mesh) ifacePeersConfig() error {
@@ -86,8 +103,11 @@ func (m *Mesh) etcHostsUpdate() error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal(&m.nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
+	nodeLocal, err := node.NewNode(node.WithLocal()) // XXX nodeList is updated with nodeLocal
 	if err != nil {
+		return err
+	}
+	if err := m.procNodeList(nodeLocal); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
@@ -105,16 +125,16 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh() (*Mesh, error) {
-	nodeList, err := getNodeList()
+func newMesh(remBase string) (*Mesh, error) {
+	nodeList, err := getNodeList(remBase)
 	if err != nil {
 		return nil, err
 	}
-	return &Mesh{nodeList}, nil
+	return &Mesh{remBase, nodeList}, nil
 }
 
 func Run() error {
-	mesh, err := newMesh()
+	mesh, err := newMesh(remMeshBase)
 	if err != nil {
 		return err
 	}

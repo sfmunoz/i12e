@@ -52,22 +52,6 @@ func resetNodeLocal() error {
 	return err
 }
 
-func procNodeList(nodeList *[]*Node, nodeLocal *Node, remMeshBase string) error {
-	nodeIdLocal := nodeLocal.GetNodeId()
-	for i, n := range *nodeList {
-		if n.GetNodeId() != nodeIdLocal {
-			continue
-		}
-		(*nodeList)[i] = nodeLocal
-		return nil
-	}
-	if err := nodeLocal.pushToRemote(remMeshBase); err != nil {
-		return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList but pushToRemote() failed: %q", err)
-	}
-	*nodeList = append(*nodeList, nodeLocal)
-	return nil
-}
-
 func writeNode() error {
 	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
 	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
@@ -76,7 +60,7 @@ func writeNode() error {
 	return nil
 }
 
-func getNodeLocal(nodeList *[]*Node, remMeshBase string) (*Node, error) {
+func getNodeLocal() (*Node, error) {
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		if err := writeNode(); err != nil {
@@ -107,15 +91,11 @@ func getNodeLocal(nodeList *[]*Node, remMeshBase string) (*Node, error) {
 		return nil, fmt.Errorf("IfaceIP() returned empty value")
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
-	nodeLocal := &Node{
+	return &Node{
 		id:         uint16(nodeId),
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
-	}
-	if err := procNodeList(nodeList, nodeLocal, remMeshBase); err != nil {
-		return nil, err
-	}
-	return nodeLocal, nil
+	}, nil
 }
 
 func getNodeIdFromNodeName(nodeName string) (uint16, error) {
@@ -169,9 +149,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal(nodeList *[]*Node, remMeshBase string) NodeOption {
+func WithLocal() NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal(nodeList, remMeshBase)
+		return getNodeLocal()
 	}
 }
 

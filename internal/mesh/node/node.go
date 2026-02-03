@@ -126,7 +126,7 @@ func (n *Node) IfaceLocalConfig() error {
 	return nil
 }
 
-func (n *Node) pushToRemote(remMeshBase string) error {
+func (n *Node) PushToRemote(remMeshBase string) error {
 	if !n.GetLocal() {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
