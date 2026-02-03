@@ -16,16 +16,20 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
-func getNodeList(remBase string) ([]*node.Node, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
+type Mesh struct {
+	remBase  string
+	nodeList []*node.Node
+}
+
+func (m *Mesh) getNodeList() error {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
-	nodeList := make([]*node.Node, 0)
 	nodeNameLast := ""
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
@@ -38,14 +42,9 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 			continue
 		}
 		nodeNameLast = nodeName
-		nodeList = append(nodeList, n)
+		m.nodeList = append(m.nodeList, n)
 	}
-	return nodeList, nil
-}
-
-type Mesh struct {
-	remBase  string
-	nodeList []*node.Node
+	return nil
 }
 
 func (m *Mesh) procNodeList(nodeLocal *node.Node) error {
@@ -103,7 +102,10 @@ func (m *Mesh) etcHostsUpdate() error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal()) // XXX nodeList is updated with nodeLocal
+	if err := m.getNodeList(); err != nil {
+		return err
+	}
+	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
 		return err
 	}
@@ -125,18 +127,11 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(remBase string) (*Mesh, error) {
-	nodeList, err := getNodeList(remBase)
-	if err != nil {
-		return nil, err
-	}
-	return &Mesh{remBase, nodeList}, nil
+func newMesh(remBase string) *Mesh {
+	nodeList := make([]*node.Node, 0)
+	return &Mesh{remBase, nodeList}
 }
 
 func Run() error {
-	mesh, err := newMesh(remMeshBase)
-	if err != nil {
-		return err
-	}
-	return mesh.run()
+	return newMesh(remMeshBase).run()
 }
