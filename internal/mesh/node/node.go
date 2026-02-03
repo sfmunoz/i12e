@@ -131,12 +131,11 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
-	nodeName := n.GetNodeName()
 	wgEndpoint := n.GetWgEndpoint()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
-		nodeName,
+		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
 		n.GetWgKey().GetPubKey().Hex(),
@@ -148,9 +147,17 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	if err != nil {
 		return fmt.Errorf("'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
+	return nil
+}
+
+func (n *Node) PurgeFromRemote(remMeshBase string) error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot purge node: it's not local")
+	}
+	nodeName := n.GetNodeName()
 	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
-	cmd = exec.Command("rclone", "lsf", nodePrefix)
-	bo, be, err = cmdutil.RunSimple(cmd)
+	cmd := exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}

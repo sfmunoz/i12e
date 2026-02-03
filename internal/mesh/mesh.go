@@ -105,6 +105,9 @@ func (m *Mesh) run() error {
 	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
 		return err
 	}
+	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
+		return err
+	}
 	if err := m.getNodeList(); err != nil {
 		return err
 	}
