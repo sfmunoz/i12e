@@ -17,11 +17,21 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
 type Mesh struct {
-	remBase  string
-	nodeList []*node.Node
+	remBase   string
+	nodeLocal *node.Node
+	nodeList  []*node.Node
 }
 
-func (m *Mesh) getNodeList() error {
+func (m *Mesh) setNodeLocal() error {
+	nLoc, err := node.NewNode(node.WithLocal())
+	if err != nil {
+		return err
+	}
+	m.nodeLocal = nLoc
+	return nil
+}
+
+func (m *Mesh) setNodeList() error {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -47,21 +57,10 @@ func (m *Mesh) getNodeList() error {
 	return nil
 }
 
-func (m *Mesh) nodeListSetNodeLocal(nodeLocal *node.Node) error {
-	nodeIdLocal := nodeLocal.GetNodeId()
-	for i, n := range m.nodeList {
-		if n.GetNodeId() != nodeIdLocal {
-			continue
-		}
-		m.nodeList[i] = nodeLocal
-		return nil
-	}
-	return fmt.Errorf("nodeListSetNodeLocal(): missing nodeLocal in nodeList")
-}
-
 func (m *Mesh) ifacePeersConfig() error {
+	nodeIdLocal := m.nodeLocal.GetNodeId()
 	for _, n := range m.nodeList {
-		if n.GetLocal() {
+		if n.GetNodeId() == nodeIdLocal {
 			log.Info("skipping local node", "node", n)
 			continue
 		}
@@ -98,26 +97,22 @@ func (m *Mesh) etcHostsUpdate() error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal())
-	if err != nil {
+	if err := m.setNodeLocal(); err != nil {
 		return err
 	}
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+	if err := m.nodeLocal.PushToRemote(m.remBase); err != nil {
 		return err
 	}
-	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
+	if err := m.nodeLocal.PurgeFromRemote(m.remBase); err != nil {
 		return err
 	}
-	if err := m.getNodeList(); err != nil {
+	if err := m.setNodeList(); err != nil {
 		return err
 	}
-	if err := m.nodeListSetNodeLocal(nodeLocal); err != nil {
+	if err := m.nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := nodeLocal.HostnameConfig(); err != nil {
-		return err
-	}
-	if err := nodeLocal.IfaceLocalConfig(); err != nil {
+	if err := m.nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
 	if err := m.ifacePeersConfig(); err != nil {
@@ -130,8 +125,11 @@ func (m *Mesh) run() error {
 }
 
 func newMesh(remBase string) *Mesh {
-	nodeList := make([]*node.Node, 0)
-	return &Mesh{remBase, nodeList}
+	return &Mesh{
+		remBase:   remBase,
+		nodeLocal: nil,
+		nodeList:  make([]*node.Node, 0),
+	}
 }
 
 func Run() error {
