@@ -47,7 +47,7 @@ func (m *Mesh) getNodeList() error {
 	return nil
 }
 
-func (m *Mesh) procNodeList(nodeLocal *node.Node) error {
+func (m *Mesh) nodeListSetNodeLocal(nodeLocal *node.Node) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	for i, n := range m.nodeList {
 		if n.GetNodeId() != nodeIdLocal {
@@ -56,11 +56,7 @@ func (m *Mesh) procNodeList(nodeLocal *node.Node) error {
 		m.nodeList[i] = nodeLocal
 		return nil
 	}
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
-		return fmt.Errorf("procNodeList(): couldn't find nodeLocal in nodeList but PushToRemote() failed: %q", err)
-	}
-	m.nodeList = append(m.nodeList, nodeLocal)
-	return nil
+	return fmt.Errorf("nodeListSetNodeLocal(): missing nodeLocal in nodeList")
 }
 
 func (m *Mesh) ifacePeersConfig() error {
@@ -102,14 +98,17 @@ func (m *Mesh) etcHostsUpdate() error {
 }
 
 func (m *Mesh) run() error {
-	if err := m.getNodeList(); err != nil {
-		return err
-	}
 	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
 		return err
 	}
-	if err := m.procNodeList(nodeLocal); err != nil {
+	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+		return err
+	}
+	if err := m.getNodeList(); err != nil {
+		return err
+	}
+	if err := m.nodeListSetNodeLocal(nodeLocal); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
