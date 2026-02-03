@@ -16,9 +16,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 const remMeshBase = "rem:mesh" // FIXME unhardcode this
 
-type Mesh struct{}
-
-func (m *Mesh) getNodeList() ([]*node.Node, error) {
+func getNodeList() ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remMeshBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -43,6 +41,10 @@ func (m *Mesh) getNodeList() ([]*node.Node, error) {
 		nodeList = append(nodeList, n)
 	}
 	return nodeList, nil
+}
+
+type Mesh struct {
+	nodeList []*node.Node
 }
 
 func (m *Mesh) ifacePeersConfig(nodeList []*node.Node) error {
@@ -84,11 +86,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	nodeList, err := m.getNodeList()
-	if err != nil {
-		return err
-	}
-	nodeLocal, err := node.NewNode(node.WithLocal(&nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
+	nodeLocal, err := node.NewNode(node.WithLocal(&m.nodeList, remMeshBase)) // XXX nodeList is updated with nodeLocal
 	if err != nil {
 		return err
 	}
@@ -98,19 +96,27 @@ func (m *Mesh) run() error {
 	if err := nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(nodeList); err != nil {
+	if err := m.ifacePeersConfig(m.nodeList); err != nil {
 		return err
 	}
-	if err := m.etcHostsUpdate(nodeList); err != nil {
+	if err := m.etcHostsUpdate(m.nodeList); err != nil {
 		return err
 	}
 	return nil
 }
 
-func newMesh() *Mesh {
-	return &Mesh{}
+func newMesh() (*Mesh, error) {
+	nodeList, err := getNodeList()
+	if err != nil {
+		return nil, err
+	}
+	return &Mesh{nodeList}, nil
 }
 
 func Run() error {
-	return newMesh().run()
+	mesh, err := newMesh()
+	if err != nil {
+		return err
+	}
+	return mesh.run()
 }
