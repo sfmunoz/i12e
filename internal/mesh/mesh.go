@@ -43,6 +43,19 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
+func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
+	ret := make([]*node.Node, 0)
+	nodeNameLast := ""
+	for _, n := range nodeList {
+		nodeName := n.GetNodeName()
+		if nodeName == nodeNameLast {
+			continue
+		}
+		nodeNameLast = nodeName
+	}
+	return ret, nil
+}
+
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	for _, n := range nodeList {
@@ -93,7 +106,11 @@ func Run(remBase string) error {
 	if err := nodeLocal.PurgeFromRemote(remBase); err != nil {
 		return err
 	}
-	nodeList, err := getNodeList(remBase)
+	nodeListRaw, err := getNodeList(remBase)
+	if err != nil {
+		return err
+	}
+	nodeList, err := filterNodeList(nodeListRaw)
 	if err != nil {
 		return err
 	}
