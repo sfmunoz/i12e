@@ -123,9 +123,6 @@ func Run(remBase string) error {
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
 	}
-	if err := nodeLocal.PurgeFromRemote(remBase, 2); err != nil {
-		return err
-	}
 	nodeListRaw, err := getNodeList(remBase)
 	if err != nil {
 		return err
@@ -136,6 +133,9 @@ func Run(remBase string) error {
 	}
 	if !nodeLocalInNodeList(nodeList, nodeLocal) {
 		return nil
+	}
+	if err := nodeLocal.PurgeFromRemote(remBase, 2); err != nil {
+		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
