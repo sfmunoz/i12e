@@ -66,6 +66,16 @@ func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
 	return nodeListRet, nil
 }
 
+func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node) bool {
+	nodeIdLocal := nodeLocal.GetNodeId()
+	for _, n := range nodeList {
+		if n.GetNodeId() == nodeIdLocal {
+			return true
+		}
+	}
+	return false
+}
+
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	for _, n := range nodeList {
@@ -123,6 +133,9 @@ func Run(remBase string) error {
 	nodeList, err := filterNodeList(nodeListRaw)
 	if err != nil {
 		return err
+	}
+	if !nodeLocalInNodeList(nodeList, nodeLocal) {
+		return nil
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
