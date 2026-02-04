@@ -48,8 +48,8 @@ func procNodeBlock(nodeList []*node.Node, nodeBlock []*node.Node, n *node.Node) 
 	if n != nil && (nbLen < 1 || n.GetNodeId() == nodeBlock[nbLen-1].GetNodeId()) {
 		return nodeList, append(nodeBlock, n)
 	}
-	if nbLen > 1 && nodeBlock[0].GetWgKey().GetPrivKey().Hex() ==
-		nodeBlock[1].GetWgKey().GetPrivKey().Hex() {
+	if nbLen > 1 && nodeBlock[0].GetWgKey().GetPubKey().Hex() ==
+		nodeBlock[1].GetWgKey().GetPubKey().Hex() {
 		return append(nodeList, nodeBlock[0]), make([]*node.Node, 0)
 	}
 	// ignore blocks with few (<2) or not repeated leading elements (i.e. no locked)
