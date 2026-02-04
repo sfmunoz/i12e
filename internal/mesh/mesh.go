@@ -45,7 +45,7 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 
 func procNodeBlock(nodeList []*node.Node, nodeBlock []*node.Node, n *node.Node) ([]*node.Node, []*node.Node) {
 	nbLen := len(nodeBlock)
-	if n != nil && (nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName()) {
+	if n != nil && (nbLen < 1 || n.GetNodeId() == nodeBlock[nbLen-1].GetNodeId()) {
 		return nodeList, append(nodeBlock, n)
 	}
 	if nbLen > 1 && nodeBlock[0].GetWgKey().GetPrivKey().Hex() ==
