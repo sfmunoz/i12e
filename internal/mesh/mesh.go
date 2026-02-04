@@ -123,7 +123,7 @@ func Run(remBase string) error {
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
 	}
-	if err := nodeLocal.PurgeFromRemote(remBase); err != nil {
+	if err := nodeLocal.PurgeFromRemote(remBase, 2); err != nil {
 		return err
 	}
 	nodeListRaw, err := getNodeList(remBase)

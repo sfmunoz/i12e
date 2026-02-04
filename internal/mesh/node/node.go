@@ -153,9 +153,12 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	return nil
 }
 
-func (n *Node) PurgeFromRemote(remMeshBase string) error {
+func (n *Node) PurgeFromRemote(remMeshBase string, keep int) error {
 	if !n.GetLocal() {
 		return fmt.Errorf("cannot purge node: it's not local")
+	}
+	if keep < 1 {
+		return fmt.Errorf("invalid keep=%d (min=1)", keep)
 	}
 	nodeName := n.GetNodeName()
 	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
@@ -168,7 +171,7 @@ func (n *Node) PurgeFromRemote(remMeshBase string) error {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	for i, entry := range entries {
-		if i < 1 {
+		if i < keep {
 			continue
 		}
 		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodeName, entry)
