@@ -44,16 +44,24 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 }
 
 func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
-	ret := make([]*node.Node, 0)
-	nodeNameLast := ""
+	nodeListRet := make([]*node.Node, 0)
+	nodeBlock := make([]*node.Node, 0)
 	for _, n := range nodeList {
-		nodeName := n.GetNodeName()
-		if nodeName == nodeNameLast {
+		nbLen := len(nodeBlock)
+		if nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName() {
+			nodeBlock = append(nodeBlock, n)
 			continue
 		}
-		nodeNameLast = nodeName
+		if nbLen < 2 || nodeBlock[0].GetWgKey().GetPrivKey().Hex() !=
+			nodeBlock[1].GetWgKey().GetPrivKey().Hex() {
+			// ignore blocks with few (<2) or not repeated leading elements (i.e. no locked)
+			nodeBlock = make([]*node.Node, 0)
+			continue
+		}
+		nodeListRet = append(nodeListRet, nodeBlock[0])
+		nodeBlock = make([]*node.Node, 0)
 	}
-	return ret, nil
+	return nodeListRet, nil
 }
 
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
