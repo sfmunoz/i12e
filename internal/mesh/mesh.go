@@ -50,10 +50,14 @@ func procNodeBlock(nodeList []*node.Node, nodeBlock []*node.Node, n *node.Node) 
 	}
 	if nbLen > 1 && nodeBlock[0].GetWgKey().GetPubKey().Hex() ==
 		nodeBlock[1].GetWgKey().GetPubKey().Hex() {
-		return append(nodeList, nodeBlock[0]), make([]*node.Node, 0)
+		nbRet := make([]*node.Node, 1)
+		nbRet[0] = n
+		return append(nodeList, nodeBlock[0]), nbRet
 	}
 	// ignore blocks with few (<2) or not repeated leading elements (i.e. no locked)
-	return nodeList, make([]*node.Node, 0)
+	nbRet := make([]*node.Node, 1)
+	nbRet[0] = n
+	return nodeList, nbRet
 }
 
 func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
