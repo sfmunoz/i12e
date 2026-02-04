@@ -43,24 +43,26 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
+func procNodeBlock(nodeList []*node.Node, nodeBlock []*node.Node, n *node.Node) ([]*node.Node, []*node.Node) {
+	nbLen := len(nodeBlock)
+	if n != nil && (nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName()) {
+		return nodeList, append(nodeBlock, n)
+	}
+	if nbLen < 2 || nodeBlock[0].GetWgKey().GetPrivKey().Hex() !=
+		nodeBlock[1].GetWgKey().GetPrivKey().Hex() {
+		// ignore blocks with few (<2) or not repeated leading elements (i.e. no locked)
+		return nodeList, make([]*node.Node, 0)
+	}
+	return append(nodeList, nodeBlock[0]), make([]*node.Node, 0)
+}
+
 func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
 	nodeListRet := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range nodeList {
-		nbLen := len(nodeBlock)
-		if nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName() {
-			nodeBlock = append(nodeBlock, n)
-			continue
-		}
-		if nbLen < 2 || nodeBlock[0].GetWgKey().GetPrivKey().Hex() !=
-			nodeBlock[1].GetWgKey().GetPrivKey().Hex() {
-			// ignore blocks with few (<2) or not repeated leading elements (i.e. no locked)
-			nodeBlock = make([]*node.Node, 0)
-			continue
-		}
-		nodeListRet = append(nodeListRet, nodeBlock[0])
-		nodeBlock = make([]*node.Node, 0)
+		nodeListRet, nodeBlock = procNodeBlock(nodeListRet, nodeBlock, n)
 	}
+	nodeListRet, nodeBlock = procNodeBlock(nodeListRet, nodeBlock, nil)
 	return nodeListRet, nil
 }
 
