@@ -31,19 +31,13 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
-	nodeNameLast := ""
 	nodeList := make([]*node.Node, 0)
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
 		if err != nil {
-			log.Error("'getNodeRemote()' failed", "err", err, "entry", entry)
+			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodeName := n.GetNodeName()
-		if nodeName == nodeNameLast {
-			continue
-		}
-		nodeNameLast = nodeName
 		nodeList = append(nodeList, n)
 	}
 	return nodeList, nil
