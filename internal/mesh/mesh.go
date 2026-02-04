@@ -54,10 +54,14 @@ func filterNodeList(nodeListIn []*node.Node) ([]*node.Node, error) {
 	return nodeListOut, nil
 }
 
-func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node) bool {
+func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) bool {
 	nodeIdLocal := nodeLocal.GetNodeId()
+	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
-		if n.GetNodeId() == nodeIdLocal {
+		if n.GetNodeId() != nodeIdLocal {
+			continue
+		}
+		if idOnly || n.GetWgKey().GetPubKey().Hex() == nodePubKeyLocal {
 			return true
 		}
 	}
@@ -104,13 +108,6 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func Run(remBase string) error {
-	nodeLocal, err := node.NewNode(node.WithLocal())
-	if err != nil {
-		return err
-	}
-	if err := nodeLocal.PushToRemote(remBase); err != nil {
-		return err
-	}
 	nodeListRaw, err := getNodeList(remBase)
 	if err != nil {
 		return err
@@ -119,8 +116,23 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
-	if !nodeLocalInNodeList(nodeList, nodeLocal) {
+	nodeLocal, err := node.NewNode(node.WithLocal())
+	if err != nil {
+		return err
+	}
+	if !nodeLocalInNodeList(nodeList, nodeLocal, true) {
+		for range 2 {
+			if err := nodeLocal.PushToRemote(remBase); err != nil {
+				return err
+			}
+		}
 		return nil
+	}
+	if !nodeLocalInNodeList(nodeList, nodeLocal, false) {
+		return fmt.Errorf("node-conflict: %s", nodeLocal)
+	}
+	if err := nodeLocal.PushToRemote(remBase); err != nil {
+		return err
 	}
 	if err := nodeLocal.PurgeFromRemote(remBase, 2); err != nil {
 		return err
