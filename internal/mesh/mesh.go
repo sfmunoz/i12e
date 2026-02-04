@@ -43,10 +43,10 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
-func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
-	nodeListRet := make([]*node.Node, 0)
+func filterNodeList(nodeListIn []*node.Node) ([]*node.Node, error) {
+	nodeListOut := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
-	for _, n := range append(nodeList, nil) {
+	for _, n := range append(nodeListIn, nil) {
 		nbLen := len(nodeBlock)
 		if n != nil && (nbLen < 1 || n.GetNodeId() == nodeBlock[nbLen-1].GetNodeId()) {
 			nodeBlock = append(nodeBlock, n)
@@ -54,12 +54,12 @@ func filterNodeList(nodeList []*node.Node) ([]*node.Node, error) {
 		}
 		if nbLen > 1 && nodeBlock[0].GetWgKey().GetPubKey().Hex() ==
 			nodeBlock[1].GetWgKey().GetPubKey().Hex() {
-			nodeListRet = append(nodeListRet, nodeBlock[0])
+			nodeListOut = append(nodeListOut, nodeBlock[0])
 		}
 		nodeBlock = make([]*node.Node, 1)
 		nodeBlock[0] = n
 	}
-	return nodeListRet, nil
+	return nodeListOut, nil
 }
 
 func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node) bool {
