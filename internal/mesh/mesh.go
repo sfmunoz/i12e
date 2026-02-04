@@ -49,7 +49,7 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
-func ifacePeersConfig(nodeLocal *node.Node, nodeList []*node.Node) error {
+func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	for _, n := range nodeList {
 		if n.GetNodeId() == nodeIdLocal {
@@ -109,7 +109,7 @@ func Run(remBase string) error {
 	if err := nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
-	if err := ifacePeersConfig(nodeLocal, nodeList); err != nil {
+	if err := ifacePeersConfig(nodeList, nodeLocal); err != nil {
 		return err
 	}
 	if err := etcHostsUpdate(nodeList); err != nil {
