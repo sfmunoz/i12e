@@ -14,14 +14,6 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-func getNodeLocal() (*node.Node, error) {
-	nodeLocal, err := node.NewNode(node.WithLocal())
-	if err != nil {
-		return nil, err
-	}
-	return nodeLocal, nil
-}
-
 func getNodeList(remBase string) ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -112,7 +104,7 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func Run(remBase string) error {
-	nodeLocal, err := getNodeLocal()
+	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
 		return err
 	}
