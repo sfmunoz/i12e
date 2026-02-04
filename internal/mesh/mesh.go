@@ -14,33 +14,25 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-const remMeshBase = "rem:mesh" // FIXME unhardcode this
-
-type Mesh struct {
-	remBase   string
-	nodeLocal *node.Node
-	nodeList  []*node.Node
-}
-
-func (m *Mesh) setNodeLocal() error {
-	nLoc, err := node.NewNode(node.WithLocal())
+func getNodeLocal() (*node.Node, error) {
+	nodeLocal, err := node.NewNode(node.WithLocal())
 	if err != nil {
-		return err
+		return nil, err
 	}
-	m.nodeLocal = nLoc
-	return nil
+	return nodeLocal, nil
 }
 
-func (m *Mesh) setNodeList() error {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
+func getNodeList(remBase string) ([]*node.Node, error) {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	nodeNameLast := ""
+	nodeList := make([]*node.Node, 0)
 	for _, entry := range entries {
 		n, err := node.NewNode(node.WithRemote(entry))
 		if err != nil {
@@ -52,14 +44,14 @@ func (m *Mesh) setNodeList() error {
 			continue
 		}
 		nodeNameLast = nodeName
-		m.nodeList = append(m.nodeList, n)
+		nodeList = append(nodeList, n)
 	}
-	return nil
+	return nodeList, nil
 }
 
-func (m *Mesh) ifacePeersConfig() error {
-	nodeIdLocal := m.nodeLocal.GetNodeId()
-	for _, n := range m.nodeList {
+func ifacePeersConfig(nodeLocal *node.Node, nodeList []*node.Node) error {
+	nodeIdLocal := nodeLocal.GetNodeId()
+	for _, n := range nodeList {
 		if n.GetNodeId() == nodeIdLocal {
 			log.Info("skipping local node", "node", n)
 			continue
@@ -78,7 +70,7 @@ func (m *Mesh) ifacePeersConfig() error {
 	return nil
 }
 
-func (m *Mesh) etcHostsUpdate() error {
+func etcHostsUpdate(nodeList []*node.Node) error {
 	// Flatcar's default
 	lines := []string{
 		"#",
@@ -88,7 +80,7 @@ func (m *Mesh) etcHostsUpdate() error {
 		"127.0.0.1 localhost",
 		"::1 localhost",
 	}
-	for _, n := range m.nodeList {
+	for _, n := range nodeList {
 		lines = append(lines, fmt.Sprintf("%s %s", n.GetNodeIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
@@ -96,42 +88,32 @@ func (m *Mesh) etcHostsUpdate() error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func (m *Mesh) run() error {
-	if err := m.setNodeLocal(); err != nil {
+func Run(remBase string) error {
+	nodeLocal, err := getNodeLocal()
+	if err != nil {
 		return err
 	}
-	if err := m.nodeLocal.PushToRemote(m.remBase); err != nil {
+	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.PurgeFromRemote(m.remBase); err != nil {
+	if err := nodeLocal.PurgeFromRemote(remBase); err != nil {
 		return err
 	}
-	if err := m.setNodeList(); err != nil {
+	nodeList, err := getNodeList(remBase)
+	if err != nil {
 		return err
 	}
-	if err := m.nodeLocal.HostnameConfig(); err != nil {
+	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := m.nodeLocal.IfaceLocalConfig(); err != nil {
+	if err := nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(); err != nil {
+	if err := ifacePeersConfig(nodeLocal, nodeList); err != nil {
 		return err
 	}
-	if err := m.etcHostsUpdate(); err != nil {
+	if err := etcHostsUpdate(nodeList); err != nil {
 		return err
 	}
 	return nil
-}
-
-func newMesh(remBase string) *Mesh {
-	return &Mesh{
-		remBase:   remBase,
-		nodeLocal: nil,
-		nodeList:  make([]*node.Node, 0),
-	}
-}
-
-func Run() error {
-	return newMesh(remMeshBase).run()
 }
