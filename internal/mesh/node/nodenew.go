@@ -60,7 +60,12 @@ func writeNode() error {
 	return nil
 }
 
-func getNodeLocal() (*Node, error) {
+func getNodeLocal(reset bool) (*Node, error) {
+	if reset {
+		if err := resetNodeLocal(); err != nil {
+			return nil, err
+		}
+	}
 	buf, err := os.ReadFile(nodeIdFname)
 	if err != nil {
 		if err := writeNode(); err != nil {
@@ -149,9 +154,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal() NodeOption {
+func WithLocal(reset bool) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal()
+		return getNodeLocal(reset)
 	}
 }
 

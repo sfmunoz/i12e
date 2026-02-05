@@ -116,7 +116,7 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
-	nodeLocal, err := node.NewNode(node.WithLocal())
+	nodeLocal, err := node.NewNode(node.WithLocal(false))
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,14 @@ func Run(remBase string) error {
 		return nil
 	}
 	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
-		return fmt.Errorf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList)
+		log.Error("conflict", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
+		errMsg := fmt.Sprintf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList)
+		nodeLocalNew, err := node.NewNode(node.WithLocal(true))
+		if err != nil {
+			return fmt.Errorf("%s + node-reset failed: %s", errMsg, err)
+		}
+		log.Info("node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+		return fmt.Errorf("%s", errMsg)
 	}
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
