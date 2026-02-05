@@ -68,6 +68,17 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 	return nil
 }
 
+func nodeContention(nodeList []*node.Node, nodeLocal *node.Node) bool {
+	nodeIdLocal := nodeLocal.GetNodeId()
+	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
+	for _, n := range nodeList {
+		if n.GetNodeId() == nodeIdLocal && n.GetWgKey().GetPubKey().Hex() != nodePubKeyLocal {
+			return true
+		}
+	}
+	return false
+}
+
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	for _, n := range nodeList {
@@ -107,6 +118,15 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
+func giveUpNodeLocal(nodeLocal *node.Node, errPrev error) error {
+	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
+	if err != nil {
+		return fmt.Errorf("%s + node-reset failed: %s", errPrev, err)
+	}
+	log.Info("giveUpNodeLocal(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+	return errPrev
+}
+
 func Run(remBase string) error {
 	nodeListRaw, err := getNodeList(remBase)
 	if err != nil {
@@ -120,8 +140,14 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
+	nc := nodeContention(nodeListRaw, nodeLocal)
+	log.Info("nodeContention", "nc", nc)
 	nodeInList := nodeLocalInNodeList(nodeList, nodeLocal, true)
 	if nodeInList == nil {
+		if nc {
+			log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
+			return giveUpNodeLocal(nodeLocal, fmt.Errorf("contention detected: giving up nodeLocal=%s", nodeLocal))
+		}
 		tot := 2
 		for i := range tot {
 			log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
@@ -132,14 +158,8 @@ func Run(remBase string) error {
 		return nil
 	}
 	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
-		log.Error("conflict", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
-		errMsg := fmt.Sprintf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList)
-		nodeLocalNew, err := node.NewNode(node.WithLocal(true))
-		if err != nil {
-			return fmt.Errorf("%s + node-reset failed: %s", errMsg, err)
-		}
-		log.Info("node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
-		return fmt.Errorf("%s", errMsg)
+		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
+		return giveUpNodeLocal(nodeLocal, fmt.Errorf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList))
 	}
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
