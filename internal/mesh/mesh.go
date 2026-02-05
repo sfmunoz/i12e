@@ -54,7 +54,7 @@ func filterNodeList(nodeListIn []*node.Node) ([]*node.Node, error) {
 	return nodeListOut, nil
 }
 
-func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) bool {
+func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
@@ -62,10 +62,10 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 			continue
 		}
 		if idOnly || n.GetWgKey().GetPubKey().Hex() == nodePubKeyLocal {
-			return true
+			return n
 		}
 	}
-	return false
+	return nil
 }
 
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
@@ -120,16 +120,19 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
-	if !nodeLocalInNodeList(nodeList, nodeLocal, true) {
-		for range 2 {
+	nodeInList := nodeLocalInNodeList(nodeList, nodeLocal, true)
+	if nodeInList == nil {
+		tot := 2
+		for i := range tot {
+			log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
 			if err := nodeLocal.PushToRemote(remBase); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-	if !nodeLocalInNodeList(nodeList, nodeLocal, false) {
-		return fmt.Errorf("node-conflict: %s", nodeLocal)
+	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
+		return fmt.Errorf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList)
 	}
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
