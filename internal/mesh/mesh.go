@@ -118,12 +118,12 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func giveUpNodeLocal(nodeLocal *node.Node, errPrev error) error {
+func nodeLocalGiveUp(nodeLocal *node.Node, errPrev error) error {
 	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
 	if err != nil {
 		return fmt.Errorf("%s + node-reset failed: %s", errPrev, err)
 	}
-	log.Info("giveUpNodeLocal(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+	log.Info("nodeLocalGiveUp(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
 	return errPrev
 }
 
@@ -146,7 +146,7 @@ func Run(remBase string) error {
 	if nodeInList == nil {
 		if nc {
 			log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-			return giveUpNodeLocal(nodeLocal, fmt.Errorf("contention detected: giving up nodeLocal=%s", nodeLocal))
+			return nodeLocalGiveUp(nodeLocal, fmt.Errorf("contention detected: giving up nodeLocal=%s", nodeLocal))
 		}
 		tot := 2
 		for i := range tot {
@@ -159,7 +159,7 @@ func Run(remBase string) error {
 	}
 	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
 		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
-		return giveUpNodeLocal(nodeLocal, fmt.Errorf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList))
+		return nodeLocalGiveUp(nodeLocal, fmt.Errorf("conflict: nodeLocal=%s vs nodeInList=%s", nodeLocal, nodeInList))
 	}
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
