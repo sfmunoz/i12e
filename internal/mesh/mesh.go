@@ -72,12 +72,12 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 	return nil
 }
 
-func nodeContention(nodeList []*node.Node, nodeLocal *node.Node) []*node.Node {
+func nodeContention(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	pubKeys := make([]string, 0)
 	nodeListRet := make([]*node.Node, 0)
-	for _, n := range nodeList {
+	for _, n := range nodeListRaw {
 		if n.GetNodeId() != nodeIdLocal {
 			continue
 		}
@@ -92,6 +92,26 @@ func nodeContention(nodeList []*node.Node, nodeLocal *node.Node) []*node.Node {
 		nodeListRet = append(nodeListRet, n)
 	}
 	return nodeListRet
+}
+
+func giveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase string) error {
+	ncList := nodeContention(nodeListRaw, nodeLocal)
+	ncListLen := len(ncList)
+	if ncListLen > 0 {
+		for i, n := range ncList {
+			log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
+		}
+		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
+		return nodeLocalGiveUp(nodeLocal)
+	}
+	tot := 2
+	for i := range tot {
+		log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
+		if err := nodeLocal.PushToRemote(remBase); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
@@ -155,25 +175,9 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
-	ncList := nodeContention(nodeListRaw, nodeLocal)
-	ncListLen := len(ncList)
 	nodeInList := nodeLocalInNodeList(nodeList, nodeLocal, true)
 	if nodeInList == nil {
-		if ncListLen > 0 {
-			for i, n := range ncList {
-				log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
-			}
-			log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-			return nodeLocalGiveUp(nodeLocal)
-		}
-		tot := 2
-		for i := range tot {
-			log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
-			if err := nodeLocal.PushToRemote(remBase); err != nil {
-				return err
-			}
-		}
-		return nil
+		return giveUpOrPush(nodeListRaw, nodeLocal, remBase)
 	}
 	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
 		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
