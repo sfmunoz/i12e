@@ -14,7 +14,7 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-func getNodeList(remBase string) ([]*node.Node, error) {
+func getRemoteNodeList(remBase string) ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -39,10 +39,10 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
-func filterNodeList(nodeListIn []*node.Node) ([]*node.Node, error) {
+func getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
 	nodeListOut := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
-	for _, n := range append(nodeListIn, nil) {
+	for _, n := range append(nodeListRaw, nil) {
 		nbLen := len(nodeBlock)
 		if n != nil && (nbLen < 1 || n.GetNodeId() == nodeBlock[nbLen-1].GetNodeId()) {
 			nodeBlock = append(nodeBlock, n)
@@ -72,7 +72,7 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 	return nil
 }
 
-func nodeContention(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
+func getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	pubKeys := make([]string, 0)
@@ -94,24 +94,24 @@ func nodeContention(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node
 	return nodeListRet
 }
 
-func nodeLocalGiveUp(nodeLocal *node.Node) error {
+func nodeGiveUp(nodeLocal *node.Node) error {
 	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
 	if err != nil {
-		return fmt.Errorf("nodeLocalGiveUp(): node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
+		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
 	}
-	log.Info("nodeLocalGiveUp(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+	log.Info("node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
 	return nil
 }
 
-func giveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase string) error {
-	ncList := nodeContention(nodeListRaw, nodeLocal)
+func nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase string) error {
+	ncList := getContenderNodes(nodeListRaw, nodeLocal)
 	ncListLen := len(ncList)
 	if ncListLen > 0 {
 		for i, n := range ncList {
 			log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
 		}
 		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-		return nodeLocalGiveUp(nodeLocal)
+		return nodeGiveUp(nodeLocal)
 	}
 	tot := 2
 	for i := range tot {
@@ -163,11 +163,11 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func Run(remBase string) error {
-	nodeListRaw, err := getNodeList(remBase)
+	nodeListRaw, err := getRemoteNodeList(remBase)
 	if err != nil {
 		return err
 	}
-	nodeList, err := filterNodeList(nodeListRaw)
+	nodeList, err := getConfirmedNodes(nodeListRaw)
 	if err != nil {
 		return err
 	}
@@ -177,11 +177,11 @@ func Run(remBase string) error {
 	}
 	nodeInList := nodeLocalInNodeList(nodeList, nodeLocal, true)
 	if nodeInList == nil {
-		return giveUpOrPush(nodeListRaw, nodeLocal, remBase)
+		return nodeGiveUpOrPush(nodeListRaw, nodeLocal, remBase)
 	}
 	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
 		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
-		return nodeLocalGiveUp(nodeLocal)
+		return nodeGiveUp(nodeLocal)
 	}
 	if err := nodeLocal.PushToRemote(remBase); err != nil {
 		return err
