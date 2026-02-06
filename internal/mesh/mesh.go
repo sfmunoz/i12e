@@ -94,6 +94,15 @@ func nodeContention(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node
 	return nodeListRet
 }
 
+func nodeLocalGiveUp(nodeLocal *node.Node) error {
+	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
+	if err != nil {
+		return fmt.Errorf("nodeLocalGiveUp(): node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
+	}
+	log.Info("nodeLocalGiveUp(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+	return nil
+}
+
 func giveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase string) error {
 	ncList := nodeContention(nodeListRaw, nodeLocal)
 	ncListLen := len(ncList)
@@ -151,15 +160,6 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 	lines = append(lines, "") // NL to the end
 	buf := strings.Join(lines, "\n")
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
-}
-
-func nodeLocalGiveUp(nodeLocal *node.Node) error {
-	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
-	if err != nil {
-		return fmt.Errorf("nodeLocalGiveUp(): node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
-	}
-	log.Info("nodeLocalGiveUp(): node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
-	return nil
 }
 
 func Run(remBase string) error {
