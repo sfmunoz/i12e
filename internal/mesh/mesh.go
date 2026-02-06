@@ -75,13 +75,23 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 func nodeContention(nodeList []*node.Node, nodeLocal *node.Node) []*node.Node {
 	nodeIdLocal := nodeLocal.GetNodeId()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
-	ret := make([]*node.Node, 0)
+	pubKeys := make([]string, 0)
+	nodeListRet := make([]*node.Node, 0)
 	for _, n := range nodeList {
-		if n.GetNodeId() == nodeIdLocal && n.GetWgKey().GetPubKey().Hex() != nodePubKeyLocal {
-			ret = append(ret, n)
+		if n.GetNodeId() != nodeIdLocal {
+			continue
 		}
+		pubKey := n.GetWgKey().GetPubKey().Hex()
+		if pubKey == nodePubKeyLocal {
+			continue
+		}
+		if slices.Contains(pubKeys, pubKey) {
+			continue
+		}
+		pubKeys = append(pubKeys, pubKey)
+		nodeListRet = append(nodeListRet, n)
 	}
-	return ret
+	return nodeListRet
 }
 
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
@@ -151,7 +161,7 @@ func Run(remBase string) error {
 	if nodeInList == nil {
 		if ncListLen > 0 {
 			for i, n := range ncList {
-				log.Warn("contender (may be repeated)", "i", i+1, "tot", ncListLen, "nodeLocal", nodeLocal, "node", n)
+				log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
 			}
 			log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
 			return nodeLocalGiveUp(nodeLocal)
