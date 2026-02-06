@@ -1,3 +1,5 @@
 bin
 build
 *.enc.yaml
+fileserver/data
+fileserver/logs
