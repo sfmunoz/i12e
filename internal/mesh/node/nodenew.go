@@ -1,10 +1,12 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"net/netip"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -19,6 +21,16 @@ const nodeIdMin uint16 = 100
 
 var nodeIdMax = uint16(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
 
+// ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+var nodeRegex = regexp.MustCompile(
+	"^(n[0-9a-z]{4})" +
+		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
+		"/([0-9a-f]{64})" +
+		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
+		"/([0-9]+)" +
+		"$",
+)
+
 func validNodeId(nodeId uint16) error {
 	if nodeId < nodeIdMin {
 		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
@@ -29,8 +41,38 @@ func validNodeId(nodeId uint16) error {
 	return nil
 }
 
-func loadNode() (*Node, error) {
+func resetNodeLocal() error {
+	_, err := os.Stat(nodeIdFname)
+	if err == nil {
+		return os.Remove(nodeIdFname)
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	return err
+}
+
+func writeNode() error {
+	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
+	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
+func getNodeLocal(reset bool) (*Node, error) {
+	if reset {
+		if err := resetNodeLocal(); err != nil {
+			return nil, err
+		}
+	}
 	buf, err := os.ReadFile(nodeIdFname)
+	if err != nil {
+		if err := writeNode(); err != nil {
+			return nil, err
+		}
+	}
+	buf, err = os.ReadFile(nodeIdFname)
 	if err != nil {
 		return nil, err
 	}
@@ -61,54 +103,24 @@ func loadNode() (*Node, error) {
 	}, nil
 }
 
-func writeNode() error {
-	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
-	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
-		return err
+func getNodeIdFromNodeName(nodeName string) (uint16, error) {
+	nodeNameLen := len(nodeName)
+	if nodeNameLen != 5 {
+		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
 	}
-	return nil
-}
-
-func getNodeLocal() (*Node, error) {
-	node, err := loadNode()
-	if err == nil {
-		return node, nil
+	n0 := nodeName[0]
+	if n0 != 'n' {
+		return 0, fmt.Errorf("nodename='%s' starts with '%c' ('n' expected)", nodeName, n0)
 	}
-	if err := writeNode(); err != nil {
-		return nil, err
+	nodeIdInt64, err := strconv.ParseInt(nodeName[1:], 36, 64)
+	if err != nil {
+		return 0, err
 	}
-	return loadNode()
-}
-
-func getNodeIdFromPath(path string) (uint16, error) {
-	parts := strings.Split(path, "_")
-	parts_len := len(parts)
-	if parts_len != 2 {
-		return 0, fmt.Errorf("path='%s' -> len(parts=%s)=%d (2 expected)", path, parts, parts_len)
-	}
-	ids := [2]uint16{0, 0}
-	for i, part := range parts {
-		plen := len(part)
-		if plen < 1 {
-			return 0, fmt.Errorf("len(parts[%d])=%d (>0 expected)", i, plen)
-		}
-		pint, err := strconv.Atoi(part)
-		if err != nil {
-			return 0, err
-		}
-		if pint < 0 {
-			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' < 0", path, i, part)
-		}
-		if pint > 255 {
-			return 0, fmt.Errorf("wrong path: '%s[%d]' = '%s' > 255", path, i, part)
-		}
-		ids[i] = uint16(pint)
-	}
-	nodeId := ids[0]<<8 + ids[1]
+	nodeId := uint16(nodeIdInt64)
 	if err := validNodeId(nodeId); err != nil {
 		return 0, err
 	}
-	return uint16(nodeId), nil
+	return nodeId, nil
 }
 
 func getNodeRemote(entry string) (*Node, error) {
@@ -116,7 +128,7 @@ func getNodeRemote(entry string) (*Node, error) {
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
-	nodeId, err := getNodeIdFromPath(arr[1])
+	nodeId, err := getNodeIdFromNodeName(arr[1])
 	if err != nil {
 		return nil, err
 	}
@@ -142,9 +154,9 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal() NodeOption {
+func WithLocal(reset bool) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal()
+		return getNodeLocal(reset)
 	}
 }
 

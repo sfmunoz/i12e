@@ -5,6 +5,10 @@ type WgKey struct {
 	pubKey  *wgKeyPub
 }
 
+func (w *WgKey) String() string {
+	return w.GetPubKey().String()
+}
+
 func (w *WgKey) GetPrivKey() *wgKeyPriv {
 	return w.privKey
 }

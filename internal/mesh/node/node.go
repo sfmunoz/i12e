@@ -5,8 +5,8 @@ import (
 	"net/netip"
 	"os"
 	"os/exec"
-	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -23,18 +23,15 @@ var nodeNet = func() *netip.Prefix {
 	return &x
 }()
 
-// 252_158/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
-var nodeRegex = regexp.MustCompile(
-	"^([0-9]{3}_[0-9]{3})" +
-		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
-		"/([0-9a-f]{64})" +
-		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
-		"/([0-9]+)" +
-		"$",
-)
-
 func GetNodeInterface() string {
 	return nodeInterface
+}
+
+func padLeft(s string, tot int, pad string) string {
+	if len(s) >= tot {
+		return s
+	}
+	return strings.Repeat(pad, tot-len(s)) + s
 }
 
 type Node struct {
@@ -48,7 +45,15 @@ func (n *Node) tuple() [2]byte {
 }
 
 func (n *Node) String() string {
-	return fmt.Sprintf("id=%d|name=%s|ip=%s|path=%s", n.GetNodeId(), n.GetNodeName(), n.GetNodeIP(), n.GetNodePath())
+	return fmt.Sprintf(
+		"id=%d|name=%s|ip=%s|local=%t|wgkey=%s|endpoint=%s",
+		n.GetNodeId(),
+		n.GetNodeName(),
+		n.GetNodeIP(),
+		n.GetLocal(),
+		n.GetWgKey(),
+		n.GetWgEndpoint(),
+	)
 }
 
 func (n *Node) GetNodeId() uint16 {
@@ -56,13 +61,8 @@ func (n *Node) GetNodeId() uint16 {
 }
 
 func (n *Node) GetNodeName() string {
-	t := n.tuple()
-	return fmt.Sprintf("n-%03d-%03d", t[0], t[1])
-}
-
-func (n *Node) GetNodePath() string {
-	t := n.tuple()
-	return fmt.Sprintf("%03d_%03d", t[0], t[1])
+	s := strconv.FormatUint(uint64(n.GetNodeId()), 36) // 36^4 > 2^20
+	return "n" + padLeft(s, 4, "0")
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
@@ -85,6 +85,9 @@ func (n *Node) GetWgEndpoint() *netip.AddrPort {
 }
 
 func (n *Node) HostnameConfig() error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot set hostname: not local node")
+	}
 	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.GetNodeName()), 0644); err != nil {
 		return err
 	}
@@ -132,12 +135,11 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		return fmt.Errorf("cannot push node: it's not local")
 	}
 	ts := time.Now().UTC()
-	nodePath := n.GetNodePath()
 	wgEndpoint := n.GetWgEndpoint()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
-		nodePath,
+		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
 		n.GetWgKey().GetPubKey().Hex(),
@@ -149,9 +151,20 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	if err != nil {
 		return fmt.Errorf("'rclone touch' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodePath)
-	cmd = exec.Command("rclone", "lsf", nodePrefix)
-	bo, be, err = cmdutil.RunSimple(cmd)
+	return nil
+}
+
+func (n *Node) PurgeFromRemote(remMeshBase string, keep int) error {
+	if !n.GetLocal() {
+		return fmt.Errorf("cannot purge node: it's not local")
+	}
+	if keep < 1 {
+		return fmt.Errorf("invalid keep=%d (min=1)", keep)
+	}
+	nodeName := n.GetNodeName()
+	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
+	cmd := exec.Command("rclone", "lsf", nodePrefix)
+	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
@@ -159,10 +172,10 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	slices.Sort(entries)
 	slices.Reverse(entries)
 	for i, entry := range entries {
-		if i < 1 {
+		if i < keep {
 			continue
 		}
-		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodePath, entry)
+		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodeName, entry)
 		cmd := exec.Command("rclone", "delete", deletePath)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {

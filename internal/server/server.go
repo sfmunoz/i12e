@@ -8,6 +8,8 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
+const remBase = "rem:mesh" // FIXME unhardcode this
+
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
@@ -29,7 +31,7 @@ func (s *Server) run() error {
 		}
 		if firstTime {
 			firstTime = false
-			if err := mesh.Run(); err != nil {
+			if err := mesh.Run(remBase); err != nil {
 				log.Error("net.Run() failed", "err", err)
 			}
 		}
