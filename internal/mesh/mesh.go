@@ -25,7 +25,11 @@ func getNodeList(remBase string) ([]*node.Node, error) {
 	slices.Reverse(entries)
 	nodeList := make([]*node.Node, 0)
 	for _, entry := range entries {
-		n, err := node.NewNode(node.WithRemote(entry))
+		entryTrimmed := strings.TrimSpace(entry)
+		if len(entryTrimmed) < 1 { // when entries == ""
+			continue
+		}
+		n, err := node.NewNode(node.WithRemote(entryTrimmed))
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
