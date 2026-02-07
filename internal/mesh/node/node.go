@@ -32,11 +32,11 @@ func (n *Node) String() string {
 		where = "L"
 	}
 	return fmt.Sprintf(
-		"%s|%s|%s|%s|%s|%s",
+		"%s|%s|%s/%d|%s|%s",
 		where,
 		n.GetNodeName(),
 		n.GetMeshIP(),
-		n.GetMeshNet(),
+		n.GetMeshNet().Bits(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
 	)
