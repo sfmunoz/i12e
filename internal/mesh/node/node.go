@@ -36,11 +36,15 @@ func (n *Node) tuple() [2]byte {
 }
 
 func (n *Node) String() string {
+	where := "R"
+	if n.GetLocal() {
+		where = "L"
+	}
 	return fmt.Sprintf(
-		"name=%s|ip=%s|local=%t|wgkey=%s|endpoint=%s",
+		"%s|%s|%s|%s|%s",
+		where,
 		n.GetNodeName(),
 		n.GetNodeIP(),
-		n.GetLocal(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
 	)
