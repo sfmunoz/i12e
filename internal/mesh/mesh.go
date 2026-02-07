@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/mesh/node"
@@ -43,6 +44,24 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 		nodeList = append(nodeList, n)
 	}
 	return nodeList, nil
+}
+
+func (m *Mesh) getNodesAge(nodeList []*node.Node) error {
+	hashMap := make(map[string]*time.Time)
+	nLast := len(nodeList) - 1
+	for i := nLast; i >= 0; i-- {
+		n := nodeList[i]
+		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
+		v, ok := hashMap[k]
+		age := time.Duration(0)
+		if ok {
+			age = n.GetTs().Sub(*v)
+		} else {
+			hashMap[k] = n.GetTs()
+		}
+		log.Info("**", "i", i, "n", n, "age", age)
+	}
+	return nil
 }
 
 func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
@@ -171,6 +190,9 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 func (m *Mesh) run() error {
 	nodeListRaw, err := m.getRemoteNodeList()
 	if err != nil {
+		return err
+	}
+	if err := m.getNodesAge(nodeListRaw); err != nil {
 		return err
 	}
 	nodeList, err := m.getConfirmedNodes(nodeListRaw)
