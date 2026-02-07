@@ -2,6 +2,7 @@ package mesh
 
 import (
 	"fmt"
+	"net/netip"
 	"os"
 	"os/exec"
 	"slices"
@@ -13,6 +14,9 @@ import (
 )
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
+
+// from /12 (20 bits for host) to /29 (3 bits for host)
+var meshNet = netip.MustParsePrefix("10.119.0.0/28") // FIXME unhardcode
 
 func getRemoteNodeList(remBase string) ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
@@ -29,7 +33,7 @@ func getRemoteNodeList(remBase string) ([]*node.Node, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNode(node.WithRemote(entryTrimmed))
+		n, err := node.NewNode(node.WithRemote(&meshNet, entryTrimmed))
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -95,7 +99,7 @@ func getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.N
 }
 
 func nodeGiveUp(nodeLocal *node.Node) error {
-	nodeLocalNew, err := node.NewNode(node.WithLocal(true))
+	nodeLocalNew, err := node.NewNode(node.WithLocal(&meshNet, true))
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
 	}
@@ -171,7 +175,7 @@ func Run(remBase string) error {
 	if err != nil {
 		return err
 	}
-	nodeLocal, err := node.NewNode(node.WithLocal(false))
+	nodeLocal, err := node.NewNode(node.WithLocal(&meshNet, false))
 	if err != nil {
 		return err
 	}

@@ -21,6 +21,7 @@ func GetNodeInterface() string {
 
 type Node struct {
 	id         uint32
+	meshNet    *netip.Prefix
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
 }
@@ -31,10 +32,11 @@ func (n *Node) String() string {
 		where = "L"
 	}
 	return fmt.Sprintf(
-		"%s|%s|%s|%s|%s",
+		"%s|%s|%s|%s|%s|%s",
 		where,
 		n.GetNodeName(),
 		n.GetNodeIP(),
+		n.GetMeshNet(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
 	)
@@ -45,8 +47,12 @@ func (n *Node) GetNodeName() string {
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
-	x, _ := nodeIdToIp(nodeNet, n.id) // err ignored: already validated
+	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
 	return x
+}
+
+func (n *Node) GetMeshNet() *netip.Prefix {
+	return n.meshNet
 }
 
 func (n *Node) GetWgKey() *wgkey.WgKey {
@@ -87,7 +93,7 @@ func (n *Node) IfaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetNodeIP(), nodeNet.Bits()), "dev", nodeInt)
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetNodeIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
