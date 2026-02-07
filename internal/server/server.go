@@ -1,12 +1,16 @@
 package server
 
 import (
+	"net/netip"
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/mesh"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
+
+// from /12 (20 bits for host) to /29 (3 bits for host)
+var meshNet = netip.MustParsePrefix("10.119.0.0/28") // FIXME unhardcode
 
 const remBase = "rem:mesh" // FIXME unhardcode this
 
@@ -31,7 +35,7 @@ func (s *Server) run() error {
 		}
 		if firstTime {
 			firstTime = false
-			if err := mesh.Run(remBase); err != nil {
+			if err := mesh.Run(&meshNet, remBase); err != nil {
 				log.Error("net.Run() failed", "err", err)
 			}
 		}

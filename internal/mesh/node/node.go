@@ -15,50 +15,44 @@ import (
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 
-var nodeNet = func() *netip.Prefix {
-	// XXX future: from /12 (2^20 hosts < 36^4) to /29 (6 hosts)
-	x := netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
-	return &x
-}()
-
 func GetNodeInterface() string {
 	return nodeInterface
 }
 
 type Node struct {
 	id         uint32
+	meshNet    *netip.Prefix
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
 }
 
-func (n *Node) tuple() [2]byte {
-	return [2]byte{byte(n.id / 256), byte(n.id % 256)}
-}
-
 func (n *Node) String() string {
+	where := "R"
+	if n.GetLocal() {
+		where = "L"
+	}
 	return fmt.Sprintf(
-		"name=%s|ip=%s|local=%t|wgkey=%s|endpoint=%s",
+		"%s|%s|%s/%d|%s|%s",
+		where,
 		n.GetNodeName(),
-		n.GetNodeIP(),
-		n.GetLocal(),
+		n.GetMeshIP(),
+		n.GetMeshNet().Bits(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
 	)
 }
 
-func (n *Node) GetNodeId() uint32 {
-	return n.id
-}
-
 func (n *Node) GetNodeName() string {
-	return getNodeNameFromNodeId(n.GetNodeId())
+	return getNodeNameFromNodeId(n.id)
 }
 
-func (n *Node) GetNodeIP() *netip.Addr {
-	x := nodeNet.Addr().As4()
-	t := n.tuple()
-	addr := netip.AddrFrom4([4]byte{x[0], x[1], t[0], t[1]})
-	return &addr
+func (n *Node) GetMeshIP() *netip.Addr {
+	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
+	return x
+}
+
+func (n *Node) GetMeshNet() *netip.Prefix {
+	return n.meshNet
 }
 
 func (n *Node) GetWgKey() *wgkey.WgKey {
@@ -99,7 +93,7 @@ func (n *Node) IfaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetNodeIP(), nodeNet.Bits()), "dev", nodeInt)
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())

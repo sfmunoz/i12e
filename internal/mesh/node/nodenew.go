@@ -3,7 +3,6 @@ package node
 import (
 	"errors"
 	"fmt"
-	"math/rand/v2"
 	"net/netip"
 	"os"
 	"regexp"
@@ -16,10 +15,6 @@ import (
 
 const nodeEndpointPort = 51830 // default '51820'
 const nodeEtcHostname = "/etc/hostname"
-
-const nodeIdMin uint32 = 100
-
-var nodeIdMax = addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1 // '-1' -> avoid broadcast address
 
 // ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -39,7 +34,7 @@ func getNodeNameFromNodeId(nodeId uint32) string {
 	return "n" + s
 }
 
-func getNodeIdFromNodeName(nodeName string) (uint32, error) {
+func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, error) {
 	nodeNameLen := len(nodeName)
 	if nodeNameLen != 5 {
 		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
@@ -53,11 +48,8 @@ func getNodeIdFromNodeName(nodeName string) (uint32, error) {
 		return 0, err
 	}
 	nodeId := uint32(nodeIdInt64)
-	if nodeId < nodeIdMin {
-		return 0, fmt.Errorf("invalid node-id=%d (min=%d)", nodeId, nodeIdMin)
-	}
-	if nodeId > nodeIdMax {
-		return 0, fmt.Errorf("invalid node-id='%d' (max=%d)", nodeId, nodeIdMax)
+	if err := nodeIdValid(meshNet, nodeId); err != nil {
+		return 0, err
 	}
 	return nodeId, nil
 }
@@ -73,8 +65,11 @@ func deleteEtcHostname() error {
 	return err
 }
 
-func writeRandomEtcHostname() error {
-	nodeId := rand.Uint32N(nodeIdMax - nodeIdMin + 1)
+func writeRandomEtcHostname(meshNet *netip.Prefix) error {
+	nodeId, err := getRandomNodeId(meshNet)
+	if err != nil {
+		return err
+	}
 	nodeName := getNodeNameFromNodeId(nodeId)
 	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", nodeName), 0644); err != nil {
 		return err
@@ -82,23 +77,31 @@ func writeRandomEtcHostname() error {
 	return nil
 }
 
-func getNodeLocal(reset bool) (*Node, error) {
+func readEtcHostname(meshNet *netip.Prefix) (uint32, error) {
+	buf, err := os.ReadFile(nodeEtcHostname)
+	if err != nil {
+		return 0, err
+	}
+	nodeId, err := getNodeIdFromNodeName(meshNet, strings.TrimSpace(string(buf)))
+	if err != nil {
+		return 0, err
+	}
+	return nodeId, nil
+}
+
+func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
 		}
 	}
-	buf, err := os.ReadFile(nodeEtcHostname)
+	nodeId, err := readEtcHostname(meshNet)
 	if err != nil {
-		if err := writeRandomEtcHostname(); err != nil {
+		if err := writeRandomEtcHostname(meshNet); err != nil {
 			return nil, err
 		}
 	}
-	buf, err = os.ReadFile(nodeEtcHostname)
-	if err != nil {
-		return nil, err
-	}
-	nodeId, err := getNodeIdFromNodeName(strings.TrimSpace(string(buf)))
+	nodeId, err = readEtcHostname(meshNet)
 	if err != nil {
 		return nil, err
 	}
@@ -116,17 +119,18 @@ func getNodeLocal(reset bool) (*Node, error) {
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &Node{
 		id:         nodeId,
+		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
 }
 
-func getNodeRemote(entry string) (*Node, error) {
+func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
-	nodeId, err := getNodeIdFromNodeName(arr[1])
+	nodeId, err := getNodeIdFromNodeName(meshNet, arr[1])
 	if err != nil {
 		return nil, err
 	}
@@ -145,6 +149,7 @@ func getNodeRemote(entry string) (*Node, error) {
 	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
 	return &Node{
 		id:         nodeId,
+		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
@@ -152,15 +157,15 @@ func getNodeRemote(entry string) (*Node, error) {
 
 type NodeOption func() (*Node, error)
 
-func WithLocal(reset bool) NodeOption {
+func WithLocal(meshNet *netip.Prefix, reset bool) NodeOption {
 	return func() (*Node, error) {
-		return getNodeLocal(reset)
+		return getNodeLocal(meshNet, reset)
 	}
 }
 
-func WithRemote(entry string) NodeOption {
+func WithRemote(meshNet *netip.Prefix, entry string) NodeOption {
 	return func() (*Node, error) {
-		return getNodeRemote(entry)
+		return getNodeRemote(meshNet, entry)
 	}
 }
 
