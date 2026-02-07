@@ -13,9 +13,10 @@ exec docker run \
   -it \
   --rm \
   --name rustfs \
-  -p 9000:9000 \
-  -p 9001:9001 \
+  -p 127.0.0.1:9000:9000 \
+  -p 127.0.0.1:9001:9001 \
+  -p 192.168.56.1:9000:9000 \
+  -p 192.168.56.1:9001:9001 \
   -v $(pwd)/data:/data \
   -v $(pwd)/logs:/logs \
   rustfs/rustfs:latest
-
