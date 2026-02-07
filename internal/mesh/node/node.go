@@ -24,6 +24,7 @@ type Node struct {
 	meshNet    *netip.Prefix
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
+	ts         *time.Time
 }
 
 func (n *Node) String() string {
@@ -31,7 +32,7 @@ func (n *Node) String() string {
 	if n.GetLocal() {
 		where = "L"
 	}
-	return fmt.Sprintf(
+	ret := fmt.Sprintf(
 		"%s|%s|%s/%d|%s|%s",
 		where,
 		n.GetNodeName(),
@@ -40,6 +41,11 @@ func (n *Node) String() string {
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
 	)
+	ts := n.GetTs()
+	if ts == nil {
+		return ret
+	}
+	return ret + "|" + ts.Format(time.RFC3339Nano)
 }
 
 func (n *Node) GetNodeName() string {
@@ -65,6 +71,10 @@ func (n *Node) GetLocal() bool {
 
 func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
+}
+
+func (n *Node) GetTs() *time.Time {
+	return n.ts
 }
 
 func (n *Node) HostnameConfig() error {
