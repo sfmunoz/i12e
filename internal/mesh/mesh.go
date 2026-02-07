@@ -100,12 +100,12 @@ func (m *Mesh) getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node)
 	return nodeListRet
 }
 
-func (m *Mesh) nodeGiveUp(nodeLocal *node.Node) error {
+func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
 	nodeLocalNew, err := node.NewNode(node.WithLocal(m.meshNet, true))
 	if err != nil {
-		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
+		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
-	log.Info("node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
+	log.Info("node-reset OK", "nodeLocalNew", nodeLocalNew, "nodeLocalOld", nodeLocalOld)
 	return nil
 }
 
