@@ -46,12 +46,8 @@ func (n *Node) String() string {
 	)
 }
 
-func (n *Node) GetNodeId() uint32 {
-	return n.id
-}
-
 func (n *Node) GetNodeName() string {
-	return getNodeNameFromNodeId(n.GetNodeId())
+	return getNodeNameFromNodeId(n.id)
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {

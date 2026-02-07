@@ -44,7 +44,7 @@ func getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
 		nbLen := len(nodeBlock)
-		if n != nil && (nbLen < 1 || n.GetNodeId() == nodeBlock[nbLen-1].GetNodeId()) {
+		if n != nil && (nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName()) {
 			nodeBlock = append(nodeBlock, n)
 			continue
 		}
@@ -59,10 +59,10 @@ func getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
 }
 
 func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
-	nodeIdLocal := nodeLocal.GetNodeId()
+	nodeNameLocal := nodeLocal.GetNodeName()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
-		if n.GetNodeId() != nodeIdLocal {
+		if n.GetNodeName() != nodeNameLocal {
 			continue
 		}
 		if idOnly || n.GetWgKey().GetPubKey().Hex() == nodePubKeyLocal {
@@ -73,12 +73,12 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 }
 
 func getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
-	nodeIdLocal := nodeLocal.GetNodeId()
+	nodeNameLocal := nodeLocal.GetNodeName()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	pubKeys := make([]string, 0)
 	nodeListRet := make([]*node.Node, 0)
 	for _, n := range nodeListRaw {
-		if n.GetNodeId() != nodeIdLocal {
+		if n.GetNodeName() != nodeNameLocal {
 			continue
 		}
 		pubKey := n.GetWgKey().GetPubKey().Hex()
@@ -124,9 +124,9 @@ func nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase st
 }
 
 func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
-	nodeIdLocal := nodeLocal.GetNodeId()
+	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
-		if n.GetNodeId() == nodeIdLocal {
+		if n.GetNodeName() == nodeNameLocal {
 			log.Info("skipping local node", "node", n)
 			continue
 		}
