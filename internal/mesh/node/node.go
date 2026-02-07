@@ -3,10 +3,8 @@ package node
 import (
 	"fmt"
 	"net/netip"
-	"os"
 	"os/exec"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -16,9 +14,9 @@ import (
 
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
-const nodeEtcHostname = "/etc/hostname"
 
 var nodeNet = func() *netip.Prefix {
+	// XXX future: from /12 (2^20 hosts < 36^4) to /29 (6 hosts)
 	x := netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
 	return &x
 }()
@@ -27,15 +25,8 @@ func GetNodeInterface() string {
 	return nodeInterface
 }
 
-func padLeft(s string, tot int, pad string) string {
-	if len(s) >= tot {
-		return s
-	}
-	return strings.Repeat(pad, tot-len(s)) + s
-}
-
 type Node struct {
-	id         uint16 // uint16 instead of byte to avoid pervasive type conversion
+	id         uint32
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
 }
@@ -46,8 +37,7 @@ func (n *Node) tuple() [2]byte {
 
 func (n *Node) String() string {
 	return fmt.Sprintf(
-		"id=%d|name=%s|ip=%s|local=%t|wgkey=%s|endpoint=%s",
-		n.GetNodeId(),
+		"name=%s|ip=%s|local=%t|wgkey=%s|endpoint=%s",
 		n.GetNodeName(),
 		n.GetNodeIP(),
 		n.GetLocal(),
@@ -56,13 +46,12 @@ func (n *Node) String() string {
 	)
 }
 
-func (n *Node) GetNodeId() uint16 {
+func (n *Node) GetNodeId() uint32 {
 	return n.id
 }
 
 func (n *Node) GetNodeName() string {
-	s := strconv.FormatUint(uint64(n.GetNodeId()), 36) // 36^4 > 2^20
-	return "n" + padLeft(s, 4, "0")
+	return getNodeNameFromNodeId(n.GetNodeId())
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
@@ -88,13 +77,11 @@ func (n *Node) HostnameConfig() error {
 	if !n.GetLocal() {
 		return fmt.Errorf("cannot set hostname: not local node")
 	}
-	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", n.GetNodeName()), 0644); err != nil {
-		return err
-	}
-	cmd := exec.Command("hostname", "-F", nodeEtcHostname)
+	nodeName := n.GetNodeName()
+	cmd := exec.Command("hostname", nodeName)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return fmt.Errorf("SetHostname(): 'hostname -F' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return fmt.Errorf("SetHostname(): 'hostname %s' failed': %s (stdout=%s, stderr=%s)", nodeName, err, bo.String(), be.String())
 	}
 	return nil
 }
