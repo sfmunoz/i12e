@@ -35,7 +35,7 @@ func (n *Node) String() string {
 		"%s|%s|%s|%s|%s|%s",
 		where,
 		n.GetNodeName(),
-		n.GetNodeIP(),
+		n.GetMeshIP(),
 		n.GetMeshNet(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
@@ -46,7 +46,7 @@ func (n *Node) GetNodeName() string {
 	return getNodeNameFromNodeId(n.id)
 }
 
-func (n *Node) GetNodeIP() *netip.Addr {
+func (n *Node) GetMeshIP() *netip.Addr {
 	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
 	return x
 }
@@ -93,7 +93,7 @@ func (n *Node) IfaceLocalConfig() error {
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetNodeIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
+	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
 	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())

@@ -140,7 +140,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 			"wg", "set", node.GetNodeInterface(),
 			"peer", n.GetWgKey().GetPubKey().B64(),
 			"endpoint", n.GetWgEndpoint().String(),
-			"allowed-ips", fmt.Sprintf("%s/32", n.GetNodeIP()),
+			"allowed-ips", fmt.Sprintf("%s/32", n.GetMeshIP()),
 		)
 		bo, be, err := cmdutil.RunSimple(cmd)
 		if err != nil {
@@ -161,7 +161,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 		"::1 localhost",
 	}
 	for _, n := range nodeList {
-		lines = append(lines, fmt.Sprintf("%s %s", n.GetNodeIP(), n.GetNodeName()))
+		lines = append(lines, fmt.Sprintf("%s %s", n.GetMeshIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
 	buf := strings.Join(lines, "\n")
