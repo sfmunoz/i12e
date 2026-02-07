@@ -15,11 +15,11 @@ import (
 )
 
 const nodeEndpointPort = 51830 // default '51820'
-const nodeIdFname = "/etc/i12e/node-id.txt"
+const nodeEtcHostname = "/etc/hostname"
 
-const nodeIdMin uint16 = 100
+const nodeIdMin uint32 = 100
 
-var nodeIdMax = uint16(addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1) // '-1' -> avoid broadcast address
+var nodeIdMax = addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1 // '-1' -> avoid broadcast address
 
 // ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -31,20 +31,41 @@ var nodeRegex = regexp.MustCompile(
 		"$",
 )
 
-func validNodeId(nodeId uint16) error {
-	if nodeId < nodeIdMin {
-		return fmt.Errorf("'%s' node-id is '%d' (min=%d)", nodeIdFname, nodeId, nodeIdMin)
+func getNodeNameFromNodeId(nodeId uint32) string {
+	s := strconv.FormatUint(uint64(nodeId), 36)
+	for len(s) < 4 {
+		s = "0" + s
 	}
-	if nodeId > nodeIdMax {
-		return fmt.Errorf("'%s' node-id is '%d' (max=%d)", nodeIdFname, nodeId, nodeIdMax)
-	}
-	return nil
+	return "n" + s
 }
 
-func resetNodeLocal() error {
-	_, err := os.Stat(nodeIdFname)
+func getNodeIdFromNodeName(nodeName string) (uint32, error) {
+	nodeNameLen := len(nodeName)
+	if nodeNameLen != 5 {
+		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
+	}
+	n0 := nodeName[0]
+	if n0 != 'n' {
+		return 0, fmt.Errorf("nodename='%s' starts with '%c' ('n' expected)", nodeName, n0)
+	}
+	nodeIdInt64, err := strconv.ParseInt(nodeName[1:], 36, 32)
+	if err != nil {
+		return 0, err
+	}
+	nodeId := uint32(nodeIdInt64)
+	if nodeId < nodeIdMin {
+		return 0, fmt.Errorf("invalid node-id=%d (min=%d)", nodeId, nodeIdMin)
+	}
+	if nodeId > nodeIdMax {
+		return 0, fmt.Errorf("invalid node-id='%d' (max=%d)", nodeId, nodeIdMax)
+	}
+	return nodeId, nil
+}
+
+func deleteEtcHostname() error {
+	_, err := os.Stat(nodeEtcHostname)
 	if err == nil {
-		return os.Remove(nodeIdFname)
+		return os.Remove(nodeEtcHostname)
 	}
 	if errors.Is(err, os.ErrNotExist) {
 		return nil
@@ -52,9 +73,10 @@ func resetNodeLocal() error {
 	return err
 }
 
-func writeNode() error {
-	x := uint16(rand.Int32N(int32(nodeIdMax-nodeIdMin+1))) + nodeIdMin
-	if err := os.WriteFile(nodeIdFname, fmt.Appendf(make([]byte, 0), "%d\n", x), 0600); err != nil {
+func writeRandomEtcHostname() error {
+	nodeId := rand.Uint32N(nodeIdMax - nodeIdMin + 1)
+	nodeName := getNodeNameFromNodeId(nodeId)
+	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", nodeName), 0644); err != nil {
 		return err
 	}
 	return nil
@@ -62,26 +84,22 @@ func writeNode() error {
 
 func getNodeLocal(reset bool) (*Node, error) {
 	if reset {
-		if err := resetNodeLocal(); err != nil {
+		if err := deleteEtcHostname(); err != nil {
 			return nil, err
 		}
 	}
-	buf, err := os.ReadFile(nodeIdFname)
+	buf, err := os.ReadFile(nodeEtcHostname)
 	if err != nil {
-		if err := writeNode(); err != nil {
+		if err := writeRandomEtcHostname(); err != nil {
 			return nil, err
 		}
 	}
-	buf, err = os.ReadFile(nodeIdFname)
+	buf, err = os.ReadFile(nodeEtcHostname)
 	if err != nil {
 		return nil, err
 	}
-	nodeIdInt, err := strconv.Atoi(strings.TrimSpace(string(buf)))
+	nodeId, err := getNodeIdFromNodeName(strings.TrimSpace(string(buf)))
 	if err != nil {
-		return nil, err
-	}
-	nodeId := uint16(nodeIdInt)
-	if err := validNodeId(nodeId); err != nil {
 		return nil, err
 	}
 	wgKey, err := wgkey.NewWgKey(wgkey.WithLocal(nodePrivKeyFname))
@@ -97,30 +115,10 @@ func getNodeLocal(reset bool) (*Node, error) {
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &Node{
-		id:         uint16(nodeId),
+		id:         nodeId,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
-}
-
-func getNodeIdFromNodeName(nodeName string) (uint16, error) {
-	nodeNameLen := len(nodeName)
-	if nodeNameLen != 5 {
-		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
-	}
-	n0 := nodeName[0]
-	if n0 != 'n' {
-		return 0, fmt.Errorf("nodename='%s' starts with '%c' ('n' expected)", nodeName, n0)
-	}
-	nodeIdInt64, err := strconv.ParseInt(nodeName[1:], 36, 64)
-	if err != nil {
-		return 0, err
-	}
-	nodeId := uint16(nodeIdInt64)
-	if err := validNodeId(nodeId); err != nil {
-		return 0, err
-	}
-	return nodeId, nil
 }
 
 func getNodeRemote(entry string) (*Node, error) {
