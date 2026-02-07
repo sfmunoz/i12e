@@ -3,7 +3,6 @@ package node
 import (
 	"errors"
 	"fmt"
-	"math/rand/v2"
 	"net/netip"
 	"os"
 	"regexp"
@@ -17,9 +16,10 @@ import (
 const nodeEndpointPort = 51830 // default '51820'
 const nodeEtcHostname = "/etc/hostname"
 
-const nodeIdMin uint32 = 100
-
-var nodeIdMax = addrToU32(netMax(nodeNet)) - addrToU32(netMin(nodeNet)) - 1 // '-1' -> avoid broadcast address
+var nodeNet = func() *netip.Prefix {
+	x := netip.MustParsePrefix("10.119.0.0/28") // from /12 (20 bits for host) to /29 (3 bits for host)
+	return &x
+}()
 
 // ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -53,11 +53,8 @@ func getNodeIdFromNodeName(nodeName string) (uint32, error) {
 		return 0, err
 	}
 	nodeId := uint32(nodeIdInt64)
-	if nodeId < nodeIdMin {
-		return 0, fmt.Errorf("invalid node-id=%d (min=%d)", nodeId, nodeIdMin)
-	}
-	if nodeId > nodeIdMax {
-		return 0, fmt.Errorf("invalid node-id='%d' (max=%d)", nodeId, nodeIdMax)
+	if err := nodeIdValid(nodeNet, nodeId); err != nil {
+		return 0, err
 	}
 	return nodeId, nil
 }
@@ -74,7 +71,10 @@ func deleteEtcHostname() error {
 }
 
 func writeRandomEtcHostname() error {
-	nodeId := rand.Uint32N(nodeIdMax - nodeIdMin + 1)
+	nodeId, err := getRandomNodeId(nodeNet)
+	if err != nil {
+		return err
+	}
 	nodeName := getNodeNameFromNodeId(nodeId)
 	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", nodeName), 0644); err != nil {
 		return err

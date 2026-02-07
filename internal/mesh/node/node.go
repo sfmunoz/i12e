@@ -15,12 +15,6 @@ import (
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 
-var nodeNet = func() *netip.Prefix {
-	// XXX future: from /12 (2^20 hosts < 36^4) to /29 (6 hosts)
-	x := netip.MustParsePrefix("10.119.0.0/16") // '/16' is mandatory (hardcoded for now)
-	return &x
-}()
-
 func GetNodeInterface() string {
 	return nodeInterface
 }
@@ -29,10 +23,6 @@ type Node struct {
 	id         uint32
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
-}
-
-func (n *Node) tuple() [2]byte {
-	return [2]byte{byte(n.id / 256), byte(n.id % 256)}
 }
 
 func (n *Node) String() string {
@@ -55,10 +45,8 @@ func (n *Node) GetNodeName() string {
 }
 
 func (n *Node) GetNodeIP() *netip.Addr {
-	x := nodeNet.Addr().As4()
-	t := n.tuple()
-	addr := netip.AddrFrom4([4]byte{x[0], x[1], t[0], t[1]})
-	return &addr
+	x, _ := nodeIdToIp(nodeNet, n.id) // err ignored: already validated
+	return x
 }
 
 func (n *Node) GetWgKey() *wgkey.WgKey {
