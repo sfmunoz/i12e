@@ -111,6 +111,7 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &Node{
 		id:         nodeId,
+		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
@@ -140,6 +141,7 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
 	return &Node{
 		id:         nodeId,
+		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
 	}, nil
