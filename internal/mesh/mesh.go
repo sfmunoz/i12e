@@ -15,11 +15,13 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
-// from /12 (20 bits for host) to /29 (3 bits for host)
-var meshNet = netip.MustParsePrefix("10.119.0.0/28") // FIXME unhardcode
+type Mesh struct {
+	meshNet *netip.Prefix
+	remBase string
+}
 
-func getRemoteNodeList(remBase string) ([]*node.Node, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", remBase)
+func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -33,7 +35,7 @@ func getRemoteNodeList(remBase string) ([]*node.Node, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNode(node.WithRemote(&meshNet, entryTrimmed))
+		n, err := node.NewNode(node.WithRemote(m.meshNet, entryTrimmed))
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -43,7 +45,7 @@ func getRemoteNodeList(remBase string) ([]*node.Node, error) {
 	return nodeList, nil
 }
 
-func getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
+func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
 	nodeListOut := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
@@ -62,7 +64,7 @@ func getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
 	return nodeListOut, nil
 }
 
-func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
+func (m *Mesh) nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
@@ -76,7 +78,7 @@ func nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly boo
 	return nil
 }
 
-func getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
+func (m *Mesh) getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	pubKeys := make([]string, 0)
@@ -98,8 +100,8 @@ func getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.N
 	return nodeListRet
 }
 
-func nodeGiveUp(nodeLocal *node.Node) error {
-	nodeLocalNew, err := node.NewNode(node.WithLocal(&meshNet, true))
+func (m *Mesh) nodeGiveUp(nodeLocal *node.Node) error {
+	nodeLocalNew, err := node.NewNode(node.WithLocal(m.meshNet, true))
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
 	}
@@ -107,27 +109,27 @@ func nodeGiveUp(nodeLocal *node.Node) error {
 	return nil
 }
 
-func nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node, remBase string) error {
-	ncList := getContenderNodes(nodeListRaw, nodeLocal)
+func (m *Mesh) nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node) error {
+	ncList := m.getContenderNodes(nodeListRaw, nodeLocal)
 	ncListLen := len(ncList)
 	if ncListLen > 0 {
 		for i, n := range ncList {
 			log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
 		}
 		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-		return nodeGiveUp(nodeLocal)
+		return m.nodeGiveUp(nodeLocal)
 	}
 	tot := 2
 	for i := range tot {
 		log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
-		if err := nodeLocal.PushToRemote(remBase); err != nil {
+		if err := nodeLocal.PushToRemote(m.remBase); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
+func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -148,7 +150,7 @@ func ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
 	return nil
 }
 
-func etcHostsUpdate(nodeList []*node.Node) error {
+func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 	// Flatcar's default
 	lines := []string{
 		"#",
@@ -166,31 +168,31 @@ func etcHostsUpdate(nodeList []*node.Node) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func Run(remBase string) error {
-	nodeListRaw, err := getRemoteNodeList(remBase)
+func (m *Mesh) run() error {
+	nodeListRaw, err := m.getRemoteNodeList()
 	if err != nil {
 		return err
 	}
-	nodeList, err := getConfirmedNodes(nodeListRaw)
+	nodeList, err := m.getConfirmedNodes(nodeListRaw)
 	if err != nil {
 		return err
 	}
-	nodeLocal, err := node.NewNode(node.WithLocal(&meshNet, false))
+	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
 	if err != nil {
 		return err
 	}
-	nodeInList := nodeLocalInNodeList(nodeList, nodeLocal, true)
+	nodeInList := m.nodeLocalInNodeList(nodeList, nodeLocal, true)
 	if nodeInList == nil {
-		return nodeGiveUpOrPush(nodeListRaw, nodeLocal, remBase)
+		return m.nodeGiveUpOrPush(nodeListRaw, nodeLocal)
 	}
-	if nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
+	if m.nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
 		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
-		return nodeGiveUp(nodeLocal)
+		return m.nodeGiveUp(nodeLocal)
 	}
-	if err := nodeLocal.PushToRemote(remBase); err != nil {
+	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
 		return err
 	}
-	if err := nodeLocal.PurgeFromRemote(remBase, 2); err != nil {
+	if err := nodeLocal.PurgeFromRemote(m.remBase, 2); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
@@ -199,11 +201,19 @@ func Run(remBase string) error {
 	if err := nodeLocal.IfaceLocalConfig(); err != nil {
 		return err
 	}
-	if err := ifacePeersConfig(nodeList, nodeLocal); err != nil {
+	if err := m.ifacePeersConfig(nodeList, nodeLocal); err != nil {
 		return err
 	}
-	if err := etcHostsUpdate(nodeList); err != nil {
+	if err := m.etcHostsUpdate(nodeList); err != nil {
 		return err
 	}
 	return nil
+}
+
+func newMesh(meshNet *netip.Prefix, remBase string) *Mesh {
+	return &Mesh{meshNet, remBase}
+}
+
+func Run(meshNet *netip.Prefix, remBase string) error {
+	return newMesh(meshNet, remBase).run()
 }
