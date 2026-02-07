@@ -52,19 +52,18 @@ func nodeIdMin(p *netip.Prefix) (uint32, error) {
 		return 0, err
 	}
 	m := map[int]uint32{
-		29: 4,  // net=0,[1,2,3],[4,5,6],broadcast=7
-		28: 6,  // net=0,[1,...,5],[6,...,14],broadcast=15
-		27: 10, // net=0,[1,...,9],[10,...,30],broadcast=31
-		26: 16, // net=0,[1,...,15],[16,...,62],broadcast=63
-		25: 30, // net=0,[1,...,29],[30,...,126],broadcast=127
-		24: 50, // net=0,[1,...,49],[50,...,254],broadcast=255
+		29: 3,  // net=0 + reserved=[1, 2]       + available=[3, ..., 6]    + broadcast=7
+		28: 6,  // net=0 + reserved=[1, ..., 5]  + available=[6, ..., 14]   + broadcast=15
+		27: 10, // net=0 + reserved=[1, ..., 9]  + available=[10, ..., 30]  + broadcast=31
+		26: 16, // net=0 + reserved=[1, ..., 15] + available=[16, ..., 62]  + broadcast=63
+		25: 30, // net=0 + reserved=[1, ..., 29] + available=[30, ..., 126] + broadcast=127
+		24: 50, // net=0 + reserved=[1, ..., 49] + available=[50, ..., 254] + broadcast=255
 	}
-	b := p.Bits()
-	ret, ok := m[b]
+	ret, ok := m[p.Bits()]
 	if ok {
 		return ret, nil
 	}
-	return 100, nil // net=0,[1,...,99],[100,...,N-1],broadcast=N (N>=511)
+	return 100, nil // net=0 + reserved=[1, ..., 99] + available=[100, ..., N-1] + broadcast=N (N>=511)
 }
 
 func nodeIdMax(p *netip.Prefix) (uint32, error) {
@@ -97,8 +96,7 @@ func nodeIdToIp(p *netip.Prefix, id uint32) (*netip.Addr, error) {
 	if err := nodeIdValid(p, id); err != nil {
 		return nil, err
 	}
-	addr := netAddr(p)
-	u := addrToU32(addr)
+	u := addrToU32(netAddr(p))
 	return u32ToAddr(u | id), nil
 }
 
