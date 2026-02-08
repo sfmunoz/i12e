@@ -63,8 +63,19 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	return nodeListRaw, nil
 }
 
-func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
-	nodeListOut := make([]*node.Node, 0)
+func (m *Mesh) blockSqueeze(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
+	if len(nodeBlock) < 2 {
+		return nodeList
+	}
+	if nodeBlock[0].GetWgKey().GetPubKey().Hex() !=
+		nodeBlock[1].GetWgKey().GetPubKey().Hex() {
+		return nodeList
+	}
+	return append(nodeList, nodeBlock[0])
+}
+
+func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
+	nodeList := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
 		nbLen := len(nodeBlock)
@@ -72,14 +83,11 @@ func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error)
 			nodeBlock = append(nodeBlock, n)
 			continue
 		}
-		if nbLen > 1 && nodeBlock[0].GetWgKey().GetPubKey().Hex() ==
-			nodeBlock[1].GetWgKey().GetPubKey().Hex() {
-			nodeListOut = append(nodeListOut, nodeBlock[0])
-		}
+		nodeList = m.blockSqueeze(nodeList, nodeBlock)
 		nodeBlock = make([]*node.Node, 1)
 		nodeBlock[0] = n
 	}
-	return nodeListOut, nil
+	return nodeList
 }
 
 func (m *Mesh) nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
@@ -191,10 +199,7 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	nodeList, err := m.getConfirmedNodes(nodeListRaw)
-	if err != nil {
-		return err
-	}
+	nodeList := m.getConfirmedNodeList(nodeListRaw)
 	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
 	if err != nil {
 		return err
