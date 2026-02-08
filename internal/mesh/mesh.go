@@ -63,6 +63,18 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	return nodeListRaw, nil
 }
 
+func (m *Mesh) blockAppend(nodeBlock *[]*node.Node, n *node.Node) bool {
+	if n == nil {
+		return true
+	}
+	nbLen := len(*nodeBlock)
+	if nbLen > 0 && n.GetNodeName() != (*nodeBlock)[nbLen-1].GetNodeName() {
+		return true
+	}
+	*nodeBlock = append(*nodeBlock, n)
+	return false
+}
+
 func (m *Mesh) blockSqueeze(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
 	if len(nodeBlock) < 2 {
 		return nodeList
@@ -78,9 +90,7 @@ func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
 	nodeList := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
-		nbLen := len(nodeBlock)
-		if n != nil && (nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName()) {
-			nodeBlock = append(nodeBlock, n)
+		if !m.blockAppend(&nodeBlock, n) {
 			continue
 		}
 		nodeList = m.blockSqueeze(nodeList, nodeBlock)
