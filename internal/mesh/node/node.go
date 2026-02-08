@@ -24,7 +24,8 @@ type Node struct {
 	meshNet    *netip.Prefix
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
-	ts         *time.Time
+	tsFirst    *time.Time // first record of the series
+	tsCurr     *time.Time // current record
 }
 
 func (n *Node) String() string {
@@ -32,20 +33,27 @@ func (n *Node) String() string {
 	if n.GetLocal() {
 		where = "L"
 	}
-	ret := fmt.Sprintf(
-		"%s|%s|%s/%d|%s|%s",
+	tsCurrStr := "<undefined-tsCurr>"
+	tsCurr := n.GetTsCurr()
+	if tsCurr != nil {
+		tsCurrStr = tsCurr.Format(time.RFC3339Nano)
+	}
+	ageStr := "<undefined-age>"
+	age := n.GetAge()
+	if age != nil {
+		ageStr = age.String()
+	}
+	return fmt.Sprintf(
+		"%s|%s|%s/%d|%s|%s|%s|%s",
 		where,
 		n.GetNodeName(),
 		n.GetMeshIP(),
 		n.GetMeshNet().Bits(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
+		tsCurrStr,
+		ageStr,
 	)
-	ts := n.GetTs()
-	if ts == nil {
-		return ret
-	}
-	return ret + "|" + ts.Format(time.RFC3339Nano)
 }
 
 func (n *Node) GetNodeName() string {
@@ -73,8 +81,33 @@ func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
 }
 
-func (n *Node) GetTs() *time.Time {
-	return n.ts
+func (n *Node) GetTsFirst() *time.Time {
+	return n.tsFirst
+}
+
+func (n *Node) SetTsFirst(ts *time.Time) {
+	n.tsFirst = ts
+}
+
+func (n *Node) GetTsCurr() *time.Time {
+	return n.tsCurr
+}
+
+func (n *Node) SetTsCurr(ts *time.Time) {
+	n.tsCurr = ts
+}
+
+func (n *Node) GetAge() *time.Duration {
+	tsFirst := n.GetTsFirst()
+	if tsFirst == nil {
+		return nil
+	}
+	tsCurr := n.GetTsCurr()
+	if tsCurr == nil {
+		return nil
+	}
+	d := tsCurr.Sub(*tsFirst)
+	return &d
 }
 
 func (n *Node) HostnameConfig() error {

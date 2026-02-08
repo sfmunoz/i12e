@@ -133,7 +133,8 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
-		ts:         nil,
+		tsFirst:    nil,
+		tsCurr:     nil,
 	}, nil
 }
 
@@ -146,7 +147,7 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	ts, err := getTimestamp(arr[2])
+	tsCurr, err := getTimestamp(arr[2])
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +169,8 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
-		ts:         ts,
+		tsFirst:    nil,
+		tsCurr:     tsCurr,
 	}, nil
 }
 

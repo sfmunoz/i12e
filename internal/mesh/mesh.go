@@ -46,22 +46,21 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	return nodeList, nil
 }
 
-func (m *Mesh) getNodesAge(nodeList []*node.Node) error {
-	hashMap := make(map[string]*time.Time)
+func (m *Mesh) setNodeListTimestamps(nodeList []*node.Node) {
+	tsMap := make(map[string]*time.Time)
 	nLast := len(nodeList) - 1
 	for i := nLast; i >= 0; i-- {
 		n := nodeList[i]
 		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
-		v, ok := hashMap[k]
-		age := time.Duration(0)
+		v, ok := tsMap[k]
 		if ok {
-			age = n.GetTs().Sub(*v)
-		} else {
-			hashMap[k] = n.GetTs()
+			n.SetTsFirst(v)
+			continue
 		}
-		log.Info("**", "i", i, "n", n, "age", age)
+		ts := n.GetTsCurr()
+		n.SetTsFirst(ts)
+		tsMap[k] = ts
 	}
-	return nil
 }
 
 func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
@@ -192,9 +191,7 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	if err := m.getNodesAge(nodeListRaw); err != nil {
-		return err
-	}
+	m.setNodeListTimestamps(nodeListRaw)
 	nodeList, err := m.getConfirmedNodes(nodeListRaw)
 	if err != nil {
 		return err
