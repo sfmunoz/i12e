@@ -79,7 +79,10 @@ func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.No
 	tsNow := time.Now().UTC()
 	nodeCmp := func(n1, n2 *node.Node) int {
 		// -1: n1 < n2 | 0: n1 == n2 | +1: n1 > n2
-		return cmp.Compare(*n2.GetAge(&tsNow), *n1.GetAge(&tsNow))
+		if x := cmp.Compare(n2.GetTsCurr().UnixNano(), n1.GetTsCurr().UnixNano()); x != 0 {
+			return x
+		}
+		return cmp.Compare(n2.GetWgKey().GetPubKey().Hex(), n1.GetWgKey().GetPubKey().Hex())
 	}
 	if len(nodeBlock) < 1 {
 		return nodeList
