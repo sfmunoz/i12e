@@ -88,10 +88,11 @@ func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.No
 	nodeBlockTrimmed := make([]*node.Node, 0, len(nodeBlock))
 	for _, n := range nodeBlock {
 		k := n.GetWgKey().GetPubKey().Hex()
-		if _, ok := nodeSeen[k]; !ok {
-			nodeSeen[k] = true
-			nodeBlockTrimmed = append(nodeBlockTrimmed, n)
+		if _, ok := nodeSeen[k]; ok {
+			continue
 		}
+		nodeSeen[k] = true
+		nodeBlockTrimmed = append(nodeBlockTrimmed, n)
 	}
 	if len(nodeBlockTrimmed) < 1 {
 		return nodeList
@@ -100,7 +101,7 @@ func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.No
 	if *n0.GetAge() < 3*time.Second {
 		return nodeList
 	}
-	return append(nodeList, nodeBlock[0])
+	return append(nodeList, n0)
 }
 
 func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
