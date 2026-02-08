@@ -30,29 +30,33 @@ type Node struct {
 
 func (n *Node) String() string {
 	where := "R"
-	if n.GetLocal() {
+	isLocal := n.GetLocal()
+	if isLocal {
 		where = "L"
 	}
-	tsCurrStr := "<undefined-tsCurr>"
-	tsCurr := n.GetTsCurr()
-	if tsCurr != nil {
-		tsCurrStr = tsCurr.Format(time.RFC3339Nano)
-	}
-	ageStr := "<undefined-age>"
-	age := n.GetAge()
-	if age != nil {
-		ageStr = age.String()
+	tsDetails := ""
+	if !isLocal {
+		tsCurrStr := "<undefined-tsCurr>"
+		tsCurr := n.GetTsCurr()
+		if tsCurr != nil {
+			tsCurrStr = tsCurr.Format(time.RFC3339Nano)
+		}
+		ageStr := "<undefined-age>"
+		age := n.GetAge()
+		if age != nil {
+			ageStr = age.String()
+		}
+		tsDetails = fmt.Sprintf("|%s|%s", tsCurrStr, ageStr)
 	}
 	return fmt.Sprintf(
-		"%s|%s|%s/%d|%s|%s|%s|%s",
+		"%s|%s|%s/%d|%s|%s%s",
 		where,
 		n.GetNodeName(),
 		n.GetMeshIP(),
 		n.GetMeshNet().Bits(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
-		tsCurrStr,
-		ageStr,
+		tsDetails,
 	)
 }
 
