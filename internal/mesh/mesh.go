@@ -63,16 +63,15 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	return nodeListRaw, nil
 }
 
-func (m *Mesh) appendNodeToBlock(nodeBlock *[]*node.Node, n *node.Node) bool {
+func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.Node, bool) {
 	if n == nil {
-		return true
+		return nodeBlock, true
 	}
-	nbLen := len(*nodeBlock)
-	if nbLen > 0 && n.GetNodeName() != (*nodeBlock)[nbLen-1].GetNodeName() {
-		return true
+	nbLen := len(nodeBlock)
+	if nbLen > 0 && n.GetNodeName() != nodeBlock[nbLen-1].GetNodeName() {
+		return nodeBlock, true
 	}
-	*nodeBlock = append(*nodeBlock, n)
-	return false
+	return append(nodeBlock, n), false
 }
 
 func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
@@ -90,7 +89,9 @@ func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
 	nodeList := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
-		if !m.appendNodeToBlock(&nodeBlock, n) {
+		var blockDone bool
+		nodeBlock, blockDone = m.appendNodeToBlock(nodeBlock, n)
+		if !blockDone {
 			continue
 		}
 		nodeList = m.appendBlockToNodeList(nodeList, nodeBlock)
