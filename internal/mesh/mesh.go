@@ -1,6 +1,7 @@
 package mesh
 
 import (
+	"cmp"
 	"fmt"
 	"net/netip"
 	"os"
@@ -75,11 +76,28 @@ func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.
 }
 
 func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
-	if len(nodeBlock) < 2 {
+	nodeCmp := func(n1, n2 *node.Node) int {
+		// -1: n1 < n2 | 0: n1 == n2 | +1: n1 > n2
+		return cmp.Compare(*n2.GetAge(), *n1.GetAge())
+	}
+	if len(nodeBlock) < 1 {
 		return nodeList
 	}
-	if nodeBlock[0].GetWgKey().GetPubKey().Hex() !=
-		nodeBlock[1].GetWgKey().GetPubKey().Hex() {
+	slices.SortFunc(nodeBlock, nodeCmp)
+	nodeSeen := make(map[string]bool, len(nodeBlock))
+	nodeBlockTrimmed := make([]*node.Node, 0, len(nodeBlock))
+	for _, n := range nodeBlock {
+		k := n.GetWgKey().GetPubKey().Hex()
+		if _, ok := nodeSeen[k]; !ok {
+			nodeSeen[k] = true
+			nodeBlockTrimmed = append(nodeBlockTrimmed, n)
+		}
+	}
+	if len(nodeBlockTrimmed) < 1 {
+		return nodeList
+	}
+	n0 := nodeBlockTrimmed[0]
+	if *n0.GetAge() < 3*time.Second {
 		return nodeList
 	}
 	return append(nodeList, nodeBlock[0])
