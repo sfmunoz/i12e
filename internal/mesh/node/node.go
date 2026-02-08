@@ -42,7 +42,7 @@ func (n *Node) String() string {
 			tsCurrStr = tsCurr.Format(time.RFC3339Nano)
 		}
 		ageStr := "<undefined-age>"
-		age := n.GetAge()
+		age := n.GetAge(nil)
 		if age != nil {
 			ageStr = age.String()
 		}
@@ -101,16 +101,16 @@ func (n *Node) SetTsCurr(ts *time.Time) {
 	n.tsCurr = ts
 }
 
-func (n *Node) GetAge() *time.Duration {
+func (n *Node) GetAge(tsNow *time.Time) *time.Duration {
+	if tsNow == nil {
+		ts := time.Now().UTC()
+		tsNow = &ts
+	}
 	tsFirst := n.GetTsFirst()
 	if tsFirst == nil {
 		return nil
 	}
-	tsCurr := n.GetTsCurr()
-	if tsCurr == nil {
-		return nil
-	}
-	d := tsCurr.Sub(*tsFirst)
+	d := tsNow.Sub(*tsFirst)
 	return &d
 }
 

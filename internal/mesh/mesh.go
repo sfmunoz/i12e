@@ -76,9 +76,10 @@ func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.
 }
 
 func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
+	tsNow := time.Now().UTC()
 	nodeCmp := func(n1, n2 *node.Node) int {
 		// -1: n1 < n2 | 0: n1 == n2 | +1: n1 > n2
-		return cmp.Compare(*n2.GetAge(), *n1.GetAge())
+		return cmp.Compare(*n2.GetAge(&tsNow), *n1.GetAge(&tsNow))
 	}
 	if len(nodeBlock) < 1 {
 		return nodeList
@@ -98,7 +99,7 @@ func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.No
 		return nodeList
 	}
 	n0 := nodeBlockTrimmed[0]
-	if *n0.GetAge() < 3*time.Second {
+	if *n0.GetAge(&tsNow) < 3*time.Second {
 		return nodeList
 	}
 	return append(nodeList, n0)
