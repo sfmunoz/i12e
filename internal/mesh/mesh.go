@@ -21,6 +21,22 @@ type Mesh struct {
 	remBase string
 }
 
+func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
+	tsMap := make(map[string]*time.Time)
+	nLast := len(nodeListRaw) - 1
+	for i := nLast; i >= 0; i-- {
+		n := nodeListRaw[i]
+		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
+		if v, ok := tsMap[k]; ok {
+			n.SetTsFirst(v)
+			continue
+		}
+		ts := n.GetTsCurr()
+		n.SetTsFirst(ts)
+		tsMap[k] = ts
+	}
+}
+
 func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -30,7 +46,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
-	nodeList := make([]*node.Node, 0)
+	nodeListRaw := make([]*node.Node, 0)
 	for _, entry := range entries {
 		entryTrimmed := strings.TrimSpace(entry)
 		if len(entryTrimmed) < 1 { // when entries == ""
@@ -41,26 +57,10 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodeList = append(nodeList, n)
+		nodeListRaw = append(nodeListRaw, n)
 	}
-	return nodeList, nil
-}
-
-func (m *Mesh) setNodeListTimestamps(nodeList []*node.Node) {
-	tsMap := make(map[string]*time.Time)
-	nLast := len(nodeList) - 1
-	for i := nLast; i >= 0; i-- {
-		n := nodeList[i]
-		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
-		v, ok := tsMap[k]
-		if ok {
-			n.SetTsFirst(v)
-			continue
-		}
-		ts := n.GetTsCurr()
-		n.SetTsFirst(ts)
-		tsMap[k] = ts
-	}
+	m.setNodeListTimestamps(nodeListRaw)
+	return nodeListRaw, nil
 }
 
 func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
@@ -191,7 +191,6 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	m.setNodeListTimestamps(nodeListRaw)
 	nodeList, err := m.getConfirmedNodes(nodeListRaw)
 	if err != nil {
 		return err
