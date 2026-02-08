@@ -174,12 +174,9 @@ func (m *Mesh) nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node) 
 		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
 		return m.nodeGiveUp(nodeLocal)
 	}
-	tot := 2
-	for i := range tot {
-		log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
-		if err := nodeLocal.PushToRemote(m.remBase); err != nil {
-			return err
-		}
+	log.Info("nodeLocal.PushToRemote()...")
+	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+		return err
 	}
 	return nil
 }
