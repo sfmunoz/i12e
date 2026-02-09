@@ -24,21 +24,49 @@ type Node struct {
 	meshNet    *netip.Prefix
 	wgKey      *wgkey.WgKey
 	wgEndpoint *netip.AddrPort
+	tsFirst    *time.Time // first record of the series
+	tsCurr     *time.Time // current record
 }
 
 func (n *Node) String() string {
 	where := "R"
-	if n.GetLocal() {
+	isLocal := n.GetLocal()
+	if isLocal {
 		where = "L"
 	}
+	tsDetails := ""
+	if !isLocal {
+		tsFirstStr := "<undefined-tsFirst>"
+		tsFirst := n.GetTsFirst()
+		if tsFirst != nil {
+			tsFirstStr = tsFirst.Format(time.RFC3339Nano)
+		}
+		tsCurrStr := "<undefined-tsCurr>"
+		tsCurr := n.GetTsCurr()
+		if tsCurr != nil {
+			tsCurrStr = tsCurr.Format(time.RFC3339Nano)
+		}
+		tsDeltaStr := "|"
+		tsDelta := n.GetDelta()
+		if tsDelta != nil {
+			tsDeltaStr = fmt.Sprintf("--[%s]->", tsDelta.String())
+		}
+		ageStr := "<undefined-age>"
+		age := n.GetAge(nil)
+		if age != nil {
+			ageStr = age.String()
+		}
+		tsDetails = fmt.Sprintf("|%s%s%s|%s", tsFirstStr, tsDeltaStr, tsCurrStr, ageStr)
+	}
 	return fmt.Sprintf(
-		"%s|%s|%s/%d|%s|%s",
+		"%s|%s|%s/%d|%s|%s%s",
 		where,
 		n.GetNodeName(),
 		n.GetMeshIP(),
 		n.GetMeshNet().Bits(),
 		n.GetWgKey(),
 		n.GetWgEndpoint(),
+		tsDetails,
 	)
 }
 
@@ -65,6 +93,48 @@ func (n *Node) GetLocal() bool {
 
 func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
+}
+
+func (n *Node) GetTsFirst() *time.Time {
+	return n.tsFirst
+}
+
+func (n *Node) SetTsFirst(ts *time.Time) {
+	n.tsFirst = ts
+}
+
+func (n *Node) GetTsCurr() *time.Time {
+	return n.tsCurr
+}
+
+func (n *Node) SetTsCurr(ts *time.Time) {
+	n.tsCurr = ts
+}
+
+func (n *Node) GetAge(tsNow *time.Time) *time.Duration {
+	if tsNow == nil {
+		ts := time.Now().UTC()
+		tsNow = &ts
+	}
+	tsFirst := n.GetTsFirst()
+	if tsFirst == nil {
+		return nil
+	}
+	d := tsNow.Sub(*tsFirst)
+	return &d
+}
+
+func (n *Node) GetDelta() *time.Duration {
+	tsFirst := n.GetTsFirst()
+	if tsFirst == nil {
+		return nil
+	}
+	tsCurr := n.GetTsCurr()
+	if tsCurr == nil {
+		return nil
+	}
+	d := tsCurr.Sub(*tsFirst)
+	return &d
 }
 
 func (n *Node) HostnameConfig() error {
@@ -135,12 +205,9 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	return nil
 }
 
-func (n *Node) PurgeFromRemote(remMeshBase string, keep int) error {
+func (n *Node) PurgeFromRemote(remMeshBase string) error {
 	if !n.GetLocal() {
 		return fmt.Errorf("cannot purge node: it's not local")
-	}
-	if keep < 1 {
-		return fmt.Errorf("invalid keep=%d (min=1)", keep)
 	}
 	nodeName := n.GetNodeName()
 	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
@@ -152,8 +219,9 @@ func (n *Node) PurgeFromRemote(remMeshBase string, keep int) error {
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
 	slices.Reverse(entries)
+	lastEntry := len(entries) - 1
 	for i, entry := range entries {
-		if i < keep {
+		if i == 0 || i == lastEntry {
 			continue
 		}
 		deletePath := fmt.Sprintf("%s/%s/%s", remMeshBase, nodeName, entry)

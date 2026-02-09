@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/sfmunoz/i12e/internal/mesh/ifaceip"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
@@ -52,6 +53,16 @@ func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, erro
 		return 0, err
 	}
 	return nodeId, nil
+}
+func getTimestamp(tsStrIn string) (*time.Time, error) {
+	ts, err := time.Parse(
+		"20060102.150405.999999999",
+		strings.ReplaceAll(tsStrIn, "_", "."), // to properly parse ns
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &ts, nil
 }
 
 func deleteEtcHostname() error {
@@ -122,6 +133,8 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
+		tsFirst:    nil,
+		tsCurr:     nil,
 	}, nil
 }
 
@@ -131,6 +144,10 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
 	nodeId, err := getNodeIdFromNodeName(meshNet, arr[1])
+	if err != nil {
+		return nil, err
+	}
+	tsCurr, err := getTimestamp(arr[2])
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +169,8 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 		meshNet:    meshNet,
 		wgKey:      wgKey,
 		wgEndpoint: &wgEndpoint,
+		tsFirst:    nil,
+		tsCurr:     tsCurr,
 	}, nil
 }
 

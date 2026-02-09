@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/mesh/node"
@@ -15,9 +16,25 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
+const settleTime = 15 * time.Second
+
 type Mesh struct {
 	meshNet *netip.Prefix
 	remBase string
+}
+
+func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
+	tsMap := make(map[string]*time.Time)
+	for _, n := range nodeListRaw {
+		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
+		if v, ok := tsMap[k]; ok {
+			n.SetTsFirst(v)
+			continue
+		}
+		ts := n.GetTsCurr()
+		n.SetTsFirst(ts)
+		tsMap[k] = ts
+	}
 }
 
 func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
@@ -28,8 +45,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
-	slices.Reverse(entries)
-	nodeList := make([]*node.Node, 0)
+	nodeListRaw := make([]*node.Node, 0)
 	for _, entry := range entries {
 		entryTrimmed := strings.TrimSpace(entry)
 		if len(entryTrimmed) < 1 { // when entries == ""
@@ -40,92 +56,70 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
 		}
-		nodeList = append(nodeList, n)
+		nodeListRaw = append(nodeListRaw, n)
 	}
-	return nodeList, nil
+	m.setNodeListTimestamps(nodeListRaw)
+	return nodeListRaw, nil
 }
 
-func (m *Mesh) getConfirmedNodes(nodeListRaw []*node.Node) ([]*node.Node, error) {
-	nodeListOut := make([]*node.Node, 0)
+func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.Node, bool) {
+	if n == nil {
+		return nodeBlock, true
+	}
+	nbLen := len(nodeBlock)
+	if nbLen > 0 && n.GetNodeName() != nodeBlock[nbLen-1].GetNodeName() {
+		return nodeBlock, true
+	}
+	return append(nodeBlock, n), false
+}
+
+func (m *Mesh) squeezeBlock(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
+	if len(nodeBlock) < 1 {
+		return nodeList
+	}
+	nb0 := nodeBlock[0]
+	hex0 := nb0.GetWgKey().GetPubKey().Hex()
+	for i := len(nodeBlock) - 1; i > 0; i-- {
+		n := nodeBlock[i]
+		if n.GetWgKey().GetPubKey().Hex() == hex0 {
+			return append(nodeList, n)
+		}
+	}
+	return append(nodeList, nb0)
+}
+
+func (m *Mesh) squeezeNodeList(nodeListRaw []*node.Node) []*node.Node {
+	nodeList := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
-		nbLen := len(nodeBlock)
-		if n != nil && (nbLen < 1 || n.GetNodeName() == nodeBlock[nbLen-1].GetNodeName()) {
-			nodeBlock = append(nodeBlock, n)
+		var blockDone bool
+		nodeBlock, blockDone = m.appendNodeToBlock(nodeBlock, n)
+		if !blockDone {
 			continue
 		}
-		if nbLen > 1 && nodeBlock[0].GetWgKey().GetPubKey().Hex() ==
-			nodeBlock[1].GetWgKey().GetPubKey().Hex() {
-			nodeListOut = append(nodeListOut, nodeBlock[0])
-		}
+		nodeList = m.squeezeBlock(nodeList, nodeBlock)
 		nodeBlock = make([]*node.Node, 1)
 		nodeBlock[0] = n
 	}
-	return nodeListOut, nil
+	return nodeList
 }
 
-func (m *Mesh) nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
+func (m *Mesh) getHomonymFromNodeList(nodeList []*node.Node, nodeLocal *node.Node) *node.Node {
 	nodeNameLocal := nodeLocal.GetNodeName()
-	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
-		if n.GetNodeName() != nodeNameLocal {
-			continue
-		}
-		if idOnly || n.GetWgKey().GetPubKey().Hex() == nodePubKeyLocal {
+		if n.GetNodeName() == nodeNameLocal {
 			return n
 		}
 	}
 	return nil
 }
 
-func (m *Mesh) getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
-	nodeNameLocal := nodeLocal.GetNodeName()
-	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
-	pubKeys := make([]string, 0)
-	nodeListRet := make([]*node.Node, 0)
-	for _, n := range nodeListRaw {
-		if n.GetNodeName() != nodeNameLocal {
-			continue
-		}
-		pubKey := n.GetWgKey().GetPubKey().Hex()
-		if pubKey == nodePubKeyLocal {
-			continue
-		}
-		if slices.Contains(pubKeys, pubKey) {
-			continue
-		}
-		pubKeys = append(pubKeys, pubKey)
-		nodeListRet = append(nodeListRet, n)
-	}
-	return nodeListRet
-}
-
-func (m *Mesh) nodeGiveUp(nodeLocal *node.Node) error {
+func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
 	nodeLocalNew, err := node.NewNode(node.WithLocal(m.meshNet, true))
 	if err != nil {
-		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocal, err)
+		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
-	log.Info("node-reset OK", "nodeLocal", nodeLocal, "nodeLocalNew", nodeLocalNew)
-	return nil
-}
-
-func (m *Mesh) nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node) error {
-	ncList := m.getContenderNodes(nodeListRaw, nodeLocal)
-	ncListLen := len(ncList)
-	if ncListLen > 0 {
-		for i, n := range ncList {
-			log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
-		}
-		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-		return m.nodeGiveUp(nodeLocal)
-	}
-	tot := 2
-	for i := range tot {
-		log.Info("nodeLocal.PushToRemote()...", "i", i+1, "tot", tot, "node", nodeLocal)
-		if err := nodeLocal.PushToRemote(m.remBase); err != nil {
-			return err
-		}
-	}
+	log.Info("node-reset OK", "nodeLocalNew", nodeLocalNew, "nodeLocalOld", nodeLocalOld)
 	return nil
 }
 
@@ -133,7 +127,12 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
-			log.Info("skipping local node", "node", n)
+			log.Info("peers: skipping local node", "node", n)
+			continue
+		}
+		nAge := *n.GetAge(nil)
+		if nAge < settleTime {
+			log.Warn("peers: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
 			continue
 		}
 		cmd := exec.Command(
@@ -161,6 +160,11 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 		"::1 localhost",
 	}
 	for _, n := range nodeList {
+		nAge := *n.GetAge(nil)
+		if nAge < settleTime {
+			log.Warn("/etc/hosts: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
+			continue
+		}
 		lines = append(lines, fmt.Sprintf("%s %s", n.GetMeshIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
@@ -169,30 +173,32 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	nodeListRaw, err := m.getRemoteNodeList()
-	if err != nil {
-		return err
-	}
-	nodeList, err := m.getConfirmedNodes(nodeListRaw)
-	if err != nil {
-		return err
-	}
 	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
 	if err != nil {
 		return err
 	}
-	nodeInList := m.nodeLocalInNodeList(nodeList, nodeLocal, true)
-	if nodeInList == nil {
-		return m.nodeGiveUpOrPush(nodeListRaw, nodeLocal)
-	}
-	if m.nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
-		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
-		return m.nodeGiveUp(nodeLocal)
-	}
 	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
 		return err
 	}
-	if err := nodeLocal.PurgeFromRemote(m.remBase, 2); err != nil {
+	nodeListRaw, err := m.getRemoteNodeList()
+	if err != nil {
+		return err
+	}
+	nodeList := m.squeezeNodeList(nodeListRaw)
+	nodeInList := m.getHomonymFromNodeList(nodeList, nodeLocal)
+	if nodeInList == nil {
+		return fmt.Errorf("cannot find nodeLocal='%s' homonym in node list", nodeLocal)
+	}
+	if nodeInList.GetWgKey().GetPubKey().Hex() != nodeLocal.GetWgKey().GetPubKey().Hex() {
+		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
+		return m.nodeGiveUp(nodeLocal)
+	}
+	nodeAge := *nodeInList.GetAge(nil)
+	if nodeAge < settleTime {
+		log.Warn("nodeAge < settleTime; waiting...", "nodeAge", nodeAge, "settleTime", settleTime, "nodeLocal", nodeLocal, "nodeAge", nodeAge)
+		return nil
+	}
+	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
