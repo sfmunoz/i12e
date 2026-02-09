@@ -49,7 +49,7 @@ func (n *Node) String() string {
 		tsDeltaStr := "|"
 		tsDelta := n.GetDelta()
 		if tsDelta != nil {
-			tsDeltaStr = fmt.Sprintf("--%s->", tsDelta.String())
+			tsDeltaStr = fmt.Sprintf("--[%s]->", tsDelta.String())
 		}
 		ageStr := "<undefined-age>"
 		age := n.GetAge(nil)
