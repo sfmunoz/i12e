@@ -16,6 +16,8 @@ import (
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
+const settleTime = 15 * time.Second
+
 type Mesh struct {
 	meshNet *netip.Prefix
 	remBase string
@@ -182,8 +184,8 @@ func (m *Mesh) run() error {
 		return m.nodeGiveUp(nodeLocal)
 	}
 	nodeAge := *nodeInList.GetAge(nil)
-	if nodeAge < 15*time.Second {
-		log.Warn("entry too young, waiting until it's 15s old", "nodeLocal", nodeLocal, "nodeAge", nodeAge)
+	if nodeAge < settleTime {
+		log.Warn("nodeAge < settleTime; waiting...", "nodeAge", nodeAge, "settleTime", settleTime, "nodeLocal", nodeLocal, "nodeAge", nodeAge)
 		return nil
 	}
 	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
