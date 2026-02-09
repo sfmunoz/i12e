@@ -1,7 +1,6 @@
 package mesh
 
 import (
-	"cmp"
 	"fmt"
 	"net/netip"
 	"os"
@@ -24,9 +23,7 @@ type Mesh struct {
 
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
 	tsMap := make(map[string]*time.Time)
-	nLast := len(nodeListRaw) - 1
-	for i := nLast; i >= 0; i-- {
-		n := nodeListRaw[i]
+	for _, n := range nodeListRaw {
 		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
 		if v, ok := tsMap[k]; ok {
 			n.SetTsFirst(v)
@@ -46,7 +43,6 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
-	slices.Reverse(entries)
 	nodeListRaw := make([]*node.Node, 0)
 	for _, entry := range entries {
 		entryTrimmed := strings.TrimSpace(entry)
@@ -75,40 +71,22 @@ func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.
 	return append(nodeBlock, n), false
 }
 
-func (m *Mesh) appendBlockToNodeList(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
-	tsNow := time.Now().UTC()
-	nodeCmp := func(n1, n2 *node.Node) int {
-		// -1: n1 < n2 | 0: n1 == n2 | +1: n1 > n2
-		if x := cmp.Compare(n2.GetTsCurr().UnixNano(), n1.GetTsCurr().UnixNano()); x != 0 {
-			return x
-		}
-		return cmp.Compare(n2.GetWgKey().GetPubKey().Hex(), n1.GetWgKey().GetPubKey().Hex())
-	}
+func (m *Mesh) squeezeBlock(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
 	if len(nodeBlock) < 1 {
 		return nodeList
 	}
-	slices.SortFunc(nodeBlock, nodeCmp)
-	nodeSeen := make(map[string]bool, len(nodeBlock))
-	nodeBlockTrimmed := make([]*node.Node, 0, len(nodeBlock))
-	for _, n := range nodeBlock {
-		k := n.GetWgKey().GetPubKey().Hex()
-		if _, ok := nodeSeen[k]; ok {
-			continue
+	nb0 := nodeBlock[0]
+	hex0 := nb0.GetWgKey().GetPubKey().Hex()
+	for i := len(nodeBlock) - 1; i > 0; i-- {
+		n := nodeBlock[i]
+		if n.GetWgKey().GetPubKey().Hex() == hex0 {
+			return append(nodeList, n)
 		}
-		nodeSeen[k] = true
-		nodeBlockTrimmed = append(nodeBlockTrimmed, n)
 	}
-	if len(nodeBlockTrimmed) < 1 {
-		return nodeList
-	}
-	n0 := nodeBlockTrimmed[0]
-	if *n0.GetAge(&tsNow) < 3*time.Second {
-		return nodeList
-	}
-	return append(nodeList, n0)
+	return append(nodeList, nb0)
 }
 
-func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
+func (m *Mesh) squeezeNodeList(nodeListRaw []*node.Node) []*node.Node {
 	nodeList := make([]*node.Node, 0)
 	nodeBlock := make([]*node.Node, 0)
 	for _, n := range append(nodeListRaw, nil) {
@@ -117,7 +95,7 @@ func (m *Mesh) getConfirmedNodeList(nodeListRaw []*node.Node) []*node.Node {
 		if !blockDone {
 			continue
 		}
-		nodeList = m.appendBlockToNodeList(nodeList, nodeBlock)
+		nodeList = m.squeezeBlock(nodeList, nodeBlock)
 		nodeBlock = make([]*node.Node, 1)
 		nodeBlock[0] = n
 	}
@@ -230,7 +208,7 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	nodeList := m.getConfirmedNodeList(nodeListRaw)
+	nodeList := m.squeezeNodeList(nodeListRaw)
 	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
 	if err != nil {
 		return err
