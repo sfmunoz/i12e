@@ -36,17 +36,27 @@ func (n *Node) String() string {
 	}
 	tsDetails := ""
 	if !isLocal {
+		tsFirstStr := "<undefined-tsFirst>"
+		tsFirst := n.GetTsFirst()
+		if tsFirst != nil {
+			tsFirstStr = tsFirst.Format(time.RFC3339Nano)
+		}
 		tsCurrStr := "<undefined-tsCurr>"
 		tsCurr := n.GetTsCurr()
 		if tsCurr != nil {
 			tsCurrStr = tsCurr.Format(time.RFC3339Nano)
+		}
+		tsDeltaStr := "|"
+		tsDelta := n.GetDelta()
+		if tsDelta != nil {
+			tsDeltaStr = fmt.Sprintf("--%s->", tsDelta.String())
 		}
 		ageStr := "<undefined-age>"
 		age := n.GetAge(nil)
 		if age != nil {
 			ageStr = age.String()
 		}
-		tsDetails = fmt.Sprintf("|%s|%s", tsCurrStr, ageStr)
+		tsDetails = fmt.Sprintf("|%s%s%s|%s", tsFirstStr, tsDeltaStr, tsCurrStr, ageStr)
 	}
 	return fmt.Sprintf(
 		"%s|%s|%s/%d|%s|%s%s",
@@ -111,6 +121,19 @@ func (n *Node) GetAge(tsNow *time.Time) *time.Duration {
 		return nil
 	}
 	d := tsNow.Sub(*tsFirst)
+	return &d
+}
+
+func (n *Node) GetDelta() *time.Duration {
+	tsFirst := n.GetTsFirst()
+	if tsFirst == nil {
+		return nil
+	}
+	tsCurr := n.GetTsCurr()
+	if tsCurr == nil {
+		return nil
+	}
+	d := tsCurr.Sub(*tsFirst)
 	return &d
 }
 
