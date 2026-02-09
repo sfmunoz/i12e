@@ -102,40 +102,14 @@ func (m *Mesh) squeezeNodeList(nodeListRaw []*node.Node) []*node.Node {
 	return nodeList
 }
 
-func (m *Mesh) nodeLocalInNodeList(nodeList []*node.Node, nodeLocal *node.Node, idOnly bool) *node.Node {
+func (m *Mesh) getHomonymFromNodeList(nodeList []*node.Node, nodeLocal *node.Node) *node.Node {
 	nodeNameLocal := nodeLocal.GetNodeName()
-	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
 	for _, n := range nodeList {
-		if n.GetNodeName() != nodeNameLocal {
-			continue
-		}
-		if idOnly || n.GetWgKey().GetPubKey().Hex() == nodePubKeyLocal {
+		if n.GetNodeName() == nodeNameLocal {
 			return n
 		}
 	}
 	return nil
-}
-
-func (m *Mesh) getContenderNodes(nodeListRaw []*node.Node, nodeLocal *node.Node) []*node.Node {
-	nodeNameLocal := nodeLocal.GetNodeName()
-	nodePubKeyLocal := nodeLocal.GetWgKey().GetPubKey().Hex()
-	pubKeys := make([]string, 0)
-	nodeListRet := make([]*node.Node, 0)
-	for _, n := range nodeListRaw {
-		if n.GetNodeName() != nodeNameLocal {
-			continue
-		}
-		pubKey := n.GetWgKey().GetPubKey().Hex()
-		if pubKey == nodePubKeyLocal {
-			continue
-		}
-		if slices.Contains(pubKeys, pubKey) {
-			continue
-		}
-		pubKeys = append(pubKeys, pubKey)
-		nodeListRet = append(nodeListRet, n)
-	}
-	return nodeListRet
 }
 
 func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
@@ -144,23 +118,6 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
 	log.Info("node-reset OK", "nodeLocalNew", nodeLocalNew, "nodeLocalOld", nodeLocalOld)
-	return nil
-}
-
-func (m *Mesh) nodeGiveUpOrPush(nodeListRaw []*node.Node, nodeLocal *node.Node) error {
-	ncList := m.getContenderNodes(nodeListRaw, nodeLocal)
-	ncListLen := len(ncList)
-	if ncListLen > 0 {
-		for i, n := range ncList {
-			log.Warn("contender", "i", i+1, "tot", ncListLen, "node", n)
-		}
-		log.Warn("contention detected: giving up", "nodeLocal", nodeLocal)
-		return m.nodeGiveUp(nodeLocal)
-	}
-	log.Info("nodeLocal.PushToRemote()...")
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -204,25 +161,30 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
+	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
+	if err != nil {
+		return err
+	}
+	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+		return err
+	}
 	nodeListRaw, err := m.getRemoteNodeList()
 	if err != nil {
 		return err
 	}
 	nodeList := m.squeezeNodeList(nodeListRaw)
-	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
-	if err != nil {
-		return err
-	}
-	nodeInList := m.nodeLocalInNodeList(nodeList, nodeLocal, true)
+	nodeInList := m.getHomonymFromNodeList(nodeList, nodeLocal)
 	if nodeInList == nil {
-		return m.nodeGiveUpOrPush(nodeListRaw, nodeLocal)
+		return fmt.Errorf("cannot find nodeLocal='%s' homonym in node list", nodeLocal)
 	}
-	if m.nodeLocalInNodeList(nodeList, nodeLocal, false) == nil {
-		log.Warn("conflict detected: giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
+	if nodeInList.GetWgKey().GetPubKey().Hex() != nodeLocal.GetWgKey().GetPubKey().Hex() {
+		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
 		return m.nodeGiveUp(nodeLocal)
 	}
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
-		return err
+	nodeAge := *nodeInList.GetAge(nil)
+	if nodeAge < 15*time.Second {
+		log.Warn("entry too young, waiting until it's 15s old", "nodeLocal", nodeLocal, "nodeAge", nodeAge)
+		return nil
 	}
 	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
 		return err
