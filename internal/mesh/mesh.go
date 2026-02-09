@@ -127,7 +127,12 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
-			log.Info("skipping local node", "node", n)
+			log.Info("peers: skipping local node", "node", n)
+			continue
+		}
+		nAge := *n.GetAge(nil)
+		if nAge < settleTime {
+			log.Warn("peers: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
 			continue
 		}
 		cmd := exec.Command(
@@ -155,6 +160,11 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 		"::1 localhost",
 	}
 	for _, n := range nodeList {
+		nAge := *n.GetAge(nil)
+		if nAge < settleTime {
+			log.Warn("/etc/hosts: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
+			continue
+		}
 		lines = append(lines, fmt.Sprintf("%s %s", n.GetMeshIP(), n.GetNodeName()))
 	}
 	lines = append(lines, "") // NL to the end
