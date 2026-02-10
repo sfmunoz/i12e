@@ -198,7 +198,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.GetWgKeyPub().Hex(),
+		n.GetWgKeyPub().K32().Hex(),
 		wgEndpoint.Addr(),
 		wgEndpoint.Port(),
 	)

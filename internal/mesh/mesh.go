@@ -26,7 +26,7 @@ type Mesh struct {
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
 	tsMap := make(map[string]*time.Time)
 	for _, n := range nodeListRaw {
-		k := n.GetNodeName() + "_" + n.GetWgKeyPub().Hex()
+		k := n.GetNodeName() + "_" + n.GetWgKeyPub().K32().Hex()
 		if v, ok := tsMap[k]; ok {
 			n.SetTsFirst(v)
 			continue
@@ -78,10 +78,10 @@ func (m *Mesh) squeezeBlock(nodeList []*node.Node, nodeBlock []*node.Node) []*no
 		return nodeList
 	}
 	nb0 := nodeBlock[0]
-	hex0 := nb0.GetWgKeyPub().Hex()
+	hex0 := nb0.GetWgKeyPub().K32().Hex()
 	for i := len(nodeBlock) - 1; i > 0; i-- {
 		n := nodeBlock[i]
-		if n.GetWgKeyPub().Hex() == hex0 {
+		if n.GetWgKeyPub().K32().Hex() == hex0 {
 			return append(nodeList, n)
 		}
 	}
@@ -137,7 +137,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 		}
 		cmd := exec.Command(
 			"wg", "set", node.GetNodeInterface(),
-			"peer", n.GetWgKeyPub().B64(),
+			"peer", n.GetWgKeyPub().K32().B64(),
 			"endpoint", n.GetWgEndpoint().String(),
 			"allowed-ips", fmt.Sprintf("%s/32", n.GetMeshIP()),
 		)
@@ -189,7 +189,7 @@ func (m *Mesh) run() error {
 	if nodeInList == nil {
 		return fmt.Errorf("cannot find nodeLocal='%s' homonym in node list", nodeLocal)
 	}
-	if nodeInList.GetWgKeyPub().Hex() != nodeLocal.GetWgKeyPub().Hex() {
+	if nodeInList.GetWgKeyPub().K32().Hex() != nodeLocal.GetWgKeyPub().K32().Hex() {
 		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
 		return m.nodeGiveUp(nodeLocal)
 	}

@@ -2,8 +2,6 @@ package wgkey
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
@@ -14,50 +12,34 @@ import (
 )
 
 type WgKeyPriv struct {
-	data     []byte
+	k32      *K32
 	wgKeyPub *WgKeyPub
 }
 
 func (w *WgKeyPriv) String() string {
-	return strings.Repeat("*", len(w.data))
+	return strings.Repeat("*", 32)
 }
 
-func (w *WgKeyPriv) Raw() []byte {
-	return w.data
-}
-
-func (w *WgKeyPriv) B64() string {
-	return base64.StdEncoding.EncodeToString(w.data)
-}
-
-func (w *WgKeyPriv) Hex() string {
-	return hex.EncodeToString(w.data)
-}
-
-func (w *WgKeyPriv) Len() int {
-	return len(w.data)
+func (w *WgKeyPriv) K32() *K32 {
+	return w.k32
 }
 
 func (w *WgKeyPriv) Pub() *WgKeyPub {
 	return w.wgKeyPub
 }
 
-func privToPub(b []byte) (*WgKeyPub, error) {
+func privToPub(k32 *K32) (*WgKeyPub, error) {
 	cmd := exec.Command("wg", "pubkey")
-	cmd.Stdin = bytes.NewBuffer([]byte(base64.StdEncoding.EncodeToString(b)))
+	cmd.Stdin = bytes.NewBuffer([]byte(k32.B64()))
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'wg pubkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
-	data, err := base64.StdEncoding.DecodeString(bo.String())
+	k32_out, err := NewK32(WithB64(bo.String()))
 	if err != nil {
 		return nil, err
 	}
-	data_len := len(data)
-	if data_len != 32 {
-		return nil, fmt.Errorf("len(data)=%d (32 expected)", data_len)
-	}
-	return &WgKeyPub{data}, nil
+	return NewWgKeyPub(k32_out), nil
 }
 
 func NewWgKeyPriv(wgPrivKeyFname string) (*WgKeyPriv, error) {
@@ -82,17 +64,13 @@ func NewWgKeyPriv(wgPrivKeyFname string) (*WgKeyPriv, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := base64.StdEncoding.DecodeString(string(buf))
+	k32, err := NewK32(WithB64(string(buf)))
 	if err != nil {
 		return nil, err
 	}
-	data_len := len(data)
-	if data_len != 32 {
-		return nil, fmt.Errorf("len(data)=%d (32 expected)", data_len)
-	}
-	wgKeyPub, err := privToPub(data)
+	wgKeyPub, err := privToPub(k32)
 	if err != nil {
 		return nil, err
 	}
-	return &WgKeyPriv{data, wgKeyPub}, nil
+	return &WgKeyPriv{k32, wgKeyPub}, nil
 }

@@ -152,9 +152,9 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKeyPub, err := wgkey.NewWgKeyPub((arr[3]))
+	k32, err := wgkey.NewK32(wgkey.WithHex(arr[3]))
 	if err != nil {
-		return nil, fmt.Errorf("'wgkey.NewWgKeyPub(%s)' failed: %s", arr[3], err)
+		return nil, fmt.Errorf("'wgkey.NewK32(%s)' failed: %s", arr[3], err)
 	}
 	addr, err := netip.ParseAddr(arr[4])
 	if err != nil {
@@ -169,7 +169,7 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 		id:         nodeId,
 		meshNet:    meshNet,
 		wgKeyPriv:  nil,
-		wgKeyPub:   wgKeyPub,
+		wgKeyPub:   wgkey.NewWgKeyPub(k32),
 		wgEndpoint: &wgEndpoint,
 		tsFirst:    nil,
 		tsCurr:     tsCurr,
