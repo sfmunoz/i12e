@@ -14,7 +14,8 @@ import (
 )
 
 type WgKeyPriv struct {
-	data []byte
+	data     []byte
+	wgKeyPub *WgKeyPub
 }
 
 func (w *WgKeyPriv) String() string {
@@ -37,9 +38,13 @@ func (w *WgKeyPriv) Len() int {
 	return len(w.data)
 }
 
-func (w *WgKeyPriv) Pub() (*WgKeyPub, error) {
+func (w *WgKeyPriv) Pub() *WgKeyPub {
+	return w.wgKeyPub
+}
+
+func privToPub(b []byte) (*WgKeyPub, error) {
 	cmd := exec.Command("wg", "pubkey")
-	cmd.Stdin = bytes.NewBuffer([]byte(w.B64()))
+	cmd.Stdin = bytes.NewBuffer([]byte(base64.StdEncoding.EncodeToString(b)))
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'wg pubkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -85,5 +90,9 @@ func NewWgKeyPriv(wgPrivKeyFname string) (*WgKeyPriv, error) {
 	if data_len != 32 {
 		return nil, fmt.Errorf("len(data)=%d (32 expected)", data_len)
 	}
-	return &WgKeyPriv{data}, nil
+	wgKeyPub, err := privToPub(data)
+	if err != nil {
+		return nil, err
+	}
+	return &WgKeyPriv{data, wgKeyPub}, nil
 }

@@ -120,10 +120,6 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKeyPub, err := wgKeyPriv.Pub()
-	if err != nil {
-		return nil, err
-	}
 	ii, err := ifaceip.IfaceIP()
 	if err != nil {
 		return nil, err
@@ -136,7 +132,7 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 		id:         nodeId,
 		meshNet:    meshNet,
 		wgKeyPriv:  wgKeyPriv,
-		wgKeyPub:   wgKeyPub,
+		wgKeyPub:   wgKeyPriv.Pub(),
 		wgEndpoint: &wgEndpoint,
 		tsFirst:    nil,
 		tsCurr:     nil,
