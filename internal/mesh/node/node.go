@@ -80,10 +80,6 @@ func (n *Node) GetMeshNet() *netip.Prefix {
 	return n.meshNet
 }
 
-func (n *Node) GetWgKeyPub() *wgkey.WgKeyPub {
-	return n.wgKeyPub
-}
-
 func (n *Node) GetLocal() bool {
 	return n.GetWgKeyPriv() != nil
 }

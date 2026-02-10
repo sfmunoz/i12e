@@ -2,7 +2,13 @@ package node
 
 import (
 	"time"
+
+	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
+
+func (n *Node) GetWgKeyPub() *wgkey.WgKeyPub {
+	return n.wgKeyPub
+}
 
 func (n *Node) GetTsFirst() *time.Time {
 	return n.tsFirst
