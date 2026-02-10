@@ -1,10 +1,8 @@
 package node
 
 import (
-	"errors"
 	"fmt"
 	"net/netip"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,7 +13,6 @@ import (
 )
 
 const nodeEndpointPort = 51830 // default '51820'
-const nodeEtcHostname = "/etc/hostname"
 
 // ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
 var nodeRegex = regexp.MustCompile(
@@ -54,6 +51,7 @@ func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, erro
 	}
 	return nodeId, nil
 }
+
 func getTimestamp(tsStrIn string) (*time.Time, error) {
 	ts, err := time.Parse(
 		"20060102.150405.999999999",
@@ -63,41 +61,6 @@ func getTimestamp(tsStrIn string) (*time.Time, error) {
 		return nil, err
 	}
 	return &ts, nil
-}
-
-func deleteEtcHostname() error {
-	_, err := os.Stat(nodeEtcHostname)
-	if err == nil {
-		return os.Remove(nodeEtcHostname)
-	}
-	if errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	return err
-}
-
-func writeRandomEtcHostname(meshNet *netip.Prefix) error {
-	nodeId, err := getRandomNodeId(meshNet)
-	if err != nil {
-		return err
-	}
-	nodeName := getNodeNameFromNodeId(nodeId)
-	if err := os.WriteFile(nodeEtcHostname, fmt.Appendf(make([]byte, 0), "%s\n", nodeName), 0644); err != nil {
-		return err
-	}
-	return nil
-}
-
-func readEtcHostname(meshNet *netip.Prefix) (uint32, error) {
-	buf, err := os.ReadFile(nodeEtcHostname)
-	if err != nil {
-		return 0, err
-	}
-	nodeId, err := getNodeIdFromNodeName(meshNet, strings.TrimSpace(string(buf)))
-	if err != nil {
-		return 0, err
-	}
-	return nodeId, nil
 }
 
 func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
