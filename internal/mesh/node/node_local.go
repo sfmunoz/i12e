@@ -8,7 +8,12 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
+
+func (n *Node) GetWgKeyPriv() *wgkey.WgKeyPriv {
+	return n.wgKeyPriv
+}
 
 func (n *Node) HostnameConfig() error {
 	if !n.GetLocal() {
