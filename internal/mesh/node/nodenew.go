@@ -116,7 +116,11 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKey, err := wgkey.NewWgKey(wgkey.WithLocal(nodePrivKeyFname))
+	wgKeyPriv, err := wgkey.NewWgKeyPriv(nodePrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
+	wgKeyPub, err := wgKeyPriv.Pub()
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +135,8 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	return &Node{
 		id:         nodeId,
 		meshNet:    meshNet,
-		wgKey:      wgKey,
+		wgKeyPriv:  wgKeyPriv,
+		wgKeyPub:   wgKeyPub,
 		wgEndpoint: &wgEndpoint,
 		tsFirst:    nil,
 		tsCurr:     nil,
@@ -151,9 +156,9 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKey, err := wgkey.NewWgKey(wgkey.WithRemote((arr[3])))
+	wgKeyPub, err := wgkey.NewWgKeyPub((arr[3]))
 	if err != nil {
-		return nil, fmt.Errorf("'getWgKeyRemote(%s)' failed: %s", arr[3], err)
+		return nil, fmt.Errorf("'wgkey.NewWgKeyPub(%s)' failed: %s", arr[3], err)
 	}
 	addr, err := netip.ParseAddr(arr[4])
 	if err != nil {
@@ -167,7 +172,8 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	return &Node{
 		id:         nodeId,
 		meshNet:    meshNet,
-		wgKey:      wgKey,
+		wgKeyPriv:  nil,
+		wgKeyPub:   wgKeyPub,
 		wgEndpoint: &wgEndpoint,
 		tsFirst:    nil,
 		tsCurr:     tsCurr,

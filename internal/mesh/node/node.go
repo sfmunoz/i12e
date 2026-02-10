@@ -22,7 +22,8 @@ func GetNodeInterface() string {
 type Node struct {
 	id         uint32
 	meshNet    *netip.Prefix
-	wgKey      *wgkey.WgKey
+	wgKeyPriv  *wgkey.WgKeyPriv
+	wgKeyPub   *wgkey.WgKeyPub
 	wgEndpoint *netip.AddrPort
 	tsFirst    *time.Time // first record of the series
 	tsCurr     *time.Time // current record
@@ -64,7 +65,7 @@ func (n *Node) String() string {
 		n.GetNodeName(),
 		n.GetMeshIP(),
 		n.GetMeshNet().Bits(),
-		n.GetWgKey(),
+		n.GetWgKeyPub(),
 		n.GetWgEndpoint(),
 		tsDetails,
 	)
@@ -83,12 +84,16 @@ func (n *Node) GetMeshNet() *netip.Prefix {
 	return n.meshNet
 }
 
-func (n *Node) GetWgKey() *wgkey.WgKey {
-	return n.wgKey
+func (n *Node) GetWgKeyPriv() *wgkey.WgKeyPriv {
+	return n.wgKeyPriv
+}
+
+func (n *Node) GetWgKeyPub() *wgkey.WgKeyPub {
+	return n.wgKeyPub
 }
 
 func (n *Node) GetLocal() bool {
-	return n.GetWgKey().GetLocal()
+	return n.GetWgKeyPriv() != nil
 }
 
 func (n *Node) GetWgEndpoint() *netip.AddrPort {
@@ -193,7 +198,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.GetWgKey().GetPubKey().Hex(),
+		n.GetWgKeyPub().Hex(),
 		wgEndpoint.Addr(),
 		wgEndpoint.Port(),
 	)

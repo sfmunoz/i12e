@@ -3,28 +3,41 @@ package wgkey
 import (
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
 )
 
-type wgKeyPub struct {
+type WgKeyPub struct {
 	data []byte
 }
 
-func (w *wgKeyPub) String() string {
+func (w *WgKeyPub) String() string {
 	return w.B64()
 }
 
-func (w *wgKeyPub) Raw() []byte {
+func (w *WgKeyPub) Raw() []byte {
 	return w.data
 }
 
-func (w *wgKeyPub) B64() string {
+func (w *WgKeyPub) B64() string {
 	return base64.StdEncoding.EncodeToString(w.data)
 }
 
-func (w *wgKeyPub) Hex() string {
+func (w *WgKeyPub) Hex() string {
 	return hex.EncodeToString(w.data)
 }
 
-func (w *wgKeyPub) Len() int {
+func (w *WgKeyPub) Len() int {
 	return len(w.data)
+}
+
+func NewWgKeyPub(s string) (*WgKeyPub, error) {
+	s_len := len(s)
+	if s_len != 64 {
+		return nil, fmt.Errorf("len(hex)=%d (64 expected)", s_len)
+	}
+	data, err := hex.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	return &WgKeyPub{data}, nil
 }
