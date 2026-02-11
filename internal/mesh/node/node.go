@@ -8,8 +8,15 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
+const nodeEndpointPort = 51830 // default '51820'
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
+
+type NodeOption func() (*Node, error)
+
+func NewNode(opt NodeOption) (*Node, error) {
+	return opt()
+}
 
 func GetNodeInterface() string {
 	return nodeInterface

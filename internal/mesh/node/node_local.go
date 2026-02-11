@@ -2,12 +2,14 @@ package node
 
 import (
 	"fmt"
+	"net/netip"
 	"os/exec"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/mesh/ifaceip"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
@@ -110,4 +112,49 @@ func (n *Node) PurgeFromRemote(remMeshBase string) error {
 		}
 	}
 	return nil
+}
+
+func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
+	if reset {
+		if err := deleteEtcHostname(); err != nil {
+			return nil, err
+		}
+	}
+	nodeId, err := readEtcHostname(meshNet)
+	if err != nil {
+		if err := writeRandomEtcHostname(meshNet); err != nil {
+			return nil, err
+		}
+	}
+	nodeId, err = readEtcHostname(meshNet)
+	if err != nil {
+		return nil, err
+	}
+	wgKeyPriv, err := wgkey.NewWgKeyPriv(nodePrivKeyFname)
+	if err != nil {
+		return nil, err
+	}
+	ii, err := ifaceip.IfaceIP()
+	if err != nil {
+		return nil, err
+	}
+	if ii == nil {
+		return nil, fmt.Errorf("IfaceIP() returned empty value")
+	}
+	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
+	return &Node{
+		id:         nodeId,
+		meshNet:    meshNet,
+		wgKeyPriv:  wgKeyPriv,
+		wgKeyPub:   wgKeyPriv.Pub(),
+		wgEndpoint: &wgEndpoint,
+		tsFirst:    nil,
+		tsCurr:     nil,
+	}, nil
+}
+
+func WithLocal(meshNet *netip.Prefix, reset bool) NodeOption {
+	return func() (*Node, error) {
+		return getNodeLocal(meshNet, reset)
+	}
 }
