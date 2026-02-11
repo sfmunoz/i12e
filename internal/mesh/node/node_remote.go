@@ -63,23 +63,6 @@ func (n *NodeRemote) String() string {
 	)
 }
 
-func (n *NodeRemote) GetNodeName() string {
-	return getNodeNameFromNodeId(n.id)
-}
-
-func (n *NodeRemote) GetMeshIP() *netip.Addr {
-	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
-	return x
-}
-
-func (n *NodeRemote) GetMeshNet() *netip.Prefix {
-	return n.meshNet
-}
-
-func (n *NodeRemote) GetWgEndpoint() *netip.AddrPort {
-	return n.wgEndpoint
-}
-
 func (n *NodeRemote) GetWgKeyPub() *wgkey.WgKeyPub {
 	return n.wgKeyPub
 }

@@ -16,6 +16,23 @@ type Node struct {
 	wgEndpoint *netip.AddrPort
 }
 
+func (n *Node) GetNodeName() string {
+	return getNodeNameFromNodeId(n.id)
+}
+
+func (n *Node) GetMeshNet() *netip.Prefix {
+	return n.meshNet
+}
+
+func (n *Node) GetMeshIP() *netip.Addr {
+	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
+	return x
+}
+
+func (n *Node) GetWgEndpoint() *netip.AddrPort {
+	return n.wgEndpoint
+}
+
 func GetNodeInterface() string {
 	return nodeInterface
 }

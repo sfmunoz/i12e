@@ -29,23 +29,6 @@ func (n *NodeLocal) String() string {
 	)
 }
 
-func (n *NodeLocal) GetNodeName() string {
-	return getNodeNameFromNodeId(n.id)
-}
-
-func (n *NodeLocal) GetMeshIP() *netip.Addr {
-	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
-	return x
-}
-
-func (n *NodeLocal) GetMeshNet() *netip.Prefix {
-	return n.meshNet
-}
-
-func (n *NodeLocal) GetWgEndpoint() *netip.AddrPort {
-	return n.wgEndpoint
-}
-
 func (n *NodeLocal) GetWgKeyPriv() *wgkey.WgKeyPriv {
 	return n.wgKeyPriv
 }
