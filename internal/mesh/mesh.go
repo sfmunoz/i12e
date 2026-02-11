@@ -23,10 +23,10 @@ type Mesh struct {
 	remBase string
 }
 
-func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
+func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
 	tsMap := make(map[string]*time.Time)
 	for _, n := range nodeListRaw {
-		k := n.GetNodeName() + "_" + n.GetWgKey().GetPubKey().Hex()
+		k := n.GetNodeName() + "_" + n.GetWgKeyPub().K32().Hex()
 		if v, ok := tsMap[k]; ok {
 			n.SetTsFirst(v)
 			continue
@@ -37,7 +37,7 @@ func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.Node) {
 	}
 }
 
-func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
+func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
 	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
@@ -45,13 +45,13 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	}
 	entries := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	slices.Sort(entries)
-	nodeListRaw := make([]*node.Node, 0)
+	nodeListRaw := make([]*node.NodeRemote, 0)
 	for _, entry := range entries {
 		entryTrimmed := strings.TrimSpace(entry)
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNode(node.WithRemote(m.meshNet, entryTrimmed))
+		n, err := node.NewNodeRemote(m.meshNet, entryTrimmed)
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -62,7 +62,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 	return nodeListRaw, nil
 }
 
-func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.Node, bool) {
+func (m *Mesh) appendNodeToBlock(nodeBlock []*node.NodeRemote, n *node.NodeRemote) ([]*node.NodeRemote, bool) {
 	if n == nil {
 		return nodeBlock, true
 	}
@@ -73,24 +73,24 @@ func (m *Mesh) appendNodeToBlock(nodeBlock []*node.Node, n *node.Node) ([]*node.
 	return append(nodeBlock, n), false
 }
 
-func (m *Mesh) squeezeBlock(nodeList []*node.Node, nodeBlock []*node.Node) []*node.Node {
+func (m *Mesh) squeezeBlock(nodeList []*node.NodeRemote, nodeBlock []*node.NodeRemote) []*node.NodeRemote {
 	if len(nodeBlock) < 1 {
 		return nodeList
 	}
 	nb0 := nodeBlock[0]
-	hex0 := nb0.GetWgKey().GetPubKey().Hex()
+	hex0 := nb0.GetWgKeyPub().K32().Hex()
 	for i := len(nodeBlock) - 1; i > 0; i-- {
 		n := nodeBlock[i]
-		if n.GetWgKey().GetPubKey().Hex() == hex0 {
+		if n.GetWgKeyPub().K32().Hex() == hex0 {
 			return append(nodeList, n)
 		}
 	}
 	return append(nodeList, nb0)
 }
 
-func (m *Mesh) squeezeNodeList(nodeListRaw []*node.Node) []*node.Node {
-	nodeList := make([]*node.Node, 0)
-	nodeBlock := make([]*node.Node, 0)
+func (m *Mesh) squeezeNodeList(nodeListRaw []*node.NodeRemote) []*node.NodeRemote {
+	nodeList := make([]*node.NodeRemote, 0)
+	nodeBlock := make([]*node.NodeRemote, 0)
 	for _, n := range append(nodeListRaw, nil) {
 		var blockDone bool
 		nodeBlock, blockDone = m.appendNodeToBlock(nodeBlock, n)
@@ -98,13 +98,13 @@ func (m *Mesh) squeezeNodeList(nodeListRaw []*node.Node) []*node.Node {
 			continue
 		}
 		nodeList = m.squeezeBlock(nodeList, nodeBlock)
-		nodeBlock = make([]*node.Node, 1)
+		nodeBlock = make([]*node.NodeRemote, 1)
 		nodeBlock[0] = n
 	}
 	return nodeList
 }
 
-func (m *Mesh) getHomonymFromNodeList(nodeList []*node.Node, nodeLocal *node.Node) *node.Node {
+func (m *Mesh) getHomonymFromNodeList(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) *node.NodeRemote {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -114,8 +114,8 @@ func (m *Mesh) getHomonymFromNodeList(nodeList []*node.Node, nodeLocal *node.Nod
 	return nil
 }
 
-func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
-	nodeLocalNew, err := node.NewNode(node.WithLocal(m.meshNet, true))
+func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
+	nodeLocalNew, err := node.NewNodeLocal(m.meshNet, true)
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
@@ -123,7 +123,7 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
 	return nil
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) error {
+func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -137,7 +137,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 		}
 		cmd := exec.Command(
 			"wg", "set", node.GetNodeInterface(),
-			"peer", n.GetWgKey().GetPubKey().B64(),
+			"peer", n.GetWgKeyPub().K32().B64(),
 			"endpoint", n.GetWgEndpoint().String(),
 			"allowed-ips", fmt.Sprintf("%s/32", n.GetMeshIP()),
 		)
@@ -149,7 +149,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.Node, nodeLocal *node.Node) err
 	return nil
 }
 
-func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
+func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 	// Flatcar's default
 	lines := []string{
 		"#",
@@ -173,7 +173,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
+	nodeLocal, err := node.NewNodeLocal(m.meshNet, false)
 	if err != nil {
 		return err
 	}
@@ -185,15 +185,15 @@ func (m *Mesh) run() error {
 		return err
 	}
 	nodeList := m.squeezeNodeList(nodeListRaw)
-	nodeInList := m.getHomonymFromNodeList(nodeList, nodeLocal)
-	if nodeInList == nil {
+	nodeRemote := m.getHomonymFromNodeList(nodeList, nodeLocal)
+	if nodeRemote == nil {
 		return fmt.Errorf("cannot find nodeLocal='%s' homonym in node list", nodeLocal)
 	}
-	if nodeInList.GetWgKey().GetPubKey().Hex() != nodeLocal.GetWgKey().GetPubKey().Hex() {
-		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeInList", nodeInList)
+	if nodeRemote.GetWgKeyPub().K32().Hex() != nodeLocal.GetWgKeyPriv().Pub().K32().Hex() {
+		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeRemote", nodeRemote)
 		return m.nodeGiveUp(nodeLocal)
 	}
-	nodeAge := *nodeInList.GetAge(nil)
+	nodeAge := *nodeRemote.GetAge(nil)
 	if nodeAge < settleTime {
 		log.Warn("nodeAge < settleTime; waiting...", "nodeAge", nodeAge, "settleTime", settleTime, "nodeLocal", nodeLocal, "nodeAge", nodeAge)
 		return nil

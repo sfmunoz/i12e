@@ -1,30 +1,17 @@
 package wgkey
 
-import (
-	"encoding/base64"
-	"encoding/hex"
-)
-
-type wgKeyPub struct {
-	data []byte
+type WgKeyPub struct {
+	k32 *K32
 }
 
-func (w *wgKeyPub) String() string {
-	return w.B64()
+func (w *WgKeyPub) String() string {
+	return w.K32().B64()
 }
 
-func (w *wgKeyPub) Raw() []byte {
-	return w.data
+func (w *WgKeyPub) K32() *K32 {
+	return w.k32
 }
 
-func (w *wgKeyPub) B64() string {
-	return base64.StdEncoding.EncodeToString(w.data)
-}
-
-func (w *wgKeyPub) Hex() string {
-	return hex.EncodeToString(w.data)
-}
-
-func (w *wgKeyPub) Len() int {
-	return len(w.data)
+func NewWgKeyPub(k32 *K32) *WgKeyPub {
+	return &WgKeyPub{k32}
 }
