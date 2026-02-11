@@ -22,12 +22,10 @@ var nodeRegex = regexp.MustCompile(
 )
 
 type NodeRemote struct {
-	id         uint32
-	meshNet    *netip.Prefix
-	wgKeyPub   *wgkey.WgKeyPub
-	wgEndpoint *netip.AddrPort
-	tsFirst    *time.Time // first record of the series
-	tsCurr     *time.Time // current record
+	Node
+	wgKeyPub *wgkey.WgKeyPub
+	tsFirst  *time.Time // first record of the series
+	tsCurr   *time.Time // current record
 }
 
 func (n *NodeRemote) String() string {
@@ -166,11 +164,13 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 	}
 	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
 	return &NodeRemote{
-		id:         nodeId,
-		meshNet:    meshNet,
-		wgKeyPub:   wgkey.NewWgKeyPub(k32),
-		wgEndpoint: &wgEndpoint,
-		tsFirst:    nil,
-		tsCurr:     tsCurr,
+		Node: Node{
+			id:         nodeId,
+			meshNet:    meshNet,
+			wgEndpoint: &wgEndpoint,
+		},
+		wgKeyPub: wgkey.NewWgKeyPub(k32),
+		tsFirst:  nil,
+		tsCurr:   tsCurr,
 	}, nil
 }

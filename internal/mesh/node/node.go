@@ -10,6 +10,12 @@ const nodeEndpointPort = 51830 // default '51820'
 const nodeInterface = "wgi"
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
 
+type Node struct {
+	id         uint32
+	meshNet    *netip.Prefix
+	wgEndpoint *netip.AddrPort
+}
+
 func GetNodeInterface() string {
 	return nodeInterface
 }

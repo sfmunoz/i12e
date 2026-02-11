@@ -14,10 +14,8 @@ import (
 )
 
 type NodeLocal struct {
-	id         uint32
-	meshNet    *netip.Prefix
-	wgKeyPriv  *wgkey.WgKeyPriv
-	wgEndpoint *netip.AddrPort
+	Node
+	wgKeyPriv *wgkey.WgKeyPriv
 }
 
 func (n *NodeLocal) String() string {
@@ -169,9 +167,11 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &NodeLocal{
-		id:         nodeId,
-		meshNet:    meshNet,
-		wgKeyPriv:  wgKeyPriv,
-		wgEndpoint: &wgEndpoint,
+		Node: Node{
+			id:         nodeId,
+			meshNet:    meshNet,
+			wgEndpoint: &wgEndpoint,
+		},
+		wgKeyPriv: wgKeyPriv,
 	}, nil
 }
