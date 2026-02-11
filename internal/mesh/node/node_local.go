@@ -13,14 +13,49 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
-func (n *Node) GetWgKeyPriv() *wgkey.WgKeyPriv {
+type NodeLocal struct {
+	id         uint32
+	meshNet    *netip.Prefix
+	wgKeyPriv  *wgkey.WgKeyPriv
+	wgKeyPub   *wgkey.WgKeyPub
+	wgEndpoint *netip.AddrPort
+	tsFirst    *time.Time // first record of the series
+	tsCurr     *time.Time // current record
+}
+
+func (n *NodeLocal) String() string {
+	return fmt.Sprintf(
+		"L|%s|%s/%d|%s|%s",
+		n.GetNodeName(),
+		n.GetMeshIP(),
+		n.GetMeshNet().Bits(),
+		n.GetWgKeyPriv().Pub(),
+		n.GetWgEndpoint(),
+	)
+}
+
+func (n *NodeLocal) GetNodeName() string {
+	return getNodeNameFromNodeId(n.id)
+}
+
+func (n *NodeLocal) GetMeshIP() *netip.Addr {
+	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
+	return x
+}
+
+func (n *NodeLocal) GetMeshNet() *netip.Prefix {
+	return n.meshNet
+}
+
+func (n *NodeLocal) GetWgEndpoint() *netip.AddrPort {
+	return n.wgEndpoint
+}
+
+func (n *NodeLocal) GetWgKeyPriv() *wgkey.WgKeyPriv {
 	return n.wgKeyPriv
 }
 
-func (n *Node) HostnameConfig() error {
-	if !n.GetLocal() {
-		return fmt.Errorf("cannot set hostname: not local node")
-	}
+func (n *NodeLocal) HostnameConfig() error {
 	nodeName := n.GetNodeName()
 	cmd := exec.Command("hostname", nodeName)
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -30,7 +65,7 @@ func (n *Node) HostnameConfig() error {
 	return nil
 }
 
-func (n *Node) IfaceLocalConfig() error {
+func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
 	cmd := exec.Command("ip", "link", "set", nodeInt, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -61,10 +96,7 @@ func (n *Node) IfaceLocalConfig() error {
 	return nil
 }
 
-func (n *Node) PushToRemote(remMeshBase string) error {
-	if !n.GetLocal() {
-		return fmt.Errorf("cannot push node: it's not local")
-	}
+func (n *NodeLocal) PushToRemote(remMeshBase string) error {
 	ts := time.Now().UTC()
 	wgEndpoint := n.GetWgEndpoint()
 	touchPath := fmt.Sprintf(
@@ -73,7 +105,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.GetWgKeyPub().K32().Hex(),
+		n.GetWgKeyPriv().Pub().K32().Hex(),
 		wgEndpoint.Addr(),
 		wgEndpoint.Port(),
 	)
@@ -85,10 +117,7 @@ func (n *Node) PushToRemote(remMeshBase string) error {
 	return nil
 }
 
-func (n *Node) PurgeFromRemote(remMeshBase string) error {
-	if !n.GetLocal() {
-		return fmt.Errorf("cannot purge node: it's not local")
-	}
+func (n *NodeLocal) PurgeFromRemote(remMeshBase string) error {
 	nodeName := n.GetNodeName()
 	nodePrefix := fmt.Sprintf("%s/%s", remMeshBase, nodeName)
 	cmd := exec.Command("rclone", "lsf", nodePrefix)
@@ -114,7 +143,7 @@ func (n *Node) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
+func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
@@ -142,7 +171,7 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 		return nil, fmt.Errorf("IfaceIP() returned empty value")
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
-	return &Node{
+	return &NodeLocal{
 		id:         nodeId,
 		meshNet:    meshNet,
 		wgKeyPriv:  wgKeyPriv,
