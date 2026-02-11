@@ -114,7 +114,7 @@ func (n *Node) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
+func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
@@ -151,10 +151,4 @@ func getNodeLocal(meshNet *netip.Prefix, reset bool) (*Node, error) {
 		tsFirst:    nil,
 		tsCurr:     nil,
 	}, nil
-}
-
-func WithLocal(meshNet *netip.Prefix, reset bool) NodeOption {
-	return func() (*Node, error) {
-		return getNodeLocal(meshNet, reset)
-	}
 }

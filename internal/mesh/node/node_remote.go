@@ -78,7 +78,7 @@ func getTimestamp(tsStrIn string) (*time.Time, error) {
 	return &ts, nil
 }
 
-func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
+func NewNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
@@ -113,10 +113,4 @@ func getNodeRemote(meshNet *netip.Prefix, entry string) (*Node, error) {
 		tsFirst:    nil,
 		tsCurr:     tsCurr,
 	}, nil
-}
-
-func WithRemote(meshNet *netip.Prefix, entry string) NodeOption {
-	return func() (*Node, error) {
-		return getNodeRemote(meshNet, entry)
-	}
 }

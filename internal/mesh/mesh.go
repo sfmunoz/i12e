@@ -51,7 +51,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.Node, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNode(node.WithRemote(m.meshNet, entryTrimmed))
+		n, err := node.NewNodeRemote(m.meshNet, entryTrimmed)
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -115,7 +115,7 @@ func (m *Mesh) getHomonymFromNodeList(nodeList []*node.Node, nodeLocal *node.Nod
 }
 
 func (m *Mesh) nodeGiveUp(nodeLocalOld *node.Node) error {
-	nodeLocalNew, err := node.NewNode(node.WithLocal(m.meshNet, true))
+	nodeLocalNew, err := node.NewNodeLocal(m.meshNet, true)
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
@@ -173,7 +173,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.Node) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNode(node.WithLocal(m.meshNet, false))
+	nodeLocal, err := node.NewNodeLocal(m.meshNet, false)
 	if err != nil {
 		return err
 	}
