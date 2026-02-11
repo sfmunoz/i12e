@@ -17,10 +17,7 @@ type NodeLocal struct {
 	id         uint32
 	meshNet    *netip.Prefix
 	wgKeyPriv  *wgkey.WgKeyPriv
-	wgKeyPub   *wgkey.WgKeyPub
 	wgEndpoint *netip.AddrPort
-	tsFirst    *time.Time // first record of the series
-	tsCurr     *time.Time // current record
 }
 
 func (n *NodeLocal) String() string {
@@ -175,9 +172,6 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 		id:         nodeId,
 		meshNet:    meshNet,
 		wgKeyPriv:  wgKeyPriv,
-		wgKeyPub:   wgKeyPriv.Pub(),
 		wgEndpoint: &wgEndpoint,
-		tsFirst:    nil,
-		tsCurr:     nil,
 	}, nil
 }
