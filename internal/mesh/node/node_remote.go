@@ -24,7 +24,6 @@ var nodeRegex = regexp.MustCompile(
 type NodeRemote struct {
 	id         uint32
 	meshNet    *netip.Prefix
-	wgKeyPriv  *wgkey.WgKeyPriv
 	wgKeyPub   *wgkey.WgKeyPub
 	wgEndpoint *netip.AddrPort
 	tsFirst    *time.Time // first record of the series
@@ -169,7 +168,6 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 	return &NodeRemote{
 		id:         nodeId,
 		meshNet:    meshNet,
-		wgKeyPriv:  nil,
 		wgKeyPub:   wgkey.NewWgKeyPub(k32),
 		wgEndpoint: &wgEndpoint,
 		tsFirst:    nil,
