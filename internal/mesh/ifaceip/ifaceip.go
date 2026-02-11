@@ -14,22 +14,51 @@ type II struct {
 	IP    *netip.Addr
 }
 
-func IfaceIP() (*II, error) {
+func ifaceTxtLoad() (string, error) {
 	path := "/etc/i12e/iface.txt"
 	_, err := os.Stat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil
+			return "", nil
 		}
-		return nil, err
+		return "", err
 	}
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	iname := strings.TrimSpace(string(buf))
 	if len(iname) < 1 {
-		return nil, fmt.Errorf("file '%s' is empty", path)
+		return "", fmt.Errorf("file '%s' is empty", path)
+	}
+	return iname, nil
+}
+
+func ifaceNameGuess() (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		return iface.Name, nil
+	}
+	return "", fmt.Errorf("cannot guess interface name")
+}
+
+func IfaceIP() (*II, error) {
+	iname, err := ifaceTxtLoad()
+	if err != nil {
+		return nil, err
+	}
+	if iname == "" {
+		var err error
+		iname, err = ifaceNameGuess()
+		if err != nil {
+			return nil, err
+		}
 	}
 	iface, err := net.InterfaceByName(iname)
 	if err != nil {
