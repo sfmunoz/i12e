@@ -16,6 +16,16 @@ type Node struct {
 	wgEndpoint *netip.AddrPort
 }
 
+func (n *Node) String() string {
+	return fmt.Sprintf(
+		"%s|%s/%d|%s",
+		n.GetNodeName(),
+		n.GetMeshIP(),
+		n.GetMeshNet().Bits(),
+		n.GetWgEndpoint(),
+	)
+}
+
 func (n *Node) GetNodeName() string {
 	return getNodeNameFromNodeId(n.id)
 }

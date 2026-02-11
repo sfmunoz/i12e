@@ -20,12 +20,9 @@ type NodeLocal struct {
 
 func (n *NodeLocal) String() string {
 	return fmt.Sprintf(
-		"L|%s|%s/%d|%s|%s",
-		n.GetNodeName(),
-		n.GetMeshIP(),
-		n.GetMeshNet().Bits(),
+		"L|%s|%s",
+		n.Node.String(),
 		n.GetWgKeyPriv().Pub(),
-		n.GetWgEndpoint(),
 	)
 }
 

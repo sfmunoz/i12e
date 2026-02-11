@@ -50,12 +50,9 @@ func (n *NodeRemote) String() string {
 		ageStr = age.String()
 	}
 	return fmt.Sprintf(
-		"R|%s|%s/%d|%s|%s|%s%s%s|%s",
-		n.GetNodeName(),
-		n.GetMeshIP(),
-		n.GetMeshNet().Bits(),
+		"R|%s|%s|%s%s%s|%s",
+		n.Node.String(),
 		n.GetWgKeyPub(),
-		n.GetWgEndpoint(),
 		tsFirstStr,
 		tsDeltaStr,
 		tsCurrStr,
