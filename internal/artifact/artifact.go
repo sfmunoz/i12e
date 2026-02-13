@@ -171,14 +171,14 @@ func (a *Artifact) etcFlatcarUpdateConf() error {
 
 func (a *Artifact) etcI12eIfaceTxt() error {
 	targetName := "etc/i12e/iface.txt"
-	if a.cfg.Flannel == nil {
+	if a.cfg.Mesh == nil {
 		log.Info("skipping: undefined 'flannel'", "targetName", targetName)
 		return nil
 	}
-	if len(a.cfg.Flannel.Interface) < 1 {
+	if len(a.cfg.Mesh.Interface) < 1 {
 		log.Info("skipping: undefined 'flannel.interface'", "targetName", targetName)
 	}
-	body := []byte(a.cfg.Flannel.Interface + "\n")
+	body := []byte(a.cfg.Mesh.Interface + "\n")
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
 		Name:     targetName,

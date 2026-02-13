@@ -26,7 +26,7 @@ type KubeVip struct {
 	Kvversion string `mapstructure:"kvversion"`
 }
 
-type Flannel struct {
+type Mesh struct {
 	Interface string `mapstructure:"interface"`
 }
 
@@ -47,7 +47,7 @@ type Config struct {
 	TlsSan            string    `mapstructure:"tls_san"`
 	PortKnocking      []int     `mapstructure:"port_knocking"`
 	KubeVip           *KubeVip  `mapstructure:"kube_vip"`
-	Flannel           *Flannel  `mapstructure:"flannel"`
+	Mesh              *Mesh     `mapstructure:"mesh"`
 	Pushover          *Pushover `mapstructure:"pushover"`
 	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
 }
@@ -96,12 +96,12 @@ func validateKubeVip(kubeVip *KubeVip) error {
 	return nil
 }
 
-func validateFlannel(flannel *Flannel) error {
-	if flannel == nil {
-		return nil // flannel is optional
+func validateMesh(mesh *Mesh) error {
+	if mesh == nil {
+		return nil // mesh is optional
 	}
-	if len(flannel.Interface) < 1 {
-		return fmt.Errorf("config: undefined 'flannel.interface'")
+	if len(mesh.Interface) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.interface'")
 	}
 	return nil
 }
@@ -156,7 +156,7 @@ func validateConfig(cfg *Config) error {
 	if err := validateKubeVip(cfg.KubeVip); err != nil {
 		return err
 	}
-	if err := validateFlannel(cfg.Flannel); err != nil {
+	if err := validateMesh(cfg.Mesh); err != nil {
 		return err
 	}
 	if err := validatePushover(cfg.Pushover); err != nil {
