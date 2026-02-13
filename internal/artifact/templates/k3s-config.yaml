@@ -3,7 +3,7 @@ token: "{{ .K3sToken }}"
 agent-token: "{{ .K3sAgentToken }}"
 secrets-encryption: true
 secrets-encryption-provider: secretbox
-flannel-backend: "wireguard-native"
+flannel-backend: "vxlan"
 
 {{- with .TlsSan }}
 tls-san: "{{ . }}"
