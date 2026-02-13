@@ -30,7 +30,7 @@ func (s *Server) run() error {
 	firstTime := true
 	for {
 		log.Info("i12e running...")
-		if err := pull.Run(); err != nil {
+		if err := pull.Run(&meshNet); err != nil {
 			log.Error("pull.Run() failed", "err", err)
 		}
 		if firstTime {
