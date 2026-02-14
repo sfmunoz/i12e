@@ -2,6 +2,7 @@ package pull
 
 import (
 	_ "embed"
+	"net"
 	"net/netip"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -19,11 +20,15 @@ type Pull struct {
 }
 
 func (p *Pull) run() error {
+	iface := node.GetNodeInterface()
+	if _, err := net.InterfaceByName(iface); err != nil {
+		log.Notice("Pull.run(): network interface doesn't exist yet", "iface", iface)
+		return nil
+	}
 	if err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript); err != nil {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
-	iface := node.GetNodeInterface()
 	nodeLocal, err := node.NewNodeLocal(p.meshNet, false)
 	if err != nil {
 		return err
