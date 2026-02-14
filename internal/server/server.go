@@ -1,6 +1,7 @@
 package server
 
 import (
+	"math/rand/v2"
 	"net/netip"
 	"time"
 
@@ -12,18 +13,20 @@ import (
 // from /12 (20 bits for host) to /29 (3 bits for host)
 var meshNet = netip.MustParsePrefix("10.119.0.0/28") // TODO unhardcode
 
-const remBase = "rem:mesh" // TODO unhardcode this
+const remBase = "rem:mesh" // TODO unhardcode
+
+const serverSlumberBase = 8 * time.Second   // TODO unhardcode
+const serverSlumberJitter = 4 * time.Second // TODO unhardcode
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	slumber time.Duration
+	slumberBase   time.Duration
+	slumberJitter time.Duration
 }
 
-func newServer() *Server {
-	return &Server{
-		slumber: 3 * time.Second,
-	}
+func newServer(slumberBase time.Duration, slumberJitter time.Duration) *Server {
+	return &Server{slumberBase, slumberJitter}
 }
 
 func (s *Server) run() error {
@@ -39,11 +42,12 @@ func (s *Server) run() error {
 				log.Error("net.Run() failed", "err", err)
 			}
 		}
-		log.Info("i12e sleeping...", "slumber", s.slumber)
-		time.Sleep(s.slumber)
+		slumber := s.slumberBase + time.Duration(rand.Int64N(int64(s.slumberJitter)))
+		log.Info("i12e sleeping...", "slumber", slumber)
+		time.Sleep(slumber)
 	}
 }
 
 func Run() error {
-	return newServer().run()
+	return newServer(serverSlumberBase, serverSlumberJitter).run()
 }
