@@ -41,55 +41,72 @@ func (n *NodeLocal) HostnameConfig() error {
 	return nil
 }
 
-func ifaceCreate(ifaceName string) error {
-	if _, err := netlink.LinkByName(ifaceName); err == nil {
-		return nil
+func ifaceCreate(ifaceName string) (*netlink.Link, error) {
+	if link, err := netlink.LinkByName(ifaceName); err == nil {
+		return &link, nil
 	}
 	la := netlink.NewLinkAttrs()
 	la.Name = ifaceName
 	wgi := &netlink.Wireguard{LinkAttrs: la}
 	if err := netlink.LinkAdd(wgi); err != nil {
-		return err
+		return nil, err
 	}
-	if _, err := netlink.LinkByName(ifaceName); err != nil {
-		return err
+	link, err := netlink.LinkByName(ifaceName)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	return &link, nil
 }
 
 func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
-	// if err := ifaceCreate(nodeInt); err != nil {
-	// 	return err
-	// }
-	// return nil
-	cmd := exec.Command("ip", "link", "set", nodeInt, "down")
-	bo, be, err := cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "del", nodeInt)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "add", nodeInt, "type", "wireguard")
-	bo, be, err = cmdutil.RunSimple(cmd)
+	link, err := ifaceCreate(nodeInt)
 	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return err
 	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
-	bo, be, err = cmdutil.RunSimple(cmd)
+	addrs, err := netlink.AddrList(*link, netlink.FAMILY_V4)
 	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return err
 	}
-	cmd = exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "link", "set", nodeInt, "up")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	meshIp := n.GetMeshIP()
+	meshNet := n.GetMeshNet()
+	fmt.Println(meshIp, meshNet, meshNet.Bits())
+	for k, addr := range addrs {
+		fmt.Println(k, addr, addr.IP, addr.Mask, len(addr.IP), len(addr.Mask))
+		ip, ok := netip.AddrFromSlice(addr.IP)
+		if !ok {
+			return fmt.Errorf("cannot process addr.IP=%v", addr.IP)
+		}
+		fmt.Println(k, ip)
 	}
 	return nil
+	// cmd := exec.Command("ip", "link", "set", nodeInt, "down")
+	// bo, be, err := cmdutil.RunSimple(cmd)
+	// // ignore error: it's OK
+	// cmd = exec.Command("ip", "link", "del", nodeInt)
+	// bo, be, err = cmdutil.RunSimple(cmd)
+	// // ignore error: it's OK
+	// cmd = exec.Command("ip", "link", "add", nodeInt, "type", "wireguard")
+	// bo, be, err = cmdutil.RunSimple(cmd)
+	// if err != nil {
+	// 	return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	// }
+	// cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
+	// bo, be, err = cmdutil.RunSimple(cmd)
+	// if err != nil {
+	// 	return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	// }
+	// cmd = exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
+	// bo, be, err = cmdutil.RunSimple(cmd)
+	// if err != nil {
+	// 	return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	// }
+	// cmd = exec.Command("ip", "link", "set", nodeInt, "up")
+	// bo, be, err = cmdutil.RunSimple(cmd)
+	// if err != nil {
+	// 	return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	// }
+	// return nil
 }
 
 func (n *NodeLocal) PushToRemote(remMeshBase string) error {
