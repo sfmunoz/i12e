@@ -2,6 +2,7 @@ package node
 
 import (
 	"fmt"
+	"github.com/vishvananda/netlink"
 	"net/netip"
 	"os/exec"
 	"slices"
@@ -40,8 +41,28 @@ func (n *NodeLocal) HostnameConfig() error {
 	return nil
 }
 
+func ifaceCreate(ifaceName string) error {
+	if _, err := netlink.LinkByName(ifaceName); err == nil {
+		return nil
+	}
+	la := netlink.NewLinkAttrs()
+	la.Name = ifaceName
+	wgi := &netlink.Wireguard{LinkAttrs: la}
+	if err := netlink.LinkAdd(wgi); err != nil {
+		return err
+	}
+	if _, err := netlink.LinkByName(ifaceName); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
+	// if err := ifaceCreate(nodeInt); err != nil {
+	// 	return err
+	// }
+	// return nil
 	cmd := exec.Command("ip", "link", "set", nodeInt, "down")
 	bo, be, err := cmdutil.RunSimple(cmd)
 	// ignore error: it's OK
