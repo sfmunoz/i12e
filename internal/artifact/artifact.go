@@ -12,8 +12,11 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
+	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 )
+
+const kmain = "kmain" // TODO unhardcode
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
@@ -171,14 +174,14 @@ func (a *Artifact) etcFlatcarUpdateConf() error {
 
 func (a *Artifact) etcI12eIfaceTxt() error {
 	targetName := "etc/i12e/iface.txt"
-	if a.cfg.Flannel == nil {
+	if a.cfg.Mesh == nil {
 		log.Info("skipping: undefined 'flannel'", "targetName", targetName)
 		return nil
 	}
-	if len(a.cfg.Flannel.Interface) < 1 {
+	if len(a.cfg.Mesh.Interface) < 1 {
 		log.Info("skipping: undefined 'flannel.interface'", "targetName", targetName)
 	}
-	body := []byte(a.cfg.Flannel.Interface + "\n")
+	body := []byte(a.cfg.Mesh.Interface + "\n")
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
 		Name:     targetName,
@@ -210,8 +213,8 @@ func (a *Artifact) etcI12eK3sConfigYaml() error {
 		I12eMode:      "",
 		K3sToken:      a.cfg.K3sToken,
 		K3sAgentToken: a.cfg.K3sAgentToken,
-		K3sUrl:        a.cfg.K3sUrl,
-		TlsSan:        a.cfg.TlsSan,
+		K3sUrl:        fmt.Sprintf("https://%s:6443", kmain),
+		TlsSan:        kmain,
 	}
 	for _, m := range config.ValidModes() {
 		data.I12eMode = m
@@ -235,7 +238,13 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 }
 
 func (a *Artifact) etcNftablesConf() error {
-	data := struct{ PortKnocking []int }{PortKnocking: a.cfg.PortKnocking}
+	data := struct {
+		PortKnocking []int
+		EndpointPort int
+	}{
+		PortKnocking: a.cfg.PortKnocking,
+		EndpointPort: node.GetNodeEndpointPort(),
+	}
 	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
 		return err
 	}

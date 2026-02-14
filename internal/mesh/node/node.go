@@ -3,12 +3,14 @@ package node
 import (
 	"fmt"
 	"net/netip"
+	"os"
 	"strconv"
+	"strings"
 )
 
-const nodeEndpointPort = 51830 // default '51820'
-const nodeInterface = "wgi"
-const nodePrivKeyFname = "/etc/i12e/wg-priv-key"
+const nodeEndpointPort = 51821                   // TODO unhardcode ; default 51820
+const nodeInterface = "wgi"                      // TODO unharcode
+const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO unhardcode
 
 type Node struct {
 	id         uint32
@@ -43,6 +45,10 @@ func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
 }
 
+func GetNodeEndpointPort() int {
+	return nodeEndpointPort
+}
+
 func GetNodeInterface() string {
 	return nodeInterface
 }
@@ -73,4 +79,17 @@ func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, erro
 		return 0, err
 	}
 	return nodeId, nil
+}
+
+func getEtcI12eMode() (string, error) {
+	fname := "/etc/i12e/mode" // TODO unhardcode
+	buf, err := os.ReadFile(fname)
+	if err != nil {
+		return "", err
+	}
+	mode := strings.TrimSpace(string(buf))
+	if len(mode) < 1 {
+		return "", fmt.Errorf("'%s' file is empty", fname)
+	}
+	return mode, nil
 }

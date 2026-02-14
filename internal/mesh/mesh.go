@@ -165,7 +165,11 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 			log.Warn("/etc/hosts: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
 			continue
 		}
-		lines = append(lines, fmt.Sprintf("%s %s", n.GetMeshIP(), n.GetNodeName()))
+		nodeAlias := n.GetNodeAlias()
+		if nodeAlias != "" {
+			nodeAlias = " " + nodeAlias
+		}
+		lines = append(lines, fmt.Sprintf("%s %s%s", n.GetMeshIP(), n.GetNodeName(), nodeAlias))
 	}
 	lines = append(lines, "") // NL to the end
 	buf := strings.Join(lines, "\n")

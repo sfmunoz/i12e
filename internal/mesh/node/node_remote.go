@@ -11,21 +11,23 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
-// ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820
+// ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820(/kmain)
 var nodeRegex = regexp.MustCompile(
 	"^(n[0-9a-z]{4})" +
 		"/([0-9]{8}_[0-9]{6}_[0-9]{9})" +
 		"/([0-9a-f]{64})" +
 		`/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)` +
 		"/([0-9]+)" +
+		"(/([^/]+))?" +
 		"$",
 )
 
 type NodeRemote struct {
 	Node
-	wgKeyPub *wgkey.WgKeyPub
-	tsFirst  *time.Time // first record of the series
-	tsCurr   *time.Time // current record
+	wgKeyPub  *wgkey.WgKeyPub
+	tsFirst   *time.Time // first record of the series
+	tsCurr    *time.Time // current record
+	nodeAlias string
 }
 
 func (n *NodeRemote) String() string {
@@ -49,8 +51,14 @@ func (n *NodeRemote) String() string {
 	if age != nil {
 		ageStr = age.String()
 	}
+	nodeAliasStr := ""
+	nodeAlias := n.GetNodeAlias()
+	if nodeAlias != "" {
+		nodeAliasStr = fmt.Sprintf("%s=", nodeAlias)
+	}
 	return fmt.Sprintf(
-		"R|%s|%s|%s%s%s|%s",
+		"R|%s%s|%s|%s%s%s|%s",
+		nodeAliasStr,
 		n.Node.String(),
 		n.GetWgKeyPub(),
 		tsFirstStr,
@@ -106,6 +114,10 @@ func (n *NodeRemote) GetDelta() *time.Duration {
 	return &d
 }
 
+func (n *NodeRemote) GetNodeAlias() string {
+	return n.nodeAlias
+}
+
 func getTimestamp(tsStrIn string) (*time.Time, error) {
 	ts, err := time.Parse(
 		"20060102.150405.999999999",
@@ -149,8 +161,9 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,
 		},
-		wgKeyPub: wgkey.NewWgKeyPub(k32),
-		tsFirst:  nil,
-		tsCurr:   tsCurr,
+		wgKeyPub:  wgkey.NewWgKeyPub(k32),
+		tsFirst:   nil,
+		tsCurr:    tsCurr,
+		nodeAlias: arr[7], // ok if empty
 	}, nil
 }
