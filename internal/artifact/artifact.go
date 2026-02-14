@@ -16,6 +16,8 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
+const kmain = "kmain" // FIXME unhardcode
+
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Artifact struct {
@@ -211,8 +213,8 @@ func (a *Artifact) etcI12eK3sConfigYaml() error {
 		I12eMode:      "",
 		K3sToken:      a.cfg.K3sToken,
 		K3sAgentToken: a.cfg.K3sAgentToken,
-		K3sUrl:        a.cfg.K3sUrl,
-		TlsSan:        a.cfg.TlsSan,
+		K3sUrl:        fmt.Sprintf("https://%s:6443", kmain),
+		TlsSan:        kmain,
 	}
 	for _, m := range config.ValidModes() {
 		data.I12eMode = m

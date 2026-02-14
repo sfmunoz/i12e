@@ -43,8 +43,6 @@ type Config struct {
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
 	K3sToken          string    `mapstructure:"k3s_token"`
 	K3sAgentToken     string    `mapstructure:"k3s_agent_token"`
-	K3sUrl            string    `mapstructure:"k3s_url"`
-	TlsSan            string    `mapstructure:"tls_san"`
 	PortKnocking      []int     `mapstructure:"port_knocking"`
 	KubeVip           *KubeVip  `mapstructure:"kube_vip"`
 	Mesh              *Mesh     `mapstructure:"mesh"`
@@ -140,12 +138,6 @@ func validateConfig(cfg *Config) error {
 	}
 	if len(cfg.K3sAgentToken) < 1 {
 		return fmt.Errorf("config: undefined 'k3s_agent_token'")
-	}
-	if len(cfg.K3sUrl) < 1 {
-		return fmt.Errorf("config: undefined 'k3s_url'")
-	}
-	if len(cfg.TlsSan) < 1 {
-		return fmt.Errorf("config: undefined 'tls_san'")
 	}
 	if err := validateI12e(cfg.I12e); err != nil {
 		return err
