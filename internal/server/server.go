@@ -30,17 +30,13 @@ func newServer(slumberBase time.Duration, slumberJitter time.Duration) *Server {
 }
 
 func (s *Server) run() error {
-	firstTime := true
 	for {
 		log.Info("i12e running...")
+		if err := mesh.Run(&meshNet, remBase); err != nil {
+			log.Error("net.Run() failed", "err", err)
+		}
 		if err := pull.Run(&meshNet); err != nil {
 			log.Error("pull.Run() failed", "err", err)
-		}
-		if firstTime {
-			firstTime = false
-			if err := mesh.Run(&meshNet, remBase); err != nil {
-				log.Error("net.Run() failed", "err", err)
-			}
 		}
 		slumber := s.slumberBase + time.Duration(rand.Int64N(int64(s.slumberJitter)))
 		log.Info("i12e sleeping...", "slumber", slumber)
