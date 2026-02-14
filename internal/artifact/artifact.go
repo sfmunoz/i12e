@@ -12,6 +12,7 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
+	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 )
 
@@ -235,7 +236,13 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 }
 
 func (a *Artifact) etcNftablesConf() error {
-	data := struct{ PortKnocking []int }{PortKnocking: a.cfg.PortKnocking}
+	data := struct {
+		PortKnocking []int
+		EndpointPort int
+	}{
+		PortKnocking: a.cfg.PortKnocking,
+		EndpointPort: node.GetNodeEndpointPort(),
+	}
 	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
 		return err
 	}
