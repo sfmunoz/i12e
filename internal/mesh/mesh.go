@@ -157,21 +157,17 @@ func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote) error {
 	}
 	lines := strings.Split(strings.TrimSpace(bo.String()), "\n")
 	iface := node.GetNodeInterface()
+lineFor:
 	for _, line := range lines {
 		entries := strings.Split(line, "\t") // iface\twgkeypub\t...
 		if entries[0] != iface {
 			continue
 		}
 		peer := entries[1]
-		found := false
 		for _, n := range nodeList {
 			if n.GetWgKeyPub().K32().B64() == peer {
-				found = true
-				break
+				continue lineFor
 			}
-		}
-		if found {
-			continue
 		}
 		cmd := exec.Command("wg", "set", iface, "peer", peer, "remove")
 		bo, be, err := cmdutil.RunSimple(cmd)
