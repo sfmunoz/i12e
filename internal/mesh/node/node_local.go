@@ -104,6 +104,9 @@ func (n *NodeLocal) IfaceLocalConfig() error {
 	if err := n.ifaceSyncAddresses(link); err != nil {
 		return err
 	}
+	if err := netlink.LinkSetUp(*link); err != nil {
+		return err
+	}
 	return nil
 	// cmd := exec.Command("ip", "link", "set", nodeInt, "down")
 	// bo, be, err := cmdutil.RunSimple(cmd)
