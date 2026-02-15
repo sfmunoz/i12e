@@ -41,9 +41,9 @@ func (n *NodeLocal) HostnameConfig() error {
 	return nil
 }
 
-func ifaceCreate(ifaceName string) (*netlink.Link, error) {
+func ifaceCreate(ifaceName string) (netlink.Link, error) {
 	if link, err := netlink.LinkByName(ifaceName); err == nil {
-		return &link, nil
+		return link, nil
 	}
 	la := netlink.NewLinkAttrs()
 	la.Name = ifaceName
@@ -55,11 +55,11 @@ func ifaceCreate(ifaceName string) (*netlink.Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &link, nil
+	return link, nil
 }
 
-func (n *NodeLocal) ifaceSyncAddresses(link *netlink.Link) error {
-	addrs, err := netlink.AddrList(*link, netlink.FAMILY_V4)
+func (n *NodeLocal) ifaceSyncAddresses(link netlink.Link) error {
+	addrs, err := netlink.AddrList(link, netlink.FAMILY_V4)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (n *NodeLocal) ifaceSyncAddresses(link *netlink.Link) error {
 			continue
 		}
 		fmt.Println("deleting", addr)
-		if err := netlink.AddrDel(*link, &addr); err != nil {
+		if err := netlink.AddrDel(link, &addr); err != nil {
 			return err
 		}
 	}
@@ -89,7 +89,7 @@ func (n *NodeLocal) ifaceSyncAddresses(link *netlink.Link) error {
 		return err
 	}
 	fmt.Println("adding", addr)
-	if err := netlink.AddrAdd(*link, addr); err != nil {
+	if err := netlink.AddrAdd(link, addr); err != nil {
 		return err
 	}
 	return nil
@@ -104,7 +104,7 @@ func (n *NodeLocal) IfaceLocalConfig() error {
 	if err := n.ifaceSyncAddresses(link); err != nil {
 		return err
 	}
-	if err := netlink.LinkSetUp(*link); err != nil {
+	if err := netlink.LinkSetUp(link); err != nil {
 		return err
 	}
 	cmd := exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
