@@ -107,34 +107,12 @@ func (n *NodeLocal) IfaceLocalConfig() error {
 	if err := netlink.LinkSetUp(*link); err != nil {
 		return err
 	}
+	cmd := exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
 	return nil
-	// cmd := exec.Command("ip", "link", "set", nodeInt, "down")
-	// bo, be, err := cmdutil.RunSimple(cmd)
-	// // ignore error: it's OK
-	// cmd = exec.Command("ip", "link", "del", nodeInt)
-	// bo, be, err = cmdutil.RunSimple(cmd)
-	// // ignore error: it's OK
-	// cmd = exec.Command("ip", "link", "add", nodeInt, "type", "wireguard")
-	// bo, be, err = cmdutil.RunSimple(cmd)
-	// if err != nil {
-	// 	return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	// }
-	// cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
-	// bo, be, err = cmdutil.RunSimple(cmd)
-	// if err != nil {
-	// 	return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	// }
-	// cmd = exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
-	// bo, be, err = cmdutil.RunSimple(cmd)
-	// if err != nil {
-	// 	return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	// }
-	// cmd = exec.Command("ip", "link", "set", nodeInt, "up")
-	// bo, be, err = cmdutil.RunSimple(cmd)
-	// if err != nil {
-	// 	return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	// }
-	// return nil
 }
 
 func (n *NodeLocal) PushToRemote(remMeshBase string) error {
