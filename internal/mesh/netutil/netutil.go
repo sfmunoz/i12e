@@ -1,7 +1,6 @@
 package netutil
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/netip"
@@ -11,60 +10,45 @@ import (
 	"github.com/vishvananda/netlink"
 )
 
-type II struct {
-	Iface string
-	IP    *netip.Addr
-}
-
-func ifaceTxtLoad() (string, error) {
+func ifaceLoad() (*net.Interface, error) {
 	path := "/etc/i12e/iface.txt" // TODO unhardcode
 	_, err := os.Stat(path)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return "", nil
-		}
-		return "", err
+		return nil, err
 	}
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	iname := strings.TrimSpace(string(buf))
 	if len(iname) < 1 {
-		return "", fmt.Errorf("file '%s' is empty", path)
+		return nil, fmt.Errorf("file '%s' is empty", path)
 	}
-	return iname, nil
+	return net.InterfaceByName(iname)
 }
 
-func ifaceNameGuess() (string, error) {
+func ifaceGuess() (*net.Interface, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	for _, iface := range ifaces {
 		if iface.Flags&net.FlagLoopback != 0 {
 			continue
 		}
-		return iface.Name, nil
+		return &iface, nil
 	}
-	return "", fmt.Errorf("cannot guess interface name")
+	return nil, fmt.Errorf("ifaceGuess(): cannot figure out the interface")
 }
 
-func MeshEndpointAddr() (*II, error) {
-	iname, err := ifaceTxtLoad()
+func MeshEndpointAddr() (*netip.Addr, error) {
+	iface, err := ifaceLoad()
 	if err != nil {
-		return nil, err
-	}
-	if iname == "" {
 		var err error
-		iname, err = ifaceNameGuess()
+		iface, err = ifaceGuess()
 		if err != nil {
 			return nil, err
 		}
-	}
-	iface, err := net.InterfaceByName(iname)
-	if err != nil {
-		return nil, err
 	}
 	addrs, err := iface.Addrs()
 	if err != nil {
@@ -80,9 +64,9 @@ func MeshEndpointAddr() (*II, error) {
 			continue
 		}
 		addr := netip.AddrFrom4([4]byte(ip4))
-		return &II{Iface: iname, IP: &addr}, nil
+		return &addr, nil
 	}
-	return nil, nil
+	return nil, fmt.Errorf("cannot get mesh endpoint address")
 }
 
 func IfaceCreate(ifaceName string) (netlink.Link, error) {
