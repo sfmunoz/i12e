@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/sfmunoz/i12e/internal/mesh/ifaceip"
+	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
+	"github.com/vishvananda/netlink"
 )
 
 type NodeLocal struct {
@@ -42,31 +43,20 @@ func (n *NodeLocal) HostnameConfig() error {
 
 func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
-	cmd := exec.Command("ip", "link", "set", nodeInt, "down")
+	link, err := netutil.IfaceCreate(nodeInt)
+	if err != nil {
+		return err
+	}
+	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.GetMeshNet().Bits()); err != nil {
+		return err
+	}
+	if err := netlink.LinkSetUp(link); err != nil {
+		return err
+	}
+	cmd := exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
 	bo, be, err := cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "del", nodeInt)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	// ignore error: it's OK
-	cmd = exec.Command("ip", "link", "add", nodeInt, "type", "wireguard")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "addr", "add", fmt.Sprintf("%s/%d", n.GetMeshIP(), n.GetMeshNet().Bits()), "dev", nodeInt)
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link add' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
-	bo, be, err = cmdutil.RunSimple(cmd)
 	if err != nil {
 		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	cmd = exec.Command("ip", "link", "set", nodeInt, "up")
-	bo, be, err = cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'ip link set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 	}
 	return nil
 }
@@ -142,14 +132,11 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	ii, err := ifaceip.IfaceIP()
+	addr, err := netutil.MeshEndpointAddr()
 	if err != nil {
 		return nil, err
 	}
-	if ii == nil {
-		return nil, fmt.Errorf("IfaceIP() returned empty value")
-	}
-	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
+	wgEndpoint := netip.AddrPortFrom(*addr, nodeEndpointPort)
 	return &NodeLocal{
 		Node: Node{
 			id:         nodeId,
