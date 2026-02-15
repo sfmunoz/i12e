@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/sfmunoz/i12e/internal/mesh/ifaceip"
+	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 )
 
@@ -186,7 +186,7 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	ii, err := ifaceip.IfaceIP()
+	ii, err := netutil.IfaceIP()
 	if err != nil {
 		return nil, err
 	}

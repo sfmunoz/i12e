@@ -1,4 +1,4 @@
-package ifaceip
+package netutil
 
 import (
 	"errors"
