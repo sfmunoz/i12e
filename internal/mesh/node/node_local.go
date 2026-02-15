@@ -2,7 +2,6 @@ package node
 
 import (
 	"fmt"
-	"github.com/vishvananda/netlink"
 	"net/netip"
 	"os/exec"
 	"slices"
@@ -12,6 +11,7 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
+	"github.com/vishvananda/netlink"
 )
 
 type NodeLocal struct {
@@ -39,23 +39,6 @@ func (n *NodeLocal) HostnameConfig() error {
 		return fmt.Errorf("SetHostname(): 'hostname %s' failed': %s (stdout=%s, stderr=%s)", nodeName, err, bo.String(), be.String())
 	}
 	return nil
-}
-
-func ifaceCreate(ifaceName string) (netlink.Link, error) {
-	if link, err := netlink.LinkByName(ifaceName); err == nil {
-		return link, nil
-	}
-	la := netlink.NewLinkAttrs()
-	la.Name = ifaceName
-	wgi := &netlink.Wireguard{LinkAttrs: la}
-	if err := netlink.LinkAdd(wgi); err != nil {
-		return nil, err
-	}
-	link, err := netlink.LinkByName(ifaceName)
-	if err != nil {
-		return nil, err
-	}
-	return link, nil
 }
 
 func (n *NodeLocal) ifaceSyncAddresses(link netlink.Link) error {
@@ -97,7 +80,7 @@ func (n *NodeLocal) ifaceSyncAddresses(link netlink.Link) error {
 
 func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
-	link, err := ifaceCreate(nodeInt)
+	link, err := netutil.IfaceCreate(nodeInt)
 	if err != nil {
 		return err
 	}

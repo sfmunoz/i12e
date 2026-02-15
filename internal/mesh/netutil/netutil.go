@@ -7,6 +7,8 @@ import (
 	"net/netip"
 	"os"
 	"strings"
+
+	"github.com/vishvananda/netlink"
 )
 
 type II struct {
@@ -81,4 +83,21 @@ func IfaceIP() (*II, error) {
 		return &II{Iface: iname, IP: &addr}, nil
 	}
 	return nil, nil
+}
+
+func IfaceCreate(ifaceName string) (netlink.Link, error) {
+	if link, err := netlink.LinkByName(ifaceName); err == nil {
+		return link, nil
+	}
+	la := netlink.NewLinkAttrs()
+	la.Name = ifaceName
+	wgi := &netlink.Wireguard{LinkAttrs: la}
+	if err := netlink.LinkAdd(wgi); err != nil {
+		return nil, err
+	}
+	link, err := netlink.LinkByName(ifaceName)
+	if err != nil {
+		return nil, err
+	}
+	return link, nil
 }
