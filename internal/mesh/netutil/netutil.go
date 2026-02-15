@@ -17,7 +17,7 @@ type II struct {
 }
 
 func ifaceTxtLoad() (string, error) {
-	path := "/etc/i12e/iface.txt"
+	path := "/etc/i12e/iface.txt" // TODO unhardcode
 	_, err := os.Stat(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -50,7 +50,7 @@ func ifaceNameGuess() (string, error) {
 	return "", fmt.Errorf("cannot guess interface name")
 }
 
-func IfaceIP() (*II, error) {
+func MeshEndpointAddr() (*II, error) {
 	iname, err := ifaceTxtLoad()
 	if err != nil {
 		return nil, err

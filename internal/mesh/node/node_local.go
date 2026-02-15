@@ -132,12 +132,12 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	ii, err := netutil.IfaceIP()
+	ii, err := netutil.MeshEndpointAddr()
 	if err != nil {
 		return nil, err
 	}
 	if ii == nil {
-		return nil, fmt.Errorf("IfaceIP() returned empty value")
+		return nil, fmt.Errorf("netutil.MeshEndpointAddr() returned empty value")
 	}
 	wgEndpoint := netip.AddrPortFrom(*ii.IP, nodeEndpointPort)
 	return &NodeLocal{
