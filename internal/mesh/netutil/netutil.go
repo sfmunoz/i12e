@@ -41,14 +41,18 @@ func ifaceGuess() (*net.Interface, error) {
 	return nil, fmt.Errorf("ifaceGuess(): cannot figure out the interface")
 }
 
-func MeshEndpointAddr() (*netip.Addr, error) {
+func ifaceGet() (*net.Interface, error) {
 	iface, err := ifaceLoad()
 	if err != nil {
-		var err error
-		iface, err = ifaceGuess()
-		if err != nil {
-			return nil, err
-		}
+		return ifaceGuess()
+	}
+	return iface, nil
+}
+
+func MeshEndpointAddr() (*netip.Addr, error) {
+	iface, err := ifaceGet()
+	if err != nil {
+		return nil, err
 	}
 	addrs, err := iface.Addrs()
 	if err != nil {
