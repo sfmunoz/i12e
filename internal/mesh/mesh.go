@@ -187,6 +187,29 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.Nod
 	return m.ifacePeersPurge(nodeList)
 }
 
+func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+	client, err := wgctrl.New()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	devices, err := client.Devices()
+	if err != nil {
+		return err
+	}
+	for _, dev := range devices {
+		fmt.Printf("Name ........... %s\n", dev.Name)
+		fmt.Printf("  PublicKey .... %s\n", dev.PublicKey.String())
+		fmt.Printf("  ListenPort ... %d\n", dev.ListenPort)
+		for _, p := range dev.Peers {
+			fmt.Printf("  Peer ............ %s\n", p.PublicKey.String())
+			fmt.Printf("    Endpoint ...... %v\n", p.Endpoint)
+			fmt.Printf("    Allowed IPs ... %v\n", p.AllowedIPs)
+		}
+	}
+	return nil
+}
+
 func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 	// Flatcar's default
 	lines := []string{
@@ -214,33 +237,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
-func wgDemo() error {
-	client, err := wgctrl.New()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	devices, err := client.Devices()
-	if err != nil {
-		return err
-	}
-	for _, dev := range devices {
-		fmt.Printf("Name ........... %s\n", dev.Name)
-		fmt.Printf("  PublicKey .... %s\n", dev.PublicKey.String())
-		fmt.Printf("  ListenPort ... %d\n", dev.ListenPort)
-		for _, p := range dev.Peers {
-			fmt.Printf("  Peer ............ %s\n", p.PublicKey.String())
-			fmt.Printf("    Endpoint ...... %v\n", p.Endpoint)
-			fmt.Printf("    Allowed IPs ... %v\n", p.AllowedIPs)
-		}
-	}
-	return nil
-}
-
 func (m *Mesh) run() error {
-	if err := wgDemo(); err != nil {
-		return err
-	}
 	nodeLocal, err := node.NewNodeLocal(m.meshNet, false)
 	if err != nil {
 		return err
@@ -276,6 +273,9 @@ func (m *Mesh) run() error {
 		return err
 	}
 	if err := m.ifacePeersConfig(nodeList, nodeLocal); err != nil {
+		return err
+	}
+	if err := m.ifacePeersConfigNew(nodeList, nodeLocal); err != nil {
 		return err
 	}
 	if err := m.etcHostsUpdate(nodeList); err != nil {
