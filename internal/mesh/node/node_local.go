@@ -41,50 +41,13 @@ func (n *NodeLocal) HostnameConfig() error {
 	return nil
 }
 
-func (n *NodeLocal) ifaceSyncAddresses(link netlink.Link) error {
-	addrs, err := netlink.AddrList(link, netlink.FAMILY_V4)
-	if err != nil {
-		return err
-	}
-	found := false
-	meshIp := n.GetMeshIP()
-	meshNetBits := n.GetMeshNet().Bits()
-	for _, addr := range addrs {
-		addrIp, ok := netip.AddrFromSlice(addr.IP)
-		if !ok {
-			return fmt.Errorf("cannot process addr.IP=%v", addr.IP)
-		}
-		addrBits, _ := addr.Mask.Size()
-		if meshIp.Compare(addrIp) == 0 && addrBits == meshNetBits {
-			found = true
-			continue
-		}
-		fmt.Println("deleting", addr)
-		if err := netlink.AddrDel(link, &addr); err != nil {
-			return err
-		}
-	}
-	if found {
-		return nil
-	}
-	addr, err := netlink.ParseAddr(fmt.Sprintf("%s/%d", meshIp, meshNetBits))
-	if err != nil {
-		return err
-	}
-	fmt.Println("adding", addr)
-	if err := netlink.AddrAdd(link, addr); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (n *NodeLocal) IfaceLocalConfig() error {
 	nodeInt := GetNodeInterface()
 	link, err := netutil.IfaceCreate(nodeInt)
 	if err != nil {
 		return err
 	}
-	if err := n.ifaceSyncAddresses(link); err != nil {
+	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.GetMeshNet().Bits()); err != nil {
 		return err
 	}
 	if err := netlink.LinkSetUp(link); err != nil {

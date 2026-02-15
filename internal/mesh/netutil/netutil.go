@@ -101,3 +101,36 @@ func IfaceCreate(ifaceName string) (netlink.Link, error) {
 	}
 	return link, nil
 }
+
+func IfaceSyncAddresses(link netlink.Link, ipTarget *netip.Addr, bitsTarget int) error {
+	addrs, err := netlink.AddrList(link, netlink.FAMILY_V4)
+	if err != nil {
+		return err
+	}
+	found := false
+	for _, addr := range addrs {
+		ipCurrent, ok := netip.AddrFromSlice(addr.IP)
+		if !ok {
+			return fmt.Errorf("cannot process addr.IP=%v", addr.IP)
+		}
+		bitsCurrent, _ := addr.Mask.Size()
+		if ipTarget.Compare(ipCurrent) == 0 && bitsCurrent == bitsTarget {
+			found = true
+			continue
+		}
+		if err := netlink.AddrDel(link, &addr); err != nil {
+			return err
+		}
+	}
+	if found {
+		return nil
+	}
+	addr, err := netlink.ParseAddr(fmt.Sprintf("%s/%d", ipTarget, bitsTarget))
+	if err != nil {
+		return err
+	}
+	if err := netlink.AddrAdd(link, addr); err != nil {
+		return err
+	}
+	return nil
+}
