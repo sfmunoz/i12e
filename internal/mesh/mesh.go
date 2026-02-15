@@ -2,6 +2,7 @@ package mesh
 
 import (
 	"fmt"
+	"net"
 	"net/netip"
 	"os"
 	"os/exec"
@@ -14,6 +15,7 @@ import (
 	"github.com/sfmunoz/logit"
 
 	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
@@ -187,7 +189,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.Nod
 	return m.ifacePeersPurge(nodeList)
 }
 
-func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+func (m *Mesh) wireguardDebug() error {
 	client, err := wgctrl.New()
 	if err != nil {
 		return err
@@ -208,6 +210,69 @@ func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.
 		}
 	}
 	return nil
+}
+
+func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+	if err := m.wireguardDebug(); err != nil {
+		return err
+	}
+	client, err := wgctrl.New()
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+	nodeNameLocal := nodeLocal.GetNodeName()
+	peerConfigs := make([]wgtypes.PeerConfig, 0)
+	for _, n := range nodeList {
+		if n.GetNodeName() == nodeNameLocal {
+			continue
+		}
+		nAge := *n.GetAge(nil)
+		if nAge < settleTime {
+			log.Notice("peers: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
+			continue
+		}
+		// "wg", "set", node.GetNodeInterface(),
+		// "peer", n.GetWgKeyPub().K32().B64(),
+		// "endpoint", n.GetWgEndpoint().String(),
+		// "allowed-ips", fmt.Sprintf("%s/32", n.GetMeshIP()),
+		peerKey, err := wgtypes.ParseKey(n.GetWgKeyPub().K32().B64())
+		if err != nil {
+			return nil
+		}
+		ep := n.GetWgEndpoint()
+		endpoint := &net.UDPAddr{IP: net.ParseIP(ep.Addr().String()), Port: int(ep.Port())}
+		keepAlive := 25 * time.Second
+		peerConfig := wgtypes.PeerConfig{
+			PublicKey:                   peerKey,
+			Remove:                      false,
+			UpdateOnly:                  false,
+			Endpoint:                    endpoint,
+			PersistentKeepaliveInterval: &keepAlive,
+			ReplaceAllowedIPs:           true,
+			AllowedIPs: []net.IPNet{
+				{
+					IP:   net.ParseIP(n.GetMeshIP().String()),
+					Mask: net.CIDRMask(32, 32),
+				},
+			},
+		}
+		peerConfigs = append(peerConfigs, peerConfig)
+	}
+	// wg set <nodeInt> listen-port fmt.Sprintf("%d", n.GetWgEndpoint().Port()) private-key <nodePrivKeyFname>
+	epLocalPort := int(nodeLocal.GetWgEndpoint().Port())
+	ifaceName := node.GetNodeInterface()
+	// privateKey := wgtypes.Key([32]byte{})
+	config := wgtypes.Config{
+		// PrivateKey:   &privateKey,
+		ListenPort:   &epLocalPort,
+		ReplacePeers: false,
+		Peers:        peerConfigs,
+	}
+	if err := client.ConfigureDevice(ifaceName, config); err != nil {
+		return err
+	}
+	return m.wireguardDebug()
 }
 
 func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
