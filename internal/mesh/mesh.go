@@ -182,10 +182,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.Nod
 	if err := m.ifacePeersAdd(nodeList, nodeLocal); err != nil {
 		return err
 	}
-	if err := m.ifacePeersPurge(nodeList); err != nil {
-		return err
-	}
-	return nil
+	return m.ifacePeersPurge(nodeList)
 }
 
 func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
