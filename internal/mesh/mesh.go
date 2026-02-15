@@ -123,7 +123,7 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
 	return nil
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -145,6 +145,49 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.Nod
 		if err != nil {
 			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
 		}
+	}
+	return nil
+}
+
+func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote) error {
+	cmd := exec.Command("wg", "show", "all", "dump")
+	bo, be, err := cmdutil.RunSimple(cmd)
+	if err != nil {
+		return fmt.Errorf("'wg show all dump' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	}
+	lines := strings.Split(strings.TrimSpace(bo.String()), "\n")
+	iface := node.GetNodeInterface()
+	for _, line := range lines {
+		entries := strings.Split(line, "\t") // iface\twgkeypub\t...
+		if entries[0] != iface {
+			continue
+		}
+		peer := entries[1]
+		found := false
+		for _, n := range nodeList {
+			if n.GetWgKeyPub().K32().B64() == peer {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		cmd := exec.Command("wg", "set", iface, "peer", peer, "remove")
+		bo, be, err := cmdutil.RunSimple(cmd)
+		if err != nil {
+			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		}
+	}
+	return nil
+}
+
+func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+	if err := m.ifacePeersAdd(nodeList, nodeLocal); err != nil {
+		return err
+	}
+	if err := m.ifacePeersPurge(nodeList); err != nil {
+		return err
 	}
 	return nil
 }
