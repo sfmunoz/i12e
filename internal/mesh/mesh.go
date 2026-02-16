@@ -153,40 +153,34 @@ func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLo
 	return nil
 }
 
-func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote) error {
-	cmd := exec.Command("wg", "show", "all", "dump")
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'wg show all dump' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-	}
-	lines := strings.Split(strings.TrimSpace(bo.String()), "\n")
+func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote, wgCli *wgctrl.Client) error {
 	iface := node.GetNodeInterface()
-lineFor:
-	for _, line := range lines {
-		entries := strings.Split(line, "\t") // iface\twgkeypub\t...
-		if entries[0] != iface {
-			continue
-		}
-		peer := entries[1]
+	wgDev, err := wgCli.Device(iface)
+	if err != nil {
+		return err
+	}
+	peerConfigs := make([]wgtypes.PeerConfig, 0)
+peerFor:
+	for _, p := range wgDev.Peers {
+		pubKey := p.PublicKey
+		pubKeyStr := pubKey.String()
 		for _, n := range nodeList {
-			if n.GetWgKeyPub().K32().B64() == peer {
-				continue lineFor
+			if n.GetWgKeyPub().K32().B64() == pubKeyStr {
+				continue peerFor
 			}
 		}
-		cmd := exec.Command("wg", "set", iface, "peer", peer, "remove")
-		bo, be, err := cmdutil.RunSimple(cmd)
-		if err != nil {
-			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
-		}
+		peerConfig := wgtypes.PeerConfig{PublicKey: pubKey, Remove: true}
+		peerConfigs = append(peerConfigs, peerConfig)
 	}
-	return nil
+	config := wgtypes.Config{Peers: peerConfigs}
+	return wgCli.ConfigureDevice(iface, config)
 }
 
-func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal, wgCli *wgctrl.Client) error {
 	if err := m.ifacePeersAdd(nodeList, nodeLocal); err != nil {
 		return err
 	}
-	return m.ifacePeersPurge(nodeList)
+	return m.ifacePeersPurge(nodeList, wgCli)
 }
 
 func (m *Mesh) wireguardDebug(wgCli *wgctrl.Client) error {
@@ -332,7 +326,7 @@ func (m *Mesh) run() error {
 	if err := nodeLocal.IfaceLocalConfig(wgCli); err != nil {
 		return err
 	}
-	if err := m.ifacePeersConfig(nodeList, nodeLocal); err != nil {
+	if err := m.ifacePeersConfig(nodeList, nodeLocal, wgCli); err != nil {
 		return err
 	}
 	if err := m.ifacePeersConfigNew(nodeList, nodeLocal, wgCli); err != nil {
