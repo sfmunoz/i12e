@@ -127,8 +127,10 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
 	return nil
 }
 
-func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
+func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal, wgCli *wgctrl.Client) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
+	iface := node.GetNodeInterface()
+	peerConfigs := make([]wgtypes.PeerConfig, 0)
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
 			log.Info("peers: skipping local node", "node", n)
@@ -139,18 +141,34 @@ func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLo
 			log.Warn("peers: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
 			continue
 		}
-		cmd := exec.Command(
-			"wg", "set", node.GetNodeInterface(),
-			"peer", n.GetWgKeyPub().K32().B64(),
-			"endpoint", n.GetWgEndpoint().String(),
-			"allowed-ips", fmt.Sprintf("%s/32", n.GetMeshIP()),
-		)
-		bo, be, err := cmdutil.RunSimple(cmd)
+		peerKey, err := wgtypes.ParseKey(n.GetWgKeyPub().K32().B64())
 		if err != nil {
-			return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+			return nil
 		}
+		ep := n.GetWgEndpoint()
+		endpoint := &net.UDPAddr{IP: net.ParseIP(ep.Addr().String()), Port: int(ep.Port())}
+		keepAlive := 25 * time.Second
+		peerConfig := wgtypes.PeerConfig{
+			PublicKey:                   peerKey,
+			Remove:                      false,
+			UpdateOnly:                  false,
+			Endpoint:                    endpoint,
+			PersistentKeepaliveInterval: &keepAlive,
+			ReplaceAllowedIPs:           true,
+			AllowedIPs: []net.IPNet{
+				{
+					IP:   net.ParseIP(n.GetMeshIP().String()),
+					Mask: net.CIDRMask(32, 32),
+				},
+			},
+		}
+		peerConfigs = append(peerConfigs, peerConfig)
 	}
-	return nil
+	if len(peerConfigs) < 1 {
+		return nil
+	}
+	config := wgtypes.Config{Peers: peerConfigs}
+	return wgCli.ConfigureDevice(iface, config)
 }
 
 func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote, wgCli *wgctrl.Client) error {
@@ -172,12 +190,15 @@ peerFor:
 		peerConfig := wgtypes.PeerConfig{PublicKey: pubKey, Remove: true}
 		peerConfigs = append(peerConfigs, peerConfig)
 	}
+	if len(peerConfigs) < 1 {
+		return nil
+	}
 	config := wgtypes.Config{Peers: peerConfigs}
 	return wgCli.ConfigureDevice(iface, config)
 }
 
 func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal, wgCli *wgctrl.Client) error {
-	if err := m.ifacePeersAdd(nodeList, nodeLocal); err != nil {
+	if err := m.ifacePeersAdd(nodeList, nodeLocal, wgCli); err != nil {
 		return err
 	}
 	return m.ifacePeersPurge(nodeList, wgCli)
