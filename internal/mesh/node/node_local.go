@@ -12,6 +12,9 @@ import (
 	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 	"github.com/vishvananda/netlink"
+
+	"golang.zx2c4.com/wireguard/wgctrl"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 type NodeLocal struct {
@@ -41,7 +44,7 @@ func (n *NodeLocal) HostnameConfig() error {
 	return nil
 }
 
-func (n *NodeLocal) IfaceLocalConfig() error {
+func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
 	nodeInt := GetNodeInterface()
 	link, err := netutil.IfaceCreate(nodeInt)
 	if err != nil {
@@ -53,12 +56,13 @@ func (n *NodeLocal) IfaceLocalConfig() error {
 	if err := netlink.LinkSetUp(link); err != nil {
 		return err
 	}
-	cmd := exec.Command("wg", "set", nodeInt, "listen-port", fmt.Sprintf("%d", n.GetWgEndpoint().Port()), "private-key", nodePrivKeyFname)
-	bo, be, err := cmdutil.RunSimple(cmd)
-	if err != nil {
-		return fmt.Errorf("'wg set' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+	privateKey := wgtypes.Key(n.GetWgKeyPriv().K32().Raw())
+	listenPort := int(n.GetWgEndpoint().Port())
+	config := wgtypes.Config{
+		PrivateKey: &privateKey,
+		ListenPort: &listenPort,
 	}
-	return nil
+	return wgCli.ConfigureDevice(nodeInt, config)
 }
 
 func (n *NodeLocal) PushToRemote(remMeshBase string) error {
