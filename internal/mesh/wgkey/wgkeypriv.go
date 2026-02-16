@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 type WgKeyPriv struct {
@@ -51,12 +53,11 @@ func NewWgKeyPriv(wgPrivKeyFname string) (*WgKeyPriv, error) {
 		if !errors.Is(err, os.ErrNotExist) || i > 0 {
 			return nil, fmt.Errorf("'os.Stat()' failed: %s", err)
 		}
-		cmd := exec.Command("wg", "genkey")
-		bo, be, err := cmdutil.RunSimple(cmd)
+		key, err := wgtypes.GeneratePrivateKey()
 		if err != nil {
-			return nil, fmt.Errorf("'wg genkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+			return nil, err
 		}
-		if err := os.WriteFile(wgPrivKeyFname, bo.Bytes(), 0600); err != nil {
+		if err := os.WriteFile(wgPrivKeyFname, []byte(key.String()+"\n"), 0600); err != nil {
 			return nil, fmt.Errorf("'os.WriteFile()' failed: %s", err)
 		}
 	}
