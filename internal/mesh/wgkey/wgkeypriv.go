@@ -1,14 +1,10 @@
 package wgkey
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
-
-	"github.com/sfmunoz/i12e/internal/cmdutil"
 
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
@@ -31,13 +27,12 @@ func (w *WgKeyPriv) Pub() *WgKeyPub {
 }
 
 func privToPub(k32 *K32) (*WgKeyPub, error) {
-	cmd := exec.Command("wg", "pubkey")
-	cmd.Stdin = bytes.NewBuffer([]byte(k32.B64()))
-	bo, be, err := cmdutil.RunSimple(cmd)
+	kPriv, err := wgtypes.NewKey(k32.Raw())
 	if err != nil {
-		return nil, fmt.Errorf("'wg pubkey' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
+		return nil, err
 	}
-	k32_out, err := NewK32(WithB64(bo.String()))
+	kPub := kPriv.PublicKey()
+	k32_out, err := NewK32(WithBytes(kPub[:]))
 	if err != nil {
 		return nil, err
 	}
