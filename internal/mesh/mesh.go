@@ -189,12 +189,7 @@ func (m *Mesh) ifacePeersConfig(nodeList []*node.NodeRemote, nodeLocal *node.Nod
 	return m.ifacePeersPurge(nodeList)
 }
 
-func (m *Mesh) wireguardDebug() error {
-	client, err := wgctrl.New()
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+func (m *Mesh) wireguardDebug(client *wgctrl.Client) error {
 	devices, err := client.Devices()
 	if err != nil {
 		return err
@@ -213,14 +208,14 @@ func (m *Mesh) wireguardDebug() error {
 }
 
 func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal) error {
-	if err := m.wireguardDebug(); err != nil {
-		return err
-	}
 	client, err := wgctrl.New()
 	if err != nil {
 		return err
 	}
 	defer client.Close()
+	if err := m.wireguardDebug(client); err != nil {
+		return err
+	}
 	nodeNameLocal := nodeLocal.GetNodeName()
 	peerConfigs := make([]wgtypes.PeerConfig, 0)
 	for _, n := range nodeList {
@@ -272,7 +267,7 @@ func (m *Mesh) ifacePeersConfigNew(nodeList []*node.NodeRemote, nodeLocal *node.
 	if err := client.ConfigureDevice(ifaceName, config); err != nil {
 		return err
 	}
-	return m.wireguardDebug()
+	return m.wireguardDebug(client)
 }
 
 func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
