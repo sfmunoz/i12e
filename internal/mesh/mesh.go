@@ -324,17 +324,17 @@ func (m *Mesh) run() error {
 	if err := nodeLocal.HostnameConfig(); err != nil {
 		return err
 	}
-	if err := nodeLocal.IfaceLocalConfig(); err != nil {
-		return err
-	}
-	if err := m.ifacePeersConfig(nodeList, nodeLocal); err != nil {
-		return err
-	}
 	wgCli, err := wgctrl.New()
 	if err != nil {
 		return err
 	}
 	defer wgCli.Close()
+	if err := nodeLocal.IfaceLocalConfig(wgCli); err != nil {
+		return err
+	}
+	if err := m.ifacePeersConfig(nodeList, nodeLocal); err != nil {
+		return err
+	}
 	if err := m.ifacePeersConfigNew(nodeList, nodeLocal, wgCli); err != nil {
 		return err
 	}
