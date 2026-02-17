@@ -27,7 +27,7 @@ type KubeVip struct {
 }
 
 type Mesh struct {
-	Interface string `mapstructure:"interface"`
+	EndpointInterface string `mapstructure:"endpoint_interface"`
 }
 
 type Pushover struct {
@@ -98,8 +98,8 @@ func validateMesh(mesh *Mesh) error {
 	if mesh == nil {
 		return nil // mesh is optional
 	}
-	if len(mesh.Interface) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.interface'")
+	if len(mesh.EndpointInterface) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.endpoint_interface'")
 	}
 	return nil
 }

@@ -178,10 +178,10 @@ func (a *Artifact) etcI12eIfaceTxt() error {
 		log.Info("skipping: undefined 'flannel'", "targetName", targetName)
 		return nil
 	}
-	if len(a.cfg.Mesh.Interface) < 1 {
-		log.Info("skipping: undefined 'flannel.interface'", "targetName", targetName)
+	if len(a.cfg.Mesh.EndpointInterface) < 1 {
+		log.Info("skipping: undefined 'mesh.endpoint_interface'", "targetName", targetName)
 	}
-	body := []byte(a.cfg.Mesh.Interface + "\n")
+	body := []byte(a.cfg.Mesh.EndpointInterface + "\n")
 	hdr := &tar.Header{
 		Typeflag: tar.TypeReg,
 		Name:     targetName,
