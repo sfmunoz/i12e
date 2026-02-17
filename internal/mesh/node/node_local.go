@@ -1,8 +1,11 @@
 package node
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/netip"
+	"os"
 	"os/exec"
 	"slices"
 	"strings"
@@ -10,7 +13,6 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/mesh/netutil"
-	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
 	"github.com/vishvananda/netlink"
 
 	"golang.zx2c4.com/wireguard/wgctrl"
@@ -19,18 +21,18 @@ import (
 
 type NodeLocal struct {
 	Node
-	wgKeyPriv *wgkey.WgKeyPriv
+	wgKeyPriv wgtypes.Key
 }
 
 func (n *NodeLocal) String() string {
 	return fmt.Sprintf(
 		"L|%s|%s",
 		n.Node.String(),
-		n.GetWgKeyPriv().Pub(),
+		n.GetWgKeyPriv().PublicKey(),
 	)
 }
 
-func (n *NodeLocal) GetWgKeyPriv() *wgkey.WgKeyPriv {
+func (n *NodeLocal) GetWgKeyPriv() wgtypes.Key {
 	return n.wgKeyPriv
 }
 
@@ -56,7 +58,7 @@ func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
 	if err := netlink.LinkSetUp(link); err != nil {
 		return err
 	}
-	privateKey := wgtypes.Key(n.GetWgKeyPriv().K32().Raw())
+	privateKey := n.GetWgKeyPriv()
 	listenPort := int(n.GetWgEndpoint().Port())
 	config := wgtypes.Config{
 		PrivateKey: &privateKey,
@@ -68,13 +70,14 @@ func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
 func (n *NodeLocal) PushToRemote(remMeshBase string) error {
 	ts := time.Now().UTC()
 	wgEndpoint := n.GetWgEndpoint()
+	pubKey := n.GetWgKeyPriv().PublicKey()
 	touchPath := fmt.Sprintf(
 		"%s/%s/%s_%09d/%s/%s/%d",
 		remMeshBase,
 		n.GetNodeName(),
 		ts.Format("20060102_150405"),
 		ts.Nanosecond(),
-		n.GetWgKeyPriv().Pub().K32().Hex(),
+		hex.EncodeToString(pubKey[:]),
 		wgEndpoint.Addr(),
 		wgEndpoint.Port(),
 	)
@@ -132,7 +135,7 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKeyPriv, err := wgkey.NewWgKeyPriv(nodePrivKeyFname)
+	wgKeyPriv, err := getWgKeyPriv(nodePrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -149,4 +152,28 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 		},
 		wgKeyPriv: wgKeyPriv,
 	}, nil
+}
+
+func getWgKeyPriv(wgPrivKeyFname string) (wgtypes.Key, error) {
+	for i := range 2 {
+		_, err := os.Stat(wgPrivKeyFname)
+		if err == nil {
+			break
+		}
+		if !errors.Is(err, os.ErrNotExist) || i > 0 {
+			return wgtypes.Key{}, fmt.Errorf("'os.Stat()' failed: %s", err)
+		}
+		key, err := wgtypes.GeneratePrivateKey()
+		if err != nil {
+			return wgtypes.Key{}, err
+		}
+		if err := os.WriteFile(wgPrivKeyFname, []byte(key.String()+"\n"), 0600); err != nil {
+			return wgtypes.Key{}, fmt.Errorf("'os.WriteFile()' failed: %s", err)
+		}
+	}
+	buf, err := os.ReadFile(wgPrivKeyFname)
+	if err != nil {
+		return wgtypes.Key{}, err
+	}
+	return wgtypes.ParseKey(string(buf))
 }

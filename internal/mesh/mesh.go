@@ -30,7 +30,7 @@ type Mesh struct {
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
 	tsMap := make(map[string]*time.Time)
 	for _, n := range nodeListRaw {
-		k := n.GetNodeName() + "_" + n.GetWgKeyPub().K32().Hex()
+		k := n.GetNodeName() + "_" + n.GetWgKeyPub().String()
 		if v, ok := tsMap[k]; ok {
 			n.SetTsFirst(v)
 			continue
@@ -82,10 +82,10 @@ func (m *Mesh) squeezeBlock(nodeList []*node.NodeRemote, nodeBlock []*node.NodeR
 		return nodeList
 	}
 	nb0 := nodeBlock[0]
-	hex0 := nb0.GetWgKeyPub().K32().Hex()
+	k0 := nb0.GetWgKeyPub().String()
 	for i := len(nodeBlock) - 1; i > 0; i-- {
 		n := nodeBlock[i]
-		if n.GetWgKeyPub().K32().Hex() == hex0 {
+		if n.GetWgKeyPub().String() == k0 {
 			return append(nodeList, n)
 		}
 	}
@@ -141,15 +141,11 @@ func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLo
 			log.Warn("peers: skipping node: nodeAge < settleTime", "nodeAge", nAge, "settleTime", settleTime, "node", n)
 			continue
 		}
-		peerKey, err := wgtypes.ParseKey(n.GetWgKeyPub().K32().B64())
-		if err != nil {
-			return nil
-		}
 		ep := n.GetWgEndpoint()
 		endpoint := &net.UDPAddr{IP: net.ParseIP(ep.Addr().String()), Port: int(ep.Port())}
 		keepAlive := 25 * time.Second
 		peerConfig := wgtypes.PeerConfig{
-			PublicKey:                   peerKey,
+			PublicKey:                   n.GetWgKeyPub(),
 			Remove:                      false,
 			UpdateOnly:                  false,
 			Endpoint:                    endpoint,
@@ -183,7 +179,7 @@ peerFor:
 		pubKey := p.PublicKey
 		pubKeyStr := pubKey.String()
 		for _, n := range nodeList {
-			if n.GetWgKeyPub().K32().B64() == pubKeyStr {
+			if n.GetWgKeyPub().String() == pubKeyStr {
 				continue peerFor
 			}
 		}
@@ -248,7 +244,7 @@ func (m *Mesh) run() error {
 	if nodeRemote == nil {
 		return fmt.Errorf("cannot find nodeLocal='%s' homonym in node list", nodeLocal)
 	}
-	if nodeRemote.GetWgKeyPub().K32().Hex() != nodeLocal.GetWgKeyPriv().Pub().K32().Hex() {
+	if nodeRemote.GetWgKeyPub().String() != nodeLocal.GetWgKeyPriv().PublicKey().String() {
 		log.Warn("battle lost, giving up", "nodeLocal", nodeLocal, "nodeRemote", nodeRemote)
 		return m.nodeGiveUp(nodeLocal)
 	}

@@ -1,6 +1,7 @@
 package node
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/netip"
 	"regexp"
@@ -8,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sfmunoz/i12e/internal/mesh/wgkey"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
 // ny7a1/20260128_152841_153793688/54a2cc8d5e78755ff1debc4a4e6b2fa657ccf86a868b53f9f1b5140487377cc8/192.168.56.53/51820(/kmain)
@@ -24,7 +25,7 @@ var nodeRegex = regexp.MustCompile(
 
 type NodeRemote struct {
 	Node
-	wgKeyPub  *wgkey.WgKeyPub
+	wgKeyPub  wgtypes.Key
 	tsFirst   *time.Time // first record of the series
 	tsCurr    *time.Time // current record
 	nodeAlias string
@@ -68,7 +69,7 @@ func (n *NodeRemote) String() string {
 	)
 }
 
-func (n *NodeRemote) GetWgKeyPub() *wgkey.WgKeyPub {
+func (n *NodeRemote) GetWgKeyPub() wgtypes.Key {
 	return n.wgKeyPub
 }
 
@@ -142,9 +143,13 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 	if err != nil {
 		return nil, err
 	}
-	k32, err := wgkey.NewK32(wgkey.WithHex(arr[3]))
+	buf, err := hex.DecodeString(arr[3])
 	if err != nil {
-		return nil, fmt.Errorf("'wgkey.NewK32(%s)' failed: %s", arr[3], err)
+		return nil, err
+	}
+	wgKeyPub, err := wgtypes.NewKey(buf)
+	if err != nil {
+		return nil, err
 	}
 	addr, err := netip.ParseAddr(arr[4])
 	if err != nil {
@@ -161,7 +166,7 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,
 		},
-		wgKeyPub:  wgkey.NewWgKeyPub(k32),
+		wgKeyPub:  wgKeyPub,
 		tsFirst:   nil,
 		tsCurr:    tsCurr,
 		nodeAlias: arr[7], // ok if empty
