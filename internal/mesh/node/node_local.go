@@ -82,7 +82,7 @@ func (n *NodeLocal) PushToRemote(remMeshBase string) error {
 		wgEndpoint.Port(),
 	)
 	mode, err := getEtcI12eMode()
-	if err == nil && mode == "main" { // TODO unhardcode
+	if err == nil && mode == "main" { // TODO: unhardcode
 		touchPath = fmt.Sprintf("%s/kmain", touchPath)
 	}
 	cmd := exec.Command("rclone", "touch", touchPath)

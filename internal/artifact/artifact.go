@@ -16,7 +16,7 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-const kmain = "kmain" // TODO unhardcode
+const kmain = "kmain" // TODO: unhardcode
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 

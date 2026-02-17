@@ -11,12 +11,12 @@ import (
 )
 
 // from /12 (20 bits for host) to /29 (3 bits for host)
-var meshNet = netip.MustParsePrefix("10.119.0.0/28") // TODO unhardcode
+var meshNet = netip.MustParsePrefix("10.119.0.0/28") // TODO: unhardcode
 
-const remBase = "rem:mesh" // TODO unhardcode
+const remBase = "rem:mesh" // TODO: unhardcode
 
-const serverSlumberBase = 8 * time.Second   // TODO unhardcode
-const serverSlumberJitter = 4 * time.Second // TODO unhardcode
+const serverSlumberBase = 8 * time.Second   // TODO: unhardcode
+const serverSlumberJitter = 4 * time.Second // TODO: unhardcode
 
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
