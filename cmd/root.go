@@ -29,6 +29,6 @@ func Execute() {
 
 func init() {
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.i12e.yaml)")
-	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.PersistentFlags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
 }
