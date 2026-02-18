@@ -175,7 +175,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("mesh.wireguard_interface", "wgi")
 }
 
-func LoadConfig(prod bool) (*Config, error) {
+func LoadConfig(cfg *Config, prod bool) error {
 	e := "dev"
 	if prod {
 		e = "prod"
@@ -184,12 +184,12 @@ func LoadConfig(prod bool) (*Config, error) {
 	i12eEncYaml := fmt.Sprintf("config/%s/i12e.enc.yaml", e)
 	fp, err := os.Open(i12eYaml)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer fp.Close()
 	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", i12eEncYaml))
 	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+		return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 	}
 	v := viper.New()
 	setDefaults(v)
@@ -197,17 +197,16 @@ func LoadConfig(prod bool) (*Config, error) {
 	//v.AutomaticEnv()
 	v.SetConfigType("yaml")
 	if err := v.ReadConfig(fp); err != nil {
-		return nil, err
+		return err
 	}
 	if err := v.MergeConfig(bufOut); err != nil {
-		return nil, err
+		return err
 	}
-	cfg := Config{}
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, err
+	if err := v.Unmarshal(cfg); err != nil {
+		return err
 	}
-	if err := validateConfig(&cfg); err != nil {
-		return nil, err
+	if err := validateConfig(cfg); err != nil {
+		return err
 	}
-	return &cfg, nil
+	return nil
 }

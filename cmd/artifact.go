@@ -11,8 +11,8 @@ func artifactRun(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := config.LoadConfig(prod)
-	if err != nil {
+	cfg := &config.Config{}
+	if err := config.LoadConfig(cfg, prod); err != nil {
 		return err
 	}
 	return artifact.Run(cfg)
