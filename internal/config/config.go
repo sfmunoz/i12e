@@ -35,10 +35,13 @@ type Pushover struct {
 	Token   string `mapstructure:"token"`
 }
 
+type Butane struct {
+	Mode    Mode
+	Bout    Bout
+	EncYaml string
+}
+
 type Config struct {
-	Mode              Mode
-	Bout              Bout
-	ButaneEncYaml     string
 	I12e              *I12e     `mapstructure:"i12e"`
 	K3s               *K3s      `mapstructure:"k3s"`
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
@@ -47,6 +50,7 @@ type Config struct {
 	Mesh              *Mesh     `mapstructure:"mesh"`
 	Pushover          *Pushover `mapstructure:"pushover"`
 	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
+	Butane            *Butane
 }
 
 func validateI12e(i12e *I12e) error {
@@ -198,7 +202,7 @@ func LoadConfig(prod bool) (*Config, error) {
 	if err := v.MergeConfig(bufOut); err != nil {
 		return nil, err
 	}
-	cfg := Config{ButaneEncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e)}
+	cfg := Config{}
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}

@@ -17,7 +17,7 @@ func getModeFlag(cmd *cobra.Command, cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	cfg.Mode = m
+	cfg.Butane.Mode = m
 	return nil
 }
 
@@ -30,7 +30,7 @@ func getOutputFlag(cmd *cobra.Command, cfg *config.Config) error {
 	if err != nil {
 		return err
 	}
-	cfg.Bout = b
+	cfg.Butane.Bout = b
 	return nil
 }
 
@@ -42,6 +42,13 @@ func buildConfig(cmd *cobra.Command) (*config.Config, error) {
 	cfg, err := config.LoadConfig(prod)
 	if err != nil {
 		return nil, err
+	}
+	e := "dev"
+	if prod {
+		e = "prod"
+	}
+	cfg.Butane = &config.Butane{
+		EncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e),
 	}
 	if err := getModeFlag(cmd, cfg); err != nil {
 		return nil, err
@@ -66,11 +73,11 @@ Examples:
   Generate ignition file:
     $ i12e butane -o ignition`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			c, err := buildConfig(cmd)
+			var err error
+			cfg, err = buildConfig(cmd)
 			if err != nil {
 				return err
 			}
-			cfg = c
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
