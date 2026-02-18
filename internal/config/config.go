@@ -27,7 +27,8 @@ type KubeVip struct {
 }
 
 type Mesh struct {
-	EndpointInterface string `mapstructure:"endpoint_interface"`
+	EndpointInterface  string `mapstructure:"endpoint_interface"`
+	WireGuardInterface string `mapstructure:"wireguard_interface"`
 }
 
 type Pushover struct {
@@ -158,7 +159,8 @@ func validateConfig(cfg *Config) error {
 }
 
 func setDefaults(v *viper.Viper) {
-	v.SetDefault("mesh", Mesh{EndpointInterface: ""})
+	// implies definition of 'Mesh' structure
+	v.SetDefault("mesh.wireguard_interface", "wgi")
 }
 
 func LoadConfig(prod bool) (*Config, error) {
