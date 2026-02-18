@@ -36,9 +36,9 @@ type Pushover struct {
 }
 
 type Butane struct {
-	Mode    Mode
-	Bout    Bout
-	EncYaml string
+	Mode    Mode   `mapstructure:"mode"`
+	Bout    Bout   `mapstructure:"bout"`
+	EncYaml string `mapstructure:"enc_yaml"`
 }
 
 type Config struct {
@@ -50,7 +50,7 @@ type Config struct {
 	Mesh              *Mesh     `mapstructure:"mesh"`
 	Pushover          *Pushover `mapstructure:"pushover"`
 	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
-	Butane            *Butane
+	Butane            *Butane   `mapstructure:"butane"`
 }
 
 func validateI12e(i12e *I12e) error {
@@ -175,7 +175,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("mesh.wireguard_interface", "wgi")
 }
 
-func LoadConfig(cfg *Config, prod bool) error {
+func LoadConfig(v *viper.Viper, cfg *Config, prod bool) error {
 	e := "dev"
 	if prod {
 		e = "prod"
@@ -191,7 +191,6 @@ func LoadConfig(cfg *Config, prod bool) error {
 	if err != nil {
 		return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 	}
-	v := viper.New()
 	setDefaults(v)
 	//v.SetEnvPrefix("I12E")
 	//v.AutomaticEnv()

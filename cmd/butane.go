@@ -6,52 +6,26 @@ import (
 	"github.com/sfmunoz/i12e/internal/butane"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
-
-func getModeFlag(cmd *cobra.Command, but *config.Butane) error {
-	mode, err := cmd.Flags().GetString("mode")
-	if err != nil {
-		return err
-	}
-	but.Mode, err = config.GetMode(mode)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func getOutputFlag(cmd *cobra.Command, but *config.Butane) error {
-	bout, err := cmd.Flags().GetString("output")
-	if err != nil {
-		return err
-	}
-	but.Bout, err = config.GetBout(bout)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 func buildConfig(cmd *cobra.Command) (*config.Config, error) {
 	prod, err := cmd.Flags().GetBool("prod")
 	if err != nil {
 		return nil, err
 	}
-	cfg := &config.Config{}
 	e := "dev"
 	if prod {
 		e = "prod"
 	}
+	cfg := &config.Config{}
 	cfg.Butane = &config.Butane{
 		EncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e),
 	}
-	if err := getModeFlag(cmd, cfg.Butane); err != nil {
-		return nil, err
-	}
-	if err := getOutputFlag(cmd, cfg.Butane); err != nil {
-		return nil, err
-	}
-	if err := config.LoadConfig(cfg, prod); err != nil {
+	v := viper.New()
+	v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
+	v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
+	if err := config.LoadConfig(v, cfg, prod); err != nil {
 		return nil, err
 	}
 	return cfg, nil

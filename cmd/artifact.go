@@ -4,6 +4,7 @@ import (
 	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func artifactRun(cmd *cobra.Command, args []string) error {
@@ -11,8 +12,9 @@ func artifactRun(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	v := viper.New()
 	cfg := &config.Config{}
-	if err := config.LoadConfig(cfg, prod); err != nil {
+	if err := config.LoadConfig(v, cfg, prod); err != nil {
 		return err
 	}
 	return artifact.Run(cfg)
