@@ -20,6 +20,11 @@ type I12e struct {
 	Sha256sum string `mapstructure:"sha256sum"`
 }
 
+type K3s struct {
+	Token      string `mapstructure:"token"`
+	AgentToken string `mapstructure:"agent_token"`
+}
+
 type KubeVip struct {
 	Vip       string `mapstructure:"vip"`
 	Interface string `mapstructure:"interface"`
@@ -41,9 +46,8 @@ type Config struct {
 	Bout              Bout
 	ConfFiles         *ConfFiles
 	I12e              *I12e     `mapstructure:"i12e"`
+	K3s               *K3s      `mapstructure:"k3s"`
 	RcloneRemote      string    `mapstructure:"rclone_remote"`
-	K3sToken          string    `mapstructure:"k3s_token"`
-	K3sAgentToken     string    `mapstructure:"k3s_agent_token"`
 	PortKnocking      []int     `mapstructure:"port_knocking"`
 	KubeVip           *KubeVip  `mapstructure:"kube_vip"`
 	Mesh              *Mesh     `mapstructure:"mesh"`
@@ -64,6 +68,19 @@ func validateI12e(i12e *I12e) error {
 	}
 	if len(i12e.Version) < 1 {
 		return fmt.Errorf("config: undefined 'i12e.version'")
+	}
+	return nil
+}
+
+func validateK3s(k3s *K3s) error {
+	if k3s == nil {
+		return fmt.Errorf("config: undefined 'k3s'")
+	}
+	if len(k3s.Token) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.token'")
+	}
+	if len(k3s.AgentToken) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.agent_token'")
 	}
 	return nil
 }
@@ -131,13 +148,10 @@ func validateConfig(cfg *Config) error {
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
-	if len(cfg.K3sToken) < 1 {
-		return fmt.Errorf("config: undefined 'k3s_token'")
-	}
-	if len(cfg.K3sAgentToken) < 1 {
-		return fmt.Errorf("config: undefined 'k3s_agent_token'")
-	}
 	if err := validateI12e(cfg.I12e); err != nil {
+		return err
+	}
+	if err := validateK3s(cfg.K3s); err != nil {
 		return err
 	}
 	if err := validatePortKnocking(cfg.PortKnocking); err != nil {
