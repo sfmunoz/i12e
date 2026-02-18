@@ -174,10 +174,6 @@ func (a *Artifact) etcFlatcarUpdateConf() error {
 
 func (a *Artifact) etcI12eIfaceTxt() error {
 	targetName := "etc/i12e/iface.txt"
-	if a.cfg.Mesh == nil {
-		log.Info("skipping: undefined 'flannel'", "targetName", targetName)
-		return nil
-	}
 	if len(a.cfg.Mesh.EndpointInterface) < 1 {
 		log.Info("skipping: undefined 'mesh.endpoint_interface'", "targetName", targetName)
 	}

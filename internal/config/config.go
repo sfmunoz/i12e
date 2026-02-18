@@ -96,10 +96,7 @@ func validateKubeVip(kubeVip *KubeVip) error {
 
 func validateMesh(mesh *Mesh) error {
 	if mesh == nil {
-		return nil // mesh is optional
-	}
-	if len(mesh.EndpointInterface) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.endpoint_interface'")
+		return fmt.Errorf("config: undefined 'mesh'")
 	}
 	return nil
 }
@@ -160,6 +157,10 @@ func validateConfig(cfg *Config) error {
 	return nil
 }
 
+func setDefaults(v *viper.Viper) {
+	v.SetDefault("mesh", Mesh{EndpointInterface: ""})
+}
+
 func LoadConfig(prod bool) (*Config, error) {
 	e := "dev"
 	if prod {
@@ -180,6 +181,7 @@ func LoadConfig(prod bool) (*Config, error) {
 		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 	}
 	v := viper.New()
+	setDefaults(v)
 	//v.SetEnvPrefix("I12E")
 	//v.AutomaticEnv()
 	v.SetConfigType("yaml")
