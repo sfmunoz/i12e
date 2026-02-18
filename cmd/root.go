@@ -3,11 +3,8 @@ package cmd
 import (
 	"os"
 
-	"github.com/sfmunoz/logit"
 	"github.com/spf13/cobra"
 )
-
-var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 var rootCmd = &cobra.Command{
 	Use:   "i12e",
