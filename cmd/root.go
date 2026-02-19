@@ -1,24 +1,32 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "i12e",
-	Short: "infrastructure management tool",
-	Long: `Usage: i12e [OPTIONS] COMMAND
+var (
+	cfgFile string
+
+	rootCmd = &cobra.Command{
+		Use:   "i12e",
+		Short: "infrastructure management tool",
+		Long: `Usage: i12e [OPTIONS] COMMAND
 
 i12e is an infrastructure management tool for task automation:
 
   - artifact generation
   - butane to ignition translation`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
-}
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return initializeConfig(cmd)
+		},
+	}
+)
 
 func Execute() {
 	err := rootCmd.Execute()
@@ -28,7 +36,36 @@ func Execute() {
 }
 
 func init() {
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.i12e.yaml)")
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	// rootCmd.PersistentFlags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default locations: ., $HOME/.i12e/)")
+}
+
+func initializeConfig(cmd *cobra.Command) error {
+	viper.SetEnvPrefix("I12E")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "*", "-", "*"))
+	viper.AutomaticEnv()
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		cobra.CheckErr(err)
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("./config/dev")
+		viper.AddConfigPath(home + "/.i12e")
+		viper.SetConfigName("i12e")
+		viper.SetConfigType("yaml")
+	}
+	if err := viper.ReadInConfig(); err != nil {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
+			return err
+		}
+	}
+	err := viper.BindPFlags(cmd.Flags())
+	if err != nil {
+		return err
+	}
+	fmt.Println("Configuration initialized. Using config file:", viper.ConfigFileUsed())
+	fmt.Println("i12e.version .....", viper.Get("i12e.version"))
+	fmt.Println("i12e.sha256sum ...", viper.Get("i12e.sha256sum"))
+	return nil
 }
