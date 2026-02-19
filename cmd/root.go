@@ -50,7 +50,7 @@ func initializeConfig(cmd *cobra.Command) error {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 		v.AddConfigPath(".")
-		v.AddConfigPath("./config/dev")
+		v.AddConfigPath("config/dev")
 		v.AddConfigPath(home + "/.i12e")
 		v.SetConfigName("i12e")
 		v.SetConfigType("yaml")
@@ -68,5 +68,8 @@ func initializeConfig(cmd *cobra.Command) error {
 	fmt.Println("Configuration initialized. Using config file:", v.ConfigFileUsed())
 	fmt.Println("i12e.version .....", v.Get("i12e.version"))
 	fmt.Println("i12e.sha256sum ...", v.Get("i12e.sha256sum"))
+	for i, j := range v.AllSettings() {
+		fmt.Println(i, j)
+	}
 	return nil
 }
