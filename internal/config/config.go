@@ -2,11 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-
-	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/spf13/viper"
 )
 
 type I12e struct {
@@ -142,7 +137,7 @@ func validateSshAuthorizedKeys(sshAuthorizedKeys []string) error {
 	return nil
 }
 
-func validateConfig(cfg *Config) error {
+func (cfg *Config) Validate() error {
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
@@ -165,46 +160,6 @@ func validateConfig(cfg *Config) error {
 		return err
 	}
 	if err := validateSshAuthorizedKeys(cfg.SshAuthorizedKeys); err != nil {
-		return err
-	}
-	return nil
-}
-
-func setDefaults(v *viper.Viper) {
-	// implies definition of 'Mesh' structure
-	v.SetDefault("mesh.wireguard_interface", "wgi")
-}
-
-func LoadConfig(v *viper.Viper, cfg *Config, prod bool) error {
-	e := "dev"
-	if prod {
-		e = "prod"
-	}
-	i12eYaml := fmt.Sprintf("config/%s/i12e.yaml", e)
-	i12eEncYaml := fmt.Sprintf("config/%s/i12e.enc.yaml", e)
-	fp, err := os.Open(i12eYaml)
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", i12eEncYaml))
-	if err != nil {
-		return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
-	}
-	setDefaults(v)
-	//v.SetEnvPrefix("I12E")
-	//v.AutomaticEnv()
-	v.SetConfigType("yaml")
-	if err := v.ReadConfig(fp); err != nil {
-		return err
-	}
-	if err := v.MergeConfig(bufOut); err != nil {
-		return err
-	}
-	if err := v.Unmarshal(cfg); err != nil {
-		return err
-	}
-	if err := validateConfig(cfg); err != nil {
 		return err
 	}
 	return nil

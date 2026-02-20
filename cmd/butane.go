@@ -28,14 +28,6 @@ Examples:
 		if !ok {
 			return fmt.Errorf("cannot get config from context")
 		}
-		prod, err := cmd.Flags().GetBool("prod")
-		if err != nil {
-			return err
-		}
-		e := "dev"
-		if prod {
-			e = "prod"
-		}
 		m, err := cmd.Flags().GetString("mode")
 		if err != nil {
 			return err
@@ -52,7 +44,6 @@ Examples:
 		if err != nil {
 			return err
 		}
-		cfg.Butane.EncYaml = fmt.Sprintf("config/%s/butane.enc.yaml", e)
 		cfg.Butane.Mode = butaneMode
 		cfg.Butane.Bout = butaneBout
 		return butane.Run(cfg)

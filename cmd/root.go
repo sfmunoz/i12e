@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"strings"
+	"os/exec"
 
+	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,78 +14,60 @@ import (
 
 const cfgKey = "config"
 
-var (
-	cfgFile string
-
-	rootCmd = &cobra.Command{
-		Use:   "i12e",
-		Short: "infrastructure management tool",
-		Long: `Usage: i12e [OPTIONS] COMMAND
+var rootCmd = &cobra.Command{
+	Use:   "i12e",
+	Short: "infrastructure management tool",
+	Long: `Usage: i12e [OPTIONS] COMMAND
 
 i12e is an infrastructure management tool for task automation:
 
   - artifact generation
   - butane to ignition translation`,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return initializeConfig(cmd)
-		},
-	}
-)
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		prod, err := cmd.Flags().GetBool("prod") // don't want a global flag -> each command must define it
+		if err != nil {
+			return err
+		}
+		e := "dev"
+		if prod {
+			e = "prod"
+		}
+		v := viper.New()
+		v.SetDefault("mesh.wireguard_interface", "wgi")                              // implies of 'Mesh' structure definition
+		v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies of 'Butane' structure definition
+		v.SetConfigType("yaml")
+		fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
+		if err != nil {
+			return err
+		}
+		defer fp.Close()
+		bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fmt.Sprintf("config/%s/i12e.enc.yaml", e)))
+		if err != nil {
+			return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+		}
+		if err := v.ReadConfig(fp); err != nil {
+			return err
+		}
+		if err := v.MergeConfig(bufOut); err != nil {
+			return err
+		}
+		cfg := &config.Config{}
+		if err := v.Unmarshal(cfg); err != nil {
+			return err
+		}
+		if err := cfg.Validate(); err != nil {
+			return err
+		}
+		ctx := context.WithValue(context.Background(), cfgKey, cfg)
+		cmd.SetContext(ctx)
+		return nil
+
+	},
+}
 
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
-}
-
-func init() {
-	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default locations: ., $HOME/.i12e/)")
-	// cobra.OnInitialize(func() {
-	// 	fmt.Println("cobraOnInitialize()")
-	// })
-}
-
-func initializeConfig(cmd *cobra.Command) error {
-	v := viper.New()
-	v.SetEnvPrefix("i12e")
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "*", "-", "*"))
-	v.AutomaticEnv()
-	if cfgFile != "" {
-		v.SetConfigFile(cfgFile)
-	} else {
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-		v.AddConfigPath(".")
-		v.AddConfigPath("config/dev")
-		v.AddConfigPath(home + "/.i12e")
-		v.SetConfigName("i12e")
-		v.SetConfigType("yaml")
-	}
-	if err := v.ReadInConfig(); err != nil {
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if !errors.As(err, &configFileNotFoundError) {
-			return err
-		}
-	}
-	err := v.BindPFlags(cmd.Flags())
-	if err != nil {
-		return err
-	}
-	fmt.Println("Configuration initialized. Using config file:", v.ConfigFileUsed())
-	fmt.Println("i12e.version .....", v.Get("i12e.version"))
-	fmt.Println("i12e.sha256sum ...", v.Get("i12e.sha256sum"))
-	for i, j := range v.AllSettings() {
-		fmt.Println(i, j)
-	}
-	// temporary gateway
-	v2 := viper.New()
-	cfg2 := &config.Config{}
-	prod := false
-	if err := config.LoadConfig(v2, cfg2, prod); err != nil {
-		return err
-	}
-	ctx := context.WithValue(context.Background(), cfgKey, cfg2)
-	cmd.SetContext(ctx)
-	return nil
 }
