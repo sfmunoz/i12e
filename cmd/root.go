@@ -14,6 +14,11 @@ import (
 
 const cfgKey = "config"
 
+func setDefaults(v *viper.Viper, e string) {
+	v.SetDefault("mesh.wireguard_interface", "wgi")                              // implies of 'Mesh' structure definition
+	v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies of 'Butane' structure definition
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "i12e",
 	Short: "infrastructure management tool",
@@ -35,8 +40,7 @@ i12e is an infrastructure management tool for task automation:
 		v := viper.New()
 		v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 		v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
-		v.SetDefault("mesh.wireguard_interface", "wgi")                              // implies of 'Mesh' structure definition
-		v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies of 'Butane' structure definition
+		setDefaults(v, e)
 		v.SetConfigType("yaml")
 		fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
 		if err != nil {
@@ -63,7 +67,6 @@ i12e is an infrastructure management tool for task automation:
 		ctx := context.WithValue(context.Background(), cfgKey, cfg)
 		cmd.SetContext(ctx)
 		return nil
-
 	},
 }
 
