@@ -22,7 +22,7 @@ type Pull struct {
 }
 
 func (p *Pull) run() error {
-	iface := node.GetNodeInterface()
+	iface := p.cfg.Mesh.WireGuardInterface
 	if _, err := net.InterfaceByName(iface); err != nil {
 		log.Notice("Pull.run(): network interface doesn't exist yet", "iface", iface)
 		return nil

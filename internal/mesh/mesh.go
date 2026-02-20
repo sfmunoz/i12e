@@ -131,7 +131,7 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
 
 func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal, wgCli *wgctrl.Client) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
-	iface := node.GetNodeInterface()
+	iface := m.cfg.Mesh.WireGuardInterface
 	peerConfigs := make([]wgtypes.PeerConfig, 0)
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -170,7 +170,7 @@ func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLo
 }
 
 func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote, wgCli *wgctrl.Client) error {
-	iface := node.GetNodeInterface()
+	iface := m.cfg.Mesh.WireGuardInterface
 	wgDev, err := wgCli.Device(iface)
 	if err != nil {
 		return err

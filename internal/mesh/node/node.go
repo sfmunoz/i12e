@@ -11,7 +11,6 @@ import (
 )
 
 const nodeEndpointPort = 51821                   // TODO: unhardcode ; default 51820
-const nodeInterface = "wgi"                      // TODO: unharcode
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO: unhardcode
 
 type Node struct {
@@ -50,10 +49,6 @@ func (n *Node) GetWgEndpoint() *netip.AddrPort {
 
 func GetNodeEndpointPort() int {
 	return nodeEndpointPort
-}
-
-func GetNodeInterface() string {
-	return nodeInterface
 }
 
 func getNodeNameFromNodeId(nodeId uint32) string {

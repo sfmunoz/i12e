@@ -48,7 +48,7 @@ func (n *NodeLocal) HostnameConfig() error {
 }
 
 func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
-	nodeInt := GetNodeInterface()
+	nodeInt := n.cfg.Mesh.WireGuardInterface
 	link, err := netutil.IfaceCreate(nodeInt)
 	if err != nil {
 		return err
