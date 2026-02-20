@@ -5,11 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func serverRun(cmd *cobra.Command, args []string) error {
-	return server.Run()
-}
-
-// serverCmd represents the server command
 var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Server to run on target hosts",
@@ -20,7 +15,9 @@ var serverCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		return nil
 	},
-	RunE: serverRun,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return server.Run()
+	},
 }
 
 func init() {
