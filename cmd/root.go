@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,78 +11,74 @@ import (
 	"github.com/spf13/viper"
 )
 
-const cfgKey = "config"
-
 func setDefaults(v *viper.Viper) {
 	v.SetDefault("mesh.wireguard_interface", "wgi") // implies 'Mesh' structure definition
 }
 
-var rootCmd = &cobra.Command{
-	Use:   "i12e",
-	Short: "infrastructure management tool",
-	Long: `Usage: i12e [OPTIONS] COMMAND
+func rootCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "i12e",
+		Short: "infrastructure management tool",
+		Long: `Usage: i12e [OPTIONS] COMMAND
 
 i12e is an infrastructure management tool for task automation:
 
   - artifact generation
   - butane to ignition translation`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		prod, err := cmd.Flags().GetBool("prod")
-		if err != nil {
-			// when the command doesn't define -p/--prod use default config
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			prod, err := cmd.Flags().GetBool("prod")
+			if err != nil {
+				// when the command doesn't define -p/--prod use default config
+				v := viper.New()
+				setDefaults(v)
+				if err := v.Unmarshal(cfg); err != nil {
+					return err
+				}
+				//if err := cfg.Validate(); err != nil {
+				//	return err
+				//}
+				return nil
+			}
+			e := "dev"
+			if prod {
+				e = "prod"
+			}
 			v := viper.New()
+			v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
+			v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
 			setDefaults(v)
-			cfg := &config.Config{}
+			v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies 'Butane' structure definition
+			v.SetConfigType("yaml")
+			fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
+			if err != nil {
+				return err
+			}
+			defer fp.Close()
+			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fmt.Sprintf("config/%s/i12e.enc.yaml", e)))
+			if err != nil {
+				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+			}
+			if err := v.ReadConfig(fp); err != nil {
+				return err
+			}
+			if err := v.MergeConfig(bufOut); err != nil {
+				return err
+			}
 			if err := v.Unmarshal(cfg); err != nil {
 				return err
 			}
-			//if err := cfg.Validate(); err != nil {
-			//	return err
-			//}
-			ctx := context.WithValue(context.Background(), cfgKey, cfg)
-			cmd.SetContext(ctx)
-			return nil
-		}
-		e := "dev"
-		if prod {
-			e = "prod"
-		}
-		v := viper.New()
-		v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
-		v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
-		setDefaults(v)
-		v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies 'Butane' structure definition
-		v.SetConfigType("yaml")
-		fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
-		if err != nil {
-			return err
-		}
-		defer fp.Close()
-		bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fmt.Sprintf("config/%s/i12e.enc.yaml", e)))
-		if err != nil {
-			return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
-		}
-		if err := v.ReadConfig(fp); err != nil {
-			return err
-		}
-		if err := v.MergeConfig(bufOut); err != nil {
-			return err
-		}
-		cfg := &config.Config{}
-		if err := v.Unmarshal(cfg); err != nil {
-			return err
-		}
-		if err := cfg.Validate(); err != nil {
-			return err
-		}
-		ctx := context.WithValue(context.Background(), cfgKey, cfg)
-		cmd.SetContext(ctx)
-		return nil
-	},
+			return cfg.Validate()
+		},
+	}
+	cmd.AddCommand(serverCmd(cfg))
+	cmd.AddCommand(artifactCmd(cfg))
+	cmd.AddCommand(butaneCmd(cfg))
+	return cmd
 }
 
 func Execute() {
-	err := rootCmd.Execute()
+	cfg := &config.Config{}
+	err := rootCmd(cfg).Execute()
 	if err != nil {
 		os.Exit(1)
 	}
