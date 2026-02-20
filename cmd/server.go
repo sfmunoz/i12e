@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -12,11 +15,15 @@ var serverCmd = &cobra.Command{
 
   - pulls artifacts from rclone server
   - configures network`,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return server.Run()
+		ctx := cmd.Context()
+		if ctx == nil {
+			return fmt.Errorf("undefined command context")
+		}
+		if cfg, ok := ctx.Value(cfgKey).(*config.Config); ok {
+			return server.Run(cfg)
+		}
+		return fmt.Errorf("cannot get config from context")
 	},
 }
 

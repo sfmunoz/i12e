@@ -14,9 +14,8 @@ import (
 
 const cfgKey = "config"
 
-func setDefaults(v *viper.Viper, e string) {
-	v.SetDefault("mesh.wireguard_interface", "wgi")                              // implies of 'Mesh' structure definition
-	v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies of 'Butane' structure definition
+func setDefaults(v *viper.Viper) {
+	v.SetDefault("mesh.wireguard_interface", "wgi") // implies 'Mesh' structure definition
 }
 
 var rootCmd = &cobra.Command{
@@ -29,9 +28,18 @@ i12e is an infrastructure management tool for task automation:
   - artifact generation
   - butane to ignition translation`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		prod, err := cmd.Flags().GetBool("prod") // don't want a global flag -> each command must define it
+		prod, err := cmd.Flags().GetBool("prod")
 		if err != nil {
-			return err
+			// when the command doesn't define -p/--prod use default config
+			v := viper.New()
+			setDefaults(v)
+			cfg := &config.Config{}
+			//if err := cfg.Validate(); err != nil {
+			//	return err
+			//}
+			ctx := context.WithValue(context.Background(), cfgKey, cfg)
+			cmd.SetContext(ctx)
+			return nil
 		}
 		e := "dev"
 		if prod {
@@ -40,7 +48,8 @@ i12e is an infrastructure management tool for task automation:
 		v := viper.New()
 		v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 		v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
-		setDefaults(v, e)
+		setDefaults(v)
+		v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies 'Butane' structure definition
 		v.SetConfigType("yaml")
 		fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
 		if err != nil {

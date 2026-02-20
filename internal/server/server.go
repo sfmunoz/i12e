@@ -5,6 +5,7 @@ import (
 	"net/netip"
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh"
 	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
@@ -44,6 +45,6 @@ func (s *Server) run() error {
 	}
 }
 
-func Run() error {
+func Run(cfg *config.Config) error {
 	return newServer(serverSlumberBase, serverSlumberJitter).run()
 }
