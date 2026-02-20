@@ -23,6 +23,7 @@ i12e is an infrastructure management tool for task automation:
   - artifact generation
   - butane to ignition translation`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("PersistentPreRunE()")
 			return initializeConfig(cmd)
 		},
 	}
@@ -37,11 +38,16 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default locations: ., $HOME/.i12e/)")
+	cobra.OnInitialize(cobraInit)
+}
+
+func cobraInit() {
+	fmt.Println("cobraInit()")
 }
 
 func initializeConfig(cmd *cobra.Command) error {
 	v := viper.New()
-	v.SetEnvPrefix("I12E")
+	v.SetEnvPrefix("i12e")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "*", "-", "*"))
 	v.AutomaticEnv()
 	if cfgFile != "" {
