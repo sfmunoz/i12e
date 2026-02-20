@@ -20,10 +20,11 @@ var serverCmd = &cobra.Command{
 		if ctx == nil {
 			return fmt.Errorf("undefined command context")
 		}
-		if cfg, ok := ctx.Value(cfgKey).(*config.Config); ok {
-			return server.Run(cfg)
+		cfg, ok := ctx.Value(cfgKey).(*config.Config)
+		if !ok {
+			return fmt.Errorf("cannot get config from context")
 		}
-		return fmt.Errorf("cannot get config from context")
+		return server.Run(cfg)
 	},
 }
 
