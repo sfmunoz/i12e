@@ -34,6 +34,9 @@ i12e is an infrastructure management tool for task automation:
 			v := viper.New()
 			setDefaults(v)
 			cfg := &config.Config{}
+			if err := v.Unmarshal(cfg); err != nil {
+				return err
+			}
 			//if err := cfg.Validate(); err != nil {
 			//	return err
 			//}
