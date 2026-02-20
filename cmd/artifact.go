@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
@@ -16,6 +18,15 @@ func artifactRun(cmd *cobra.Command, args []string) error {
 	cfg := &config.Config{}
 	if err := config.LoadConfig(v, cfg, prod); err != nil {
 		return err
+	}
+	ctx := cmd.Context()
+	if ctx != nil {
+		c, ok := ctx.Value(cfgKey).(*config.Config)
+		if ok {
+			fmt.Println("I12e.Version", c.I12e.Version)
+			fmt.Println("I12e.Sha256sum", c.I12e.Sha256sum)
+		}
+
 	}
 	return artifact.Run(cfg)
 }

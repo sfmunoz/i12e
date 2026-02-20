@@ -1,14 +1,18 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+const cfgKey = "config"
 
 var (
 	cfgFile string
@@ -74,5 +78,13 @@ func initializeConfig(cmd *cobra.Command) error {
 	for i, j := range v.AllSettings() {
 		fmt.Println(i, j)
 	}
+	cfg := config.Config{
+		I12e: &config.I12e{
+			Version:   "some-version",
+			Sha256sum: "some-sha256sum",
+		},
+	}
+	ctx := context.WithValue(context.Background(), cfgKey, &cfg)
+	cmd.SetContext(ctx)
 	return nil
 }
