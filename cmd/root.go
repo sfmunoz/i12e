@@ -78,13 +78,14 @@ func initializeConfig(cmd *cobra.Command) error {
 	for i, j := range v.AllSettings() {
 		fmt.Println(i, j)
 	}
-	cfg := config.Config{
-		I12e: &config.I12e{
-			Version:   "some-version",
-			Sha256sum: "some-sha256sum",
-		},
+	// temporary gateway
+	v2 := viper.New()
+	cfg2 := &config.Config{}
+	prod := false
+	if err := config.LoadConfig(v2, cfg2, prod); err != nil {
+		return err
 	}
-	ctx := context.WithValue(context.Background(), cfgKey, &cfg)
+	ctx := context.WithValue(context.Background(), cfgKey, cfg2)
 	cmd.SetContext(ctx)
 	return nil
 }
