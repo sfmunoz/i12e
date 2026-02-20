@@ -33,6 +33,8 @@ i12e is an infrastructure management tool for task automation:
 			e = "prod"
 		}
 		v := viper.New()
+		v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
+		v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
 		v.SetDefault("mesh.wireguard_interface", "wgi")                              // implies of 'Mesh' structure definition
 		v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies of 'Butane' structure definition
 		v.SetConfigType("yaml")

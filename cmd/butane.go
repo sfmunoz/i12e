@@ -24,29 +24,10 @@ Examples:
 		if ctx == nil {
 			return fmt.Errorf("undefined command context")
 		}
-		cfg, ok := ctx.Value(cfgKey).(*config.Config)
-		if !ok {
-			return fmt.Errorf("cannot get config from context")
+		if cfg, ok := ctx.Value(cfgKey).(*config.Config); ok {
+			return butane.Run(cfg)
 		}
-		m, err := cmd.Flags().GetString("mode")
-		if err != nil {
-			return err
-		}
-		butaneMode, err := config.GetMode(m)
-		if err != nil {
-			return err
-		}
-		b, err := cmd.Flags().GetString("output")
-		if err != nil {
-			return err
-		}
-		butaneBout, err := config.GetBout(b)
-		if err != nil {
-			return err
-		}
-		cfg.Butane.Mode = butaneMode
-		cfg.Butane.Bout = butaneBout
-		return butane.Run(cfg)
+		return fmt.Errorf("cannot get config from context")
 	},
 }
 
