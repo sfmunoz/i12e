@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sfmunoz/i12e/internal/config"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
@@ -130,7 +131,7 @@ func getTimestamp(tsStrIn string) (*time.Time, error) {
 	return &ts, nil
 }
 
-func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
+func NewNodeRemote(cfg *config.Config, meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
@@ -162,6 +163,7 @@ func NewNodeRemote(meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
 	wgEndpoint := netip.AddrPortFrom(addr, uint16(wgEndpointPort))
 	return &NodeRemote{
 		Node: Node{
+			cfg:        cfg,
 			id:         nodeId,
 			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,

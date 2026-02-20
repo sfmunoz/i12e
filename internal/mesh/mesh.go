@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 
@@ -23,6 +24,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const settleTime = 15 * time.Second
 
 type Mesh struct {
+	cfg     *config.Config
 	meshNet *netip.Prefix
 	remBase string
 }
@@ -55,7 +57,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNodeRemote(m.meshNet, entryTrimmed)
+		n, err := node.NewNodeRemote(m.cfg, m.meshNet, entryTrimmed)
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -119,7 +121,7 @@ func (m *Mesh) getHomonymFromNodeList(nodeList []*node.NodeRemote, nodeLocal *no
 }
 
 func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
-	nodeLocalNew, err := node.NewNodeLocal(m.meshNet, true)
+	nodeLocalNew, err := node.NewNodeLocal(m.cfg, m.meshNet, true)
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
@@ -228,7 +230,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNodeLocal(m.meshNet, false)
+	nodeLocal, err := node.NewNodeLocal(m.cfg, m.meshNet, false)
 	if err != nil {
 		return err
 	}
@@ -276,10 +278,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(meshNet *netip.Prefix, remBase string) *Mesh {
-	return &Mesh{meshNet, remBase}
+func newMesh(cfg *config.Config, meshNet *netip.Prefix, remBase string) *Mesh {
+	return &Mesh{cfg, meshNet, remBase}
 }
 
-func Run(meshNet *netip.Prefix, remBase string) error {
-	return newMesh(meshNet, remBase).run()
+func Run(cfg *config.Config, meshNet *netip.Prefix, remBase string) error {
+	return newMesh(cfg, meshNet, remBase).run()
 }

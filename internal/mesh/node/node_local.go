@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/vishvananda/netlink"
 
@@ -119,7 +120,7 @@ func (n *NodeLocal) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
+func NewNodeLocal(cfg *config.Config, meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
@@ -146,6 +147,7 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	wgEndpoint := netip.AddrPortFrom(*addr, nodeEndpointPort)
 	return &NodeLocal{
 		Node: Node{
+			cfg:        cfg,
 			id:         nodeId,
 			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,

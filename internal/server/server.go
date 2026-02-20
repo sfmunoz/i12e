@@ -22,21 +22,22 @@ const serverSlumberJitter = 4 * time.Second // TODO: unhardcode
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
+	cfg           *config.Config
 	slumberBase   time.Duration
 	slumberJitter time.Duration
 }
 
-func newServer(slumberBase time.Duration, slumberJitter time.Duration) *Server {
-	return &Server{slumberBase, slumberJitter}
+func newServer(cfg *config.Config, slumberBase time.Duration, slumberJitter time.Duration) *Server {
+	return &Server{cfg, slumberBase, slumberJitter}
 }
 
 func (s *Server) run() error {
 	for {
 		log.Info("i12e running...")
-		if err := mesh.Run(&meshNet, remBase); err != nil {
-			log.Error("net.Run() failed", "err", err)
+		if err := mesh.Run(s.cfg, &meshNet, remBase); err != nil {
+			log.Error("mesh.Run() failed", "err", err)
 		}
-		if err := pull.Run(&meshNet); err != nil {
+		if err := pull.Run(s.cfg, &meshNet); err != nil {
 			log.Error("pull.Run() failed", "err", err)
 		}
 		slumber := s.slumberBase + time.Duration(rand.Int64N(int64(s.slumberJitter)))
@@ -46,5 +47,5 @@ func (s *Server) run() error {
 }
 
 func Run(cfg *config.Config) error {
-	return newServer(serverSlumberBase, serverSlumberJitter).run()
+	return newServer(cfg, serverSlumberBase, serverSlumberJitter).run()
 }

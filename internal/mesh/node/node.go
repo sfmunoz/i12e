@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/sfmunoz/i12e/internal/config"
 )
 
 const nodeEndpointPort = 51821                   // TODO: unhardcode ; default 51820
@@ -13,6 +15,7 @@ const nodeInterface = "wgi"                      // TODO: unharcode
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO: unhardcode
 
 type Node struct {
+	cfg        *config.Config
 	id         uint32
 	meshNet    *netip.Prefix
 	wgEndpoint *netip.AddrPort

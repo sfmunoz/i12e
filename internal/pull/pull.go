@@ -6,6 +6,7 @@ import (
 	"net/netip"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 )
@@ -16,6 +17,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 var rcloneScript string
 
 type Pull struct {
+	cfg     *config.Config
 	meshNet *netip.Prefix
 }
 
@@ -29,7 +31,7 @@ func (p *Pull) run() error {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
-	nodeLocal, err := node.NewNodeLocal(p.meshNet, false)
+	nodeLocal, err := node.NewNodeLocal(p.cfg, p.meshNet, false)
 	if err != nil {
 		return err
 	}
@@ -42,10 +44,10 @@ func (p *Pull) run() error {
 	return nil
 }
 
-func newPull(meshNet *netip.Prefix) *Pull {
-	return &Pull{meshNet}
+func newPull(cfg *config.Config, meshNet *netip.Prefix) *Pull {
+	return &Pull{cfg, meshNet}
 }
 
-func Run(meshNet *netip.Prefix) error {
-	return newPull(meshNet).run()
+func Run(cfg *config.Config, meshNet *netip.Prefix) error {
+	return newPull(cfg, meshNet).run()
 }
