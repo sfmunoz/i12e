@@ -17,6 +17,9 @@ var serverCmd = &cobra.Command{
 
   - pulls artifacts from rclone server
   - configures network`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return nil
+	},
 	RunE: serverRun,
 }
 
