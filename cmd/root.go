@@ -12,7 +12,9 @@ import (
 )
 
 func setDefaults(v *viper.Viper) {
-	v.SetDefault("mesh.wireguard_interface", "wgi") // implies 'Mesh' structure definition
+	// sub-object definition implies struct definition
+	v.SetDefault("mesh.endpoint_port", 51823) // wireguard default: 51820
+	v.SetDefault("mesh.wireguard_interface", "wgi")
 }
 
 func rootCmd(cfg *config.Config) *cobra.Command {

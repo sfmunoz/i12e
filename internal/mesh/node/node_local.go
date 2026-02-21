@@ -144,7 +144,7 @@ func NewNodeLocal(cfg *config.Config, meshNet *netip.Prefix, reset bool) (*NodeL
 	if err != nil {
 		return nil, err
 	}
-	wgEndpoint := netip.AddrPortFrom(*addr, nodeEndpointPort)
+	wgEndpoint := netip.AddrPortFrom(*addr, uint16(cfg.Mesh.EndpointPort))
 	return &NodeLocal{
 		Node: Node{
 			cfg:        cfg,

@@ -10,7 +10,6 @@ import (
 	"github.com/sfmunoz/i12e/internal/config"
 )
 
-const nodeEndpointPort = 51821                   // TODO: unhardcode ; default 51820
 const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO: unhardcode
 
 type Node struct {
@@ -45,10 +44,6 @@ func (n *Node) GetMeshIP() *netip.Addr {
 
 func (n *Node) GetWgEndpoint() *netip.AddrPort {
 	return n.wgEndpoint
-}
-
-func GetNodeEndpointPort() int {
-	return nodeEndpointPort
 }
 
 func getNodeNameFromNodeId(nodeId uint32) string {

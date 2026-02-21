@@ -22,6 +22,7 @@ type KubeVip struct {
 
 type Mesh struct {
 	EndpointInterface  string `mapstructure:"endpoint_interface"`
+	EndpointPort       int    `mapstructure:"endpoint_port"`
 	WireGuardInterface string `mapstructure:"wireguard_interface"`
 }
 
@@ -108,6 +109,15 @@ func validateKubeVip(kubeVip *KubeVip) error {
 func validateMesh(mesh *Mesh) error {
 	if mesh == nil {
 		return fmt.Errorf("config: undefined 'mesh'")
+	}
+	if mesh.EndpointPort < 1024 {
+		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too low (min=1024)", mesh.EndpointPort)
+	}
+	if mesh.EndpointPort > 65_535 {
+		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too high (max=65535)", mesh.EndpointPort)
+	}
+	if len(mesh.WireGuardInterface) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.wireguard_interface'")
 	}
 	return nil
 }

@@ -12,7 +12,6 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
-	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 )
 
@@ -239,7 +238,7 @@ func (a *Artifact) etcNftablesConf() error {
 		EndpointPort int
 	}{
 		PortKnocking: a.cfg.PortKnocking,
-		EndpointPort: node.GetNodeEndpointPort(),
+		EndpointPort: a.cfg.Mesh.EndpointPort,
 	}
 	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
 		return err
