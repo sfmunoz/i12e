@@ -173,6 +173,7 @@ func (a *Artifact) etcI12eIfaceTxt() error {
 	targetName := "etc/i12e/iface.txt"
 	if len(a.cfg.Mesh.EndpointInterface) < 1 {
 		log.Info("skipping: undefined 'mesh.endpoint_interface'", "targetName", targetName)
+		return nil
 	}
 	body := []byte(a.cfg.Mesh.EndpointInterface + "\n")
 	hdr := &tar.Header{
