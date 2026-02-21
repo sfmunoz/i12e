@@ -15,7 +15,6 @@ const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO: unhardcode
 type Node struct {
 	cfg        *config.Config
 	id         uint32
-	meshNet    *netip.Prefix
 	wgEndpoint *netip.AddrPort
 }
 
@@ -24,7 +23,7 @@ func (n *Node) String() string {
 		"%s|%s/%d|%s",
 		n.GetNodeName(),
 		n.GetMeshIP(),
-		n.GetMeshNet().Bits(),
+		n.cfg.Mesh.NetworkAddress.Bits(),
 		n.GetWgEndpoint(),
 	)
 }
@@ -33,12 +32,8 @@ func (n *Node) GetNodeName() string {
 	return getNodeNameFromNodeId(n.id)
 }
 
-func (n *Node) GetMeshNet() *netip.Prefix {
-	return n.meshNet
-}
-
 func (n *Node) GetMeshIP() *netip.Addr {
-	x, _ := nodeIdToIp(n.GetMeshNet(), n.id) // err ignored: already validated
+	x, _ := nodeIdToIp(n.cfg.Mesh.NetworkAddress, n.id) // err ignored: already validated
 	return x
 }
 
@@ -54,7 +49,7 @@ func getNodeNameFromNodeId(nodeId uint32) string {
 	return "n" + s
 }
 
-func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, error) {
+func getNodeIdFromNodeName(p *netip.Prefix, nodeName string) (uint32, error) {
 	nodeNameLen := len(nodeName)
 	if nodeNameLen != 5 {
 		return 0, fmt.Errorf("len(nodename=%s)=%d (5 expected)", nodeName, nodeNameLen)
@@ -68,7 +63,7 @@ func getNodeIdFromNodeName(meshNet *netip.Prefix, nodeName string) (uint32, erro
 		return 0, err
 	}
 	nodeId := uint32(nodeIdInt64)
-	if err := nodeIdValid(meshNet, nodeId); err != nil {
+	if err := nodeIdValid(p, nodeId); err != nil {
 		return 0, err
 	}
 	return nodeId, nil

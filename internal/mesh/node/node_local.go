@@ -53,7 +53,7 @@ func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
 	if err != nil {
 		return err
 	}
-	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.GetMeshNet().Bits()); err != nil {
+	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.cfg.Mesh.NetworkAddress.Bits()); err != nil {
 		return err
 	}
 	if err := netlink.LinkSetUp(link); err != nil {
@@ -120,19 +120,19 @@ func (n *NodeLocal) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func NewNodeLocal(cfg *config.Config, meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
+func NewNodeLocal(cfg *config.Config, reset bool) (*NodeLocal, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
 		}
 	}
-	nodeId, err := readEtcHostname(meshNet)
+	nodeId, err := readEtcHostname(cfg.Mesh.NetworkAddress)
 	if err != nil {
-		if err := writeRandomEtcHostname(meshNet); err != nil {
+		if err := writeRandomEtcHostname(cfg.Mesh.NetworkAddress); err != nil {
 			return nil, err
 		}
 	}
-	nodeId, err = readEtcHostname(meshNet)
+	nodeId, err = readEtcHostname(cfg.Mesh.NetworkAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,6 @@ func NewNodeLocal(cfg *config.Config, meshNet *netip.Prefix, reset bool) (*NodeL
 		Node: Node{
 			cfg:        cfg,
 			id:         nodeId,
-			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,
 		},
 		wgKeyPriv: wgKeyPriv,

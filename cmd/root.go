@@ -13,7 +13,8 @@ import (
 
 func setDefaults(v *viper.Viper) {
 	// sub-object definition implies struct definition
-	v.SetDefault("mesh.endpoint_port", 51823) // wireguard default: 51820
+	v.SetDefault("mesh.endpoint_port", 51823)             // wireguard default: 51820
+	v.SetDefault("mesh.network_address", "10.119.0.0/28") // from /12 (20 bits for host) to /29 (3 bits for host)
 	v.SetDefault("mesh.wireguard_interface", "wgi")
 }
 
@@ -29,11 +30,12 @@ i12e is an infrastructure management tool for task automation:
   - butane to ignition translation`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			prod, err := cmd.Flags().GetBool("prod")
+			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
 			if err != nil {
 				// when the command doesn't define -p/--prod use default config
 				v := viper.New()
 				setDefaults(v)
-				if err := v.Unmarshal(cfg); err != nil {
+				if err := v.Unmarshal(cfg, decodeHook); err != nil {
 					return err
 				}
 				//if err := cfg.Validate(); err != nil {
@@ -66,7 +68,7 @@ i12e is an infrastructure management tool for task automation:
 			if err := v.MergeConfig(bufOut); err != nil {
 				return err
 			}
-			if err := v.Unmarshal(cfg); err != nil {
+			if err := v.Unmarshal(cfg, decodeHook); err != nil {
 				return err
 			}
 			return cfg.Validate()

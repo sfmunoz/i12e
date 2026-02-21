@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/netip"
 )
 
 type Config struct {
@@ -21,9 +22,10 @@ type Config struct {
 		Kvversion string `mapstructure:"kvversion"`
 	} `mapstructure:"kube_vip"`
 	Mesh *struct {
-		EndpointInterface  string `mapstructure:"endpoint_interface"`
-		EndpointPort       int    `mapstructure:"endpoint_port"`
-		WireGuardInterface string `mapstructure:"wireguard_interface"`
+		EndpointInterface  string        `mapstructure:"endpoint_interface"`
+		EndpointPort       int           `mapstructure:"endpoint_port"`
+		NetworkAddress     *netip.Prefix `mapstructure:"network_address"`
+		WireGuardInterface string        `mapstructure:"wireguard_interface"`
 	} `mapstructure:"mesh"`
 	Pushover *struct {
 		UserKey string `mapstructure:"user_key"`
@@ -108,6 +110,16 @@ func (c *Config) validateMesh() error {
 	}
 	if mesh.EndpointPort > 65_535 {
 		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too high (max=65535)", mesh.EndpointPort)
+	}
+	if mesh.NetworkAddress == nil {
+		return fmt.Errorf("config: undefined 'mesh.network_address")
+	}
+	b := mesh.NetworkAddress.Bits() // from /12 (20 bits for host) to /29 (3 bits for host)
+	if b < 12 {
+		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, min=12)", mesh.NetworkAddress, b)
+	}
+	if b > 29 {
+		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, max=29)", mesh.NetworkAddress, b)
 	}
 	if len(mesh.WireGuardInterface) < 1 {
 		return fmt.Errorf("config: undefined 'mesh.wireguard_interface'")

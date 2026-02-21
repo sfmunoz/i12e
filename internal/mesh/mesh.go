@@ -3,7 +3,6 @@ package mesh
 import (
 	"fmt"
 	"net"
-	"net/netip"
 	"os"
 	"os/exec"
 	"slices"
@@ -25,7 +24,6 @@ const settleTime = 15 * time.Second
 
 type Mesh struct {
 	cfg     *config.Config
-	meshNet *netip.Prefix
 	remBase string
 }
 
@@ -57,7 +55,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNodeRemote(m.cfg, m.meshNet, entryTrimmed)
+		n, err := node.NewNodeRemote(m.cfg, entryTrimmed)
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -121,7 +119,7 @@ func (m *Mesh) getHomonymFromNodeList(nodeList []*node.NodeRemote, nodeLocal *no
 }
 
 func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
-	nodeLocalNew, err := node.NewNodeLocal(m.cfg, m.meshNet, true)
+	nodeLocalNew, err := node.NewNodeLocal(m.cfg, true)
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
@@ -230,7 +228,7 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNodeLocal(m.cfg, m.meshNet, false)
+	nodeLocal, err := node.NewNodeLocal(m.cfg, false)
 	if err != nil {
 		return err
 	}
@@ -278,10 +276,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(cfg *config.Config, meshNet *netip.Prefix, remBase string) *Mesh {
-	return &Mesh{cfg, meshNet, remBase}
+func newMesh(cfg *config.Config, remBase string) *Mesh {
+	return &Mesh{cfg, remBase}
 }
 
-func Run(cfg *config.Config, meshNet *netip.Prefix, remBase string) error {
-	return newMesh(cfg, meshNet, remBase).run()
+func Run(cfg *config.Config, remBase string) error {
+	return newMesh(cfg, remBase).run()
 }

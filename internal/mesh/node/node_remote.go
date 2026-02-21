@@ -131,12 +131,12 @@ func getTimestamp(tsStrIn string) (*time.Time, error) {
 	return &ts, nil
 }
 
-func NewNodeRemote(cfg *config.Config, meshNet *netip.Prefix, entry string) (*NodeRemote, error) {
+func NewNodeRemote(cfg *config.Config, entry string) (*NodeRemote, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)
 	}
-	nodeId, err := getNodeIdFromNodeName(meshNet, arr[1])
+	nodeId, err := getNodeIdFromNodeName(cfg.Mesh.NetworkAddress, arr[1])
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,6 @@ func NewNodeRemote(cfg *config.Config, meshNet *netip.Prefix, entry string) (*No
 		Node: Node{
 			cfg:        cfg,
 			id:         nodeId,
-			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,
 		},
 		wgKeyPub:  wgKeyPub,
