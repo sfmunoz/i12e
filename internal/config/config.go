@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/netip"
+	"slices"
 	"strings"
 	"time"
 )
@@ -186,6 +187,31 @@ func (c *Config) validateSshAuthorizedKeys() error {
 	return nil
 }
 
+func (c *Config) validateButane() error {
+	butane := c.Butane
+	if butane == nil {
+		return nil
+	}
+	if len(butane.Mode) < 1 {
+		return fmt.Errorf("config: undefined 'butane.mode'")
+	}
+	validModes := ValidModes()
+	if !slices.Contains(validModes, butane.Mode.String()) {
+		return fmt.Errorf("config: invalid 'butane.mode=%s' (valid: %q)", butane.Mode.String(), validModes)
+	}
+	if len(butane.Bout) < 1 {
+		return fmt.Errorf("config: undefined 'butane.output'")
+	}
+	validOutputs := ValidBouts()
+	if !slices.Contains(validOutputs, butane.Bout.String()) {
+		return fmt.Errorf("config: invalid 'butane.output=%s' (valid: %q)", butane.Bout.String(), validOutputs)
+	}
+	if len(butane.EncYaml) < 1 {
+		return fmt.Errorf("config: undefined 'butane.enc_yaml'")
+	}
+	return nil
+}
+
 func (c *Config) validateServer() error {
 	server := c.Server
 	if server == nil {
@@ -223,6 +249,9 @@ func (cfg *Config) Validate() error {
 		return err
 	}
 	if err := cfg.validateSshAuthorizedKeys(); err != nil {
+		return err
+	}
+	if err := cfg.validateButane(); err != nil {
 		return err
 	}
 	if err := cfg.validateServer(); err != nil {
