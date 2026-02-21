@@ -14,6 +14,7 @@ import (
 
 func setDefaults(v *viper.Viper) {
 	// sub-object definition implies struct definition
+	v.SetDefault("k3s.tls_san", "kmain")
 	v.SetDefault("mesh.endpoint_port", 51823)             // wireguard default: 51820
 	v.SetDefault("mesh.network_address", "10.119.0.0/28") // from /12 (20 bits for host) to /29 (3 bits for host)
 	v.SetDefault("mesh.wireguard_interface", "wgi")

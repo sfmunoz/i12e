@@ -16,6 +16,7 @@ type Config struct {
 	K3s *struct {
 		Token      string `mapstructure:"token"`
 		AgentToken string `mapstructure:"agent_token"`
+		TlsSan     string `mapstructure:"tls_san"`
 	} `mapstructure:"k3s"`
 	RcloneRemote string `mapstructure:"rclone_remote"`
 	PortKnocking []int  `mapstructure:"port_knocking"`
@@ -76,6 +77,9 @@ func (c *Config) validateK3s() error {
 	}
 	if len(k3s.AgentToken) < 1 {
 		return fmt.Errorf("config: undefined 'k3s.agent_token'")
+	}
+	if len(k3s.TlsSan) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.tls_san'")
 	}
 	return nil
 }

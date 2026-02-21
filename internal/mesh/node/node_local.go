@@ -84,7 +84,7 @@ func (n *NodeLocal) PushToRemote(remMeshBase string) error {
 	)
 	mode, err := getEtcI12eMode()
 	if err == nil && mode == "main" { // TODO: unhardcode
-		touchPath = fmt.Sprintf("%s/kmain", touchPath)
+		touchPath = fmt.Sprintf("%s/%s", touchPath, n.cfg.K3s.TlsSan)
 	}
 	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
