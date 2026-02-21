@@ -230,32 +230,21 @@ func (cfg *Config) Validate() error {
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
-	if err := cfg.validateI12e(); err != nil {
-		return err
+	flist := []func() error{
+		cfg.validateI12e,
+		cfg.validateK3s,
+		cfg.validatePortKnocking,
+		cfg.validateKubeVip,
+		cfg.validateMesh,
+		cfg.validatePushover,
+		cfg.validateSshAuthorizedKeys,
+		cfg.validateButane,
+		cfg.validateServer,
 	}
-	if err := cfg.validateK3s(); err != nil {
-		return err
-	}
-	if err := cfg.validatePortKnocking(); err != nil {
-		return err
-	}
-	if err := cfg.validateKubeVip(); err != nil {
-		return err
-	}
-	if err := cfg.validateMesh(); err != nil {
-		return err
-	}
-	if err := cfg.validatePushover(); err != nil {
-		return err
-	}
-	if err := cfg.validateSshAuthorizedKeys(); err != nil {
-		return err
-	}
-	if err := cfg.validateButane(); err != nil {
-		return err
-	}
-	if err := cfg.validateServer(); err != nil {
-		return err
+	for _, f := range flist {
+		if err := f(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
