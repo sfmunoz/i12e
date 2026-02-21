@@ -10,8 +10,6 @@ import (
 	"github.com/sfmunoz/i12e/internal/config"
 )
 
-const nodePrivKeyFname = "/etc/i12e/wg-priv-key" // TODO: unhardcode
-
 type Node struct {
 	cfg        *config.Config
 	id         uint32

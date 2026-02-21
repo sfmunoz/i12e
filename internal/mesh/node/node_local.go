@@ -136,7 +136,7 @@ func NewNodeLocal(cfg *config.Config, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgKeyPriv, err := getWgKeyPriv(nodePrivKeyFname)
+	wgKeyPriv, err := getWgKeyPriv(cfg.Mesh.WireGuardPrivKeyFname)
 	if err != nil {
 		return nil, err
 	}

@@ -22,10 +22,11 @@ type Config struct {
 		Kvversion string `mapstructure:"kvversion"`
 	} `mapstructure:"kube_vip"`
 	Mesh *struct {
-		EndpointInterface  string        `mapstructure:"endpoint_interface"`
-		EndpointPort       int           `mapstructure:"endpoint_port"`
-		NetworkAddress     *netip.Prefix `mapstructure:"network_address"`
-		WireGuardInterface string        `mapstructure:"wireguard_interface"`
+		EndpointInterface     string        `mapstructure:"endpoint_interface"`
+		EndpointPort          int           `mapstructure:"endpoint_port"`
+		NetworkAddress        *netip.Prefix `mapstructure:"network_address"`
+		WireGuardInterface    string        `mapstructure:"wireguard_interface"`
+		WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname"`
 	} `mapstructure:"mesh"`
 	Pushover *struct {
 		UserKey string `mapstructure:"user_key"`
@@ -130,6 +131,9 @@ func (c *Config) validateMesh() error {
 	}
 	if len(mesh.WireGuardInterface) < 1 {
 		return fmt.Errorf("config: undefined 'mesh.wireguard_interface'")
+	}
+	if len(mesh.WireGuardPrivKeyFname) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.wireguard_priv_key_fname'")
 	}
 	return nil
 }
