@@ -10,19 +10,14 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-const serverSlumberBase = 8 * time.Second   // TODO: unhardcode
-const serverSlumberJitter = 4 * time.Second // TODO: unhardcode
-
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	cfg           *config.Config
-	slumberBase   time.Duration
-	slumberJitter time.Duration
+	cfg *config.Config
 }
 
-func newServer(cfg *config.Config, slumberBase time.Duration, slumberJitter time.Duration) *Server {
-	return &Server{cfg, slumberBase, slumberJitter}
+func newServer(cfg *config.Config) *Server {
+	return &Server{cfg}
 }
 
 func (s *Server) run() error {
@@ -34,12 +29,12 @@ func (s *Server) run() error {
 		if err := pull.Run(s.cfg); err != nil {
 			log.Error("pull.Run() failed", "err", err)
 		}
-		slumber := s.slumberBase + time.Duration(rand.Int64N(int64(s.slumberJitter)))
+		slumber := s.cfg.Server.SlumberBase + time.Duration(rand.Int64N(int64(s.cfg.Server.SlumberJitter)))
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
 }
 
 func Run(cfg *config.Config) error {
-	return newServer(cfg, serverSlumberBase, serverSlumberJitter).run()
+	return newServer(cfg).run()
 }

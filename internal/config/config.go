@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/netip"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -40,6 +41,10 @@ type Config struct {
 		Bout    Bout   `mapstructure:"bout"`
 		EncYaml string `mapstructure:"enc_yaml"`
 	} `mapstructure:"butane"`
+	Server *struct {
+		SlumberBase   time.Duration `mapstructure:"slumber_base"`
+		SlumberJitter time.Duration `mapstructure:"slumber_jitter"`
+	} `mapstructure:"server"`
 }
 
 func (c *Config) validateI12e() error {
@@ -181,6 +186,20 @@ func (c *Config) validateSshAuthorizedKeys() error {
 	return nil
 }
 
+func (c *Config) validateServer() error {
+	server := c.Server
+	if server == nil {
+		return fmt.Errorf("config: undefined 'server'")
+	}
+	if server.SlumberBase < 10*time.Second {
+		return fmt.Errorf("config: wrong 'mesh.slumber_base=%s' (min=10s)", server.SlumberBase)
+	}
+	if server.SlumberJitter < time.Second {
+		return fmt.Errorf("config: wrong 'mesh.slumber_jitter=%s' (min=1s)", server.SlumberJitter)
+	}
+	return nil
+}
+
 func (cfg *Config) Validate() error {
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
@@ -204,6 +223,9 @@ func (cfg *Config) Validate() error {
 		return err
 	}
 	if err := cfg.validateSshAuthorizedKeys(); err != nil {
+		return err
+	}
+	if err := cfg.validateServer(); err != nil {
 		return err
 	}
 	return nil
