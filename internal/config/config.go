@@ -114,6 +114,13 @@ func (c *Config) validateMesh() error {
 	if mesh.NetworkAddress == nil {
 		return fmt.Errorf("config: undefined 'mesh.network_address")
 	}
+	meshAddr := mesh.NetworkAddress.Addr()
+	if !meshAddr.Is4() {
+		return fmt.Errorf("config: 'mesh.network_address=%s' is not IPv4", mesh.NetworkAddress)
+	}
+	if !meshAddr.IsPrivate() {
+		return fmt.Errorf("config: 'mesh.network_address=%s' is not private", mesh.NetworkAddress)
+	}
 	b := mesh.NetworkAddress.Bits() // from /12 (20 bits for host) to /29 (3 bits for host)
 	if b < 12 {
 		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, min=12)", mesh.NetworkAddress, b)
