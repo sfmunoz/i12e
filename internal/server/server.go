@@ -10,8 +10,6 @@ import (
 	"github.com/sfmunoz/logit"
 )
 
-const remBase = "rem:mesh" // TODO: unhardcode
-
 const serverSlumberBase = 8 * time.Second   // TODO: unhardcode
 const serverSlumberJitter = 4 * time.Second // TODO: unhardcode
 
@@ -30,7 +28,7 @@ func newServer(cfg *config.Config, slumberBase time.Duration, slumberJitter time
 func (s *Server) run() error {
 	for {
 		log.Info("i12e running...")
-		if err := mesh.Run(s.cfg, remBase); err != nil {
+		if err := mesh.Run(s.cfg); err != nil {
 			log.Error("mesh.Run() failed", "err", err)
 		}
 		if err := pull.Run(s.cfg); err != nil {

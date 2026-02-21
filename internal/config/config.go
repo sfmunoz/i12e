@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net/netip"
+	"strings"
 )
 
 type Config struct {
@@ -27,6 +28,7 @@ type Config struct {
 		NetworkAddress        *netip.Prefix `mapstructure:"network_address"`
 		WireGuardInterface    string        `mapstructure:"wireguard_interface"`
 		WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname"`
+		RemoteBase            string        `mapstructure:"remote_base"`
 	} `mapstructure:"mesh"`
 	Pushover *struct {
 		UserKey string `mapstructure:"user_key"`
@@ -135,6 +137,20 @@ func (c *Config) validateMesh() error {
 	if len(mesh.WireGuardPrivKeyFname) < 1 {
 		return fmt.Errorf("config: undefined 'mesh.wireguard_priv_key_fname'")
 	}
+	if len(mesh.RemoteBase) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.remote_base'")
+	}
+	parts := strings.Split(mesh.RemoteBase, ":")
+	partsLen := len(parts)
+	if partsLen != 2 {
+		return fmt.Errorf("config: wrong 'mesh.remote_base=%s (parts=%d, required=2)'", mesh.RemoteBase, partsLen)
+	}
+	for k, v := range parts {
+		if len(v) < 1 {
+			return fmt.Errorf("config: wrong 'mesh.remote_base=%s (part[%d] is undefined2)'", mesh.RemoteBase, k)
+		}
+	}
+	strings.Contains(mesh.RemoteBase, ":")
 	return nil
 }
 

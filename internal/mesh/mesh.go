@@ -23,8 +23,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const settleTime = 15 * time.Second
 
 type Mesh struct {
-	cfg     *config.Config
-	remBase string
+	cfg *config.Config
 }
 
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
@@ -42,7 +41,7 @@ func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
 }
 
 func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.cfg.Mesh.RemoteBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -232,7 +231,7 @@ func (m *Mesh) run() error {
 	if err != nil {
 		return err
 	}
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+	if err := nodeLocal.PushToRemote(m.cfg.Mesh.RemoteBase); err != nil {
 		return err
 	}
 	nodeListRaw, err := m.getRemoteNodeList()
@@ -253,7 +252,7 @@ func (m *Mesh) run() error {
 		log.Warn("nodeAge < settleTime; waiting...", "nodeAge", nodeAge, "settleTime", settleTime, "nodeLocal", nodeLocal, "nodeAge", nodeAge)
 		return nil
 	}
-	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
+	if err := nodeLocal.PurgeFromRemote(m.cfg.Mesh.RemoteBase); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
@@ -276,10 +275,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(cfg *config.Config, remBase string) *Mesh {
-	return &Mesh{cfg, remBase}
+func newMesh(cfg *config.Config) *Mesh {
+	return &Mesh{cfg}
 }
 
-func Run(cfg *config.Config, remBase string) error {
-	return newMesh(cfg, remBase).run()
+func Run(cfg *config.Config) error {
+	return newMesh(cfg).run()
 }

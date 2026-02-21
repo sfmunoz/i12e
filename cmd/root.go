@@ -17,6 +17,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("mesh.network_address", "10.119.0.0/28") // from /12 (20 bits for host) to /29 (3 bits for host)
 	v.SetDefault("mesh.wireguard_interface", "wgi")
 	v.SetDefault("mesh.wireguard_priv_key_fname", "/etc/i12e/wg-priv-key")
+	v.SetDefault("mesh.remote_base", "rem:mesh")
 }
 
 func rootCmd(cfg *config.Config) *cobra.Command {
