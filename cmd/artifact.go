@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
@@ -15,6 +17,9 @@ func artifactCmd(cfg *config.Config) *cobra.Command {
   - generation: tar+gz artifact
   - push to remote using rclone`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg == nil {
+				return fmt.Errorf("undefined config")
+			}
 			return artifact.Run(cfg)
 		},
 	}

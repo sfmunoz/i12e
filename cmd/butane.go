@@ -21,6 +21,9 @@ Examples:
   Generate ignition file:
     $ i12e butane -o ignition`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg == nil {
+				return fmt.Errorf("undefined config")
+			}
 			return butane.Run(cfg)
 		},
 	}
