@@ -4,52 +4,41 @@ import (
 	"fmt"
 )
 
-type I12e struct {
-	Version   string `mapstructure:"version"`
-	Sha256sum string `mapstructure:"sha256sum"`
-}
-
-type K3s struct {
-	Token      string `mapstructure:"token"`
-	AgentToken string `mapstructure:"agent_token"`
-}
-
-type KubeVip struct {
-	Vip       string `mapstructure:"vip"`
-	Interface string `mapstructure:"interface"`
-	Kvversion string `mapstructure:"kvversion"`
-}
-
-type Mesh struct {
-	EndpointInterface  string `mapstructure:"endpoint_interface"`
-	EndpointPort       int    `mapstructure:"endpoint_port"`
-	WireGuardInterface string `mapstructure:"wireguard_interface"`
-}
-
-type Pushover struct {
-	UserKey string `mapstructure:"user_key"`
-	Token   string `mapstructure:"token"`
-}
-
-type Butane struct {
-	Mode    Mode   `mapstructure:"mode"`
-	Bout    Bout   `mapstructure:"bout"`
-	EncYaml string `mapstructure:"enc_yaml"`
-}
-
 type Config struct {
-	I12e              *I12e     `mapstructure:"i12e"`
-	K3s               *K3s      `mapstructure:"k3s"`
-	RcloneRemote      string    `mapstructure:"rclone_remote"`
-	PortKnocking      []int     `mapstructure:"port_knocking"`
-	KubeVip           *KubeVip  `mapstructure:"kube_vip"`
-	Mesh              *Mesh     `mapstructure:"mesh"`
-	Pushover          *Pushover `mapstructure:"pushover"`
-	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
-	Butane            *Butane   `mapstructure:"butane"`
+	I12e *struct {
+		Version   string `mapstructure:"version"`
+		Sha256sum string `mapstructure:"sha256sum"`
+	} `mapstructure:"i12e"`
+	K3s *struct {
+		Token      string `mapstructure:"token"`
+		AgentToken string `mapstructure:"agent_token"`
+	} `mapstructure:"k3s"`
+	RcloneRemote string `mapstructure:"rclone_remote"`
+	PortKnocking []int  `mapstructure:"port_knocking"`
+	KubeVip      *struct {
+		Vip       string `mapstructure:"vip"`
+		Interface string `mapstructure:"interface"`
+		Kvversion string `mapstructure:"kvversion"`
+	} `mapstructure:"kube_vip"`
+	Mesh *struct {
+		EndpointInterface  string `mapstructure:"endpoint_interface"`
+		EndpointPort       int    `mapstructure:"endpoint_port"`
+		WireGuardInterface string `mapstructure:"wireguard_interface"`
+	} `mapstructure:"mesh"`
+	Pushover *struct {
+		UserKey string `mapstructure:"user_key"`
+		Token   string `mapstructure:"token"`
+	} `mapstructure:"pushover"`
+	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
+	Butane            *struct {
+		Mode    Mode   `mapstructure:"mode"`
+		Bout    Bout   `mapstructure:"bout"`
+		EncYaml string `mapstructure:"enc_yaml"`
+	} `mapstructure:"butane"`
 }
 
-func validateI12e(i12e *I12e) error {
+func (c *Config) validateI12e() error {
+	i12e := c.I12e
 	if i12e == nil {
 		return fmt.Errorf("config: undefined 'i12e'")
 	}
@@ -66,7 +55,8 @@ func validateI12e(i12e *I12e) error {
 	return nil
 }
 
-func validateK3s(k3s *K3s) error {
+func (c *Config) validateK3s() error {
+	k3s := c.K3s
 	if k3s == nil {
 		return fmt.Errorf("config: undefined 'k3s'")
 	}
@@ -79,7 +69,8 @@ func validateK3s(k3s *K3s) error {
 	return nil
 }
 
-func validatePortKnocking(portKnocking []int) error {
+func (c *Config) validatePortKnocking() error {
+	portKnocking := c.PortKnocking
 	if len(portKnocking) < 1 {
 		return fmt.Errorf("config: undefined 'port_knocking'")
 	}
@@ -90,7 +81,8 @@ func validatePortKnocking(portKnocking []int) error {
 	return nil
 }
 
-func validateKubeVip(kubeVip *KubeVip) error {
+func (c *Config) validateKubeVip() error {
+	kubeVip := c.KubeVip
 	if kubeVip == nil {
 		return nil // kube_vip is optional
 	}
@@ -106,7 +98,8 @@ func validateKubeVip(kubeVip *KubeVip) error {
 	return nil
 }
 
-func validateMesh(mesh *Mesh) error {
+func (c *Config) validateMesh() error {
+	mesh := c.Mesh
 	if mesh == nil {
 		return fmt.Errorf("config: undefined 'mesh'")
 	}
@@ -122,7 +115,8 @@ func validateMesh(mesh *Mesh) error {
 	return nil
 }
 
-func validatePushover(pushover *Pushover) error {
+func (c *Config) validatePushover() error {
+	pushover := c.Pushover
 	if pushover == nil {
 		return fmt.Errorf("config: undefined 'pushover'")
 	}
@@ -135,7 +129,8 @@ func validatePushover(pushover *Pushover) error {
 	return nil
 }
 
-func validateSshAuthorizedKeys(sshAuthorizedKeys []string) error {
+func (c *Config) validateSshAuthorizedKeys() error {
+	sshAuthorizedKeys := c.SshAuthorizedKeys
 	if len(sshAuthorizedKeys) < 1 {
 		return fmt.Errorf("config: undefined 'ssh_authorized_keys'")
 	}
@@ -151,25 +146,25 @@ func (cfg *Config) Validate() error {
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
-	if err := validateI12e(cfg.I12e); err != nil {
+	if err := cfg.validateI12e(); err != nil {
 		return err
 	}
-	if err := validateK3s(cfg.K3s); err != nil {
+	if err := cfg.validateK3s(); err != nil {
 		return err
 	}
-	if err := validatePortKnocking(cfg.PortKnocking); err != nil {
+	if err := cfg.validatePortKnocking(); err != nil {
 		return err
 	}
-	if err := validateKubeVip(cfg.KubeVip); err != nil {
+	if err := cfg.validateKubeVip(); err != nil {
 		return err
 	}
-	if err := validateMesh(cfg.Mesh); err != nil {
+	if err := cfg.validateMesh(); err != nil {
 		return err
 	}
-	if err := validatePushover(cfg.Pushover); err != nil {
+	if err := cfg.validatePushover(); err != nil {
 		return err
 	}
-	if err := validateSshAuthorizedKeys(cfg.SshAuthorizedKeys); err != nil {
+	if err := cfg.validateSshAuthorizedKeys(); err != nil {
 		return err
 	}
 	return nil
