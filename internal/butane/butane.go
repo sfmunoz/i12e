@@ -28,14 +28,14 @@ func newButane(cfg *config.Config) (*Butane, error) {
 }
 
 func (b *Butane) butaneCmd() *exec.Cmd {
-	if b.cfg.Bout == config.BoutDebug {
+	if b.cfg.Butane.Output == config.OutputDebug {
 		return exec.Command("butane", "-s", "-p")
 	}
 	return exec.Command("butane", "-s")
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := b.cfg.ConfFiles.ButaneEncYaml
+	fname := b.cfg.ButaneEncYaml()
 	_, err := os.Stat(fname)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -94,7 +94,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		IgnitionConfigMergeSource: icms,
 		I12eVersion:               b.cfg.I12e.Version,
 		I12eSha256sum:             b.cfg.I12e.Sha256sum,
-		Mode:                      b.cfg.Mode.String(),
+		Mode:                      b.cfg.Butane.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.SshAuthorizedKeys,
 		RcloneConf:                rcloneConfig,
 	}
@@ -103,7 +103,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if b.cfg.Bout == config.BoutDebug {
+	if b.cfg.Butane.Output == config.OutputDebug {
 		log.Info("======== butane begin ========")
 		for _, line := range strings.Split(ret.String(), "\n") {
 			log.Info(line)
@@ -120,7 +120,7 @@ func (b *Butane) ignitionRender(buf *bytes.Buffer) (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be)
 	}
-	if b.cfg.Bout == config.BoutDebug {
+	if b.cfg.Butane.Output == config.OutputDebug {
 		log.Info("======== ignition begin ========")
 		for _, line := range strings.Split(bo.String(), "\n") {
 			log.Info(line)
@@ -181,10 +181,10 @@ func (b *Butane) run() error {
 	if err != nil {
 		return err
 	}
-	if b.cfg.Bout == config.BoutDebug {
+	if b.cfg.Butane.Output == config.OutputDebug {
 		return nil
 	}
-	if b.cfg.Bout == config.BoutIgnition {
+	if b.cfg.Butane.Output == config.OutputIgnition {
 		fmt.Fprint(os.Stdout, ignitionBuf.String())
 		return nil
 	}
@@ -192,7 +192,7 @@ func (b *Butane) run() error {
 	if err != nil {
 		return err
 	}
-	if b.cfg.Bout == config.BoutBashRaw {
+	if b.cfg.Butane.Output == config.OutputBashRaw {
 		fmt.Fprint(os.Stdout, bufRaw.String())
 		return nil
 	}
@@ -200,7 +200,7 @@ func (b *Butane) run() error {
 	if err != nil {
 		return err
 	}
-	if b.cfg.Bout == config.BoutBashB64 {
+	if b.cfg.Butane.Output == config.OutputBashB64 {
 		fmt.Fprint(os.Stdout, bufB64.String())
 		return nil
 	}

@@ -1,35 +1,28 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
 )
 
-func artifactRun(cmd *cobra.Command, args []string) error {
-	prod, err := cmd.Flags().GetBool("prod")
-	if err != nil {
-		return err
-	}
-	cfg, err := config.LoadConfig(prod)
-	if err != nil {
-		return err
-	}
-	return artifact.Run(cfg)
-}
-
-var artifactCmd = &cobra.Command{
-	Use:   "artifact",
-	Short: "Artifact generation and push with rclone",
-	Long: `Artifact management:
+func artifactCmd(cfg *config.Config) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "artifact",
+		Short: "Artifact generation and push with rclone",
+		Long: `Artifact management:
 
   - generation: tar+gz artifact
   - push to remote using rclone`,
-	RunE: artifactRun,
-}
-
-func init() {
-	rootCmd.AddCommand(artifactCmd)
-	// artifactCmd.PersistentFlags().String("foo", "", "A help for foo")
-	// artifactCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg == nil {
+				return fmt.Errorf("undefined config")
+			}
+			return artifact.Run(cfg)
+		},
+	}
+	cmd.Flags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
+	return cmd
 }

@@ -2,55 +2,74 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-
-	"github.com/sfmunoz/i12e/internal/cmdutil"
-	"github.com/spf13/viper"
+	"net/netip"
+	"slices"
+	"strings"
+	"time"
 )
 
-type ConfFiles struct {
-	I12eYaml      string
-	I12eEncYaml   string
-	ButaneEncYaml string
-}
-
-type I12e struct {
-	Version   string `mapstructure:"version"`
-	Sha256sum string `mapstructure:"sha256sum"`
-}
-
-type KubeVip struct {
-	Vip       string `mapstructure:"vip"`
-	Interface string `mapstructure:"interface"`
-	Kvversion string `mapstructure:"kvversion"`
-}
-
-type Mesh struct {
-	Interface string `mapstructure:"interface"`
-}
-
-type Pushover struct {
-	UserKey string `mapstructure:"user_key"`
-	Token   string `mapstructure:"token"`
-}
-
 type Config struct {
-	Mode              Mode
-	Bout              Bout
-	ConfFiles         *ConfFiles
-	I12e              *I12e     `mapstructure:"i12e"`
-	RcloneRemote      string    `mapstructure:"rclone_remote"`
-	K3sToken          string    `mapstructure:"k3s_token"`
-	K3sAgentToken     string    `mapstructure:"k3s_agent_token"`
-	PortKnocking      []int     `mapstructure:"port_knocking"`
-	KubeVip           *KubeVip  `mapstructure:"kube_vip"`
-	Mesh              *Mesh     `mapstructure:"mesh"`
-	Pushover          *Pushover `mapstructure:"pushover"`
-	SshAuthorizedKeys []string  `mapstructure:"ssh_authorized_keys"`
+	Env  Env
+	I12e *struct {
+		Version   string `mapstructure:"version"`
+		Sha256sum string `mapstructure:"sha256sum"`
+	} `mapstructure:"i12e"`
+	K3s *struct {
+		Token      string `mapstructure:"token"`
+		AgentToken string `mapstructure:"agent_token"`
+		TlsSan     string `mapstructure:"tls_san"`
+	} `mapstructure:"k3s"`
+	RcloneRemote string `mapstructure:"rclone_remote"`
+	PortKnocking []int  `mapstructure:"port_knocking"`
+	KubeVip      *struct {
+		Vip       string `mapstructure:"vip"`
+		Interface string `mapstructure:"interface"`
+		Kvversion string `mapstructure:"kvversion"`
+	} `mapstructure:"kube_vip"`
+	Mesh *struct {
+		EndpointInterface     string        `mapstructure:"endpoint_interface"`
+		EndpointPort          int           `mapstructure:"endpoint_port"`
+		NetworkAddress        *netip.Prefix `mapstructure:"network_address"`
+		WireGuardInterface    string        `mapstructure:"wireguard_interface"`
+		WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname"`
+		RemoteBase            string        `mapstructure:"remote_base"`
+	} `mapstructure:"mesh"`
+	Pushover *struct {
+		UserKey string `mapstructure:"user_key"`
+		Token   string `mapstructure:"token"`
+	} `mapstructure:"pushover"`
+	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
+	Butane            *struct {
+		Mode   Mode   `mapstructure:"mode"`
+		Output Output `mapstructure:"output"`
+	} `mapstructure:"butane"`
+	Server *struct {
+		SlumberBase   time.Duration `mapstructure:"slumber_base"`
+		SlumberJitter time.Duration `mapstructure:"slumber_jitter"`
+	} `mapstructure:"server"`
 }
 
-func validateI12e(i12e *I12e) error {
+func (c *Config) fname(bname string) string {
+	if c.Env == EnvNone {
+		return fmt.Sprintf("/etc/i12e/%s", bname)
+	}
+	return fmt.Sprintf("config/%s/%s", c.Env.String(), bname)
+}
+
+func (c *Config) ButaneEncYaml() string {
+	return c.fname("butane.enc.yaml")
+}
+
+func (c *Config) I12eYaml() string {
+	return c.fname("i12e.yaml")
+}
+
+func (c *Config) I12eEncYaml() string {
+	return c.fname("i12e.enc.yaml")
+}
+
+func (c *Config) validateI12e() error {
+	i12e := c.I12e
 	if i12e == nil {
 		return fmt.Errorf("config: undefined 'i12e'")
 	}
@@ -67,7 +86,25 @@ func validateI12e(i12e *I12e) error {
 	return nil
 }
 
-func validatePortKnocking(portKnocking []int) error {
+func (c *Config) validateK3s() error {
+	k3s := c.K3s
+	if k3s == nil {
+		return fmt.Errorf("config: undefined 'k3s'")
+	}
+	if len(k3s.Token) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.token'")
+	}
+	if len(k3s.AgentToken) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.agent_token'")
+	}
+	if len(k3s.TlsSan) < 1 {
+		return fmt.Errorf("config: undefined 'k3s.tls_san'")
+	}
+	return nil
+}
+
+func (c *Config) validatePortKnocking() error {
+	portKnocking := c.PortKnocking
 	if len(portKnocking) < 1 {
 		return fmt.Errorf("config: undefined 'port_knocking'")
 	}
@@ -78,7 +115,8 @@ func validatePortKnocking(portKnocking []int) error {
 	return nil
 }
 
-func validateKubeVip(kubeVip *KubeVip) error {
+func (c *Config) validateKubeVip() error {
+	kubeVip := c.KubeVip
 	if kubeVip == nil {
 		return nil // kube_vip is optional
 	}
@@ -94,17 +132,59 @@ func validateKubeVip(kubeVip *KubeVip) error {
 	return nil
 }
 
-func validateMesh(mesh *Mesh) error {
+func (c *Config) validateMesh() error {
+	mesh := c.Mesh
 	if mesh == nil {
-		return nil // mesh is optional
+		return fmt.Errorf("config: undefined 'mesh'")
 	}
-	if len(mesh.Interface) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.interface'")
+	if mesh.EndpointPort < 1024 {
+		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too low (min=1024)", mesh.EndpointPort)
 	}
+	if mesh.EndpointPort > 65_535 {
+		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too high (max=65535)", mesh.EndpointPort)
+	}
+	if mesh.NetworkAddress == nil {
+		return fmt.Errorf("config: undefined 'mesh.network_address")
+	}
+	meshAddr := mesh.NetworkAddress.Addr()
+	if !meshAddr.Is4() {
+		return fmt.Errorf("config: 'mesh.network_address=%s' is not IPv4", mesh.NetworkAddress)
+	}
+	if !meshAddr.IsPrivate() {
+		return fmt.Errorf("config: 'mesh.network_address=%s' is not private", mesh.NetworkAddress)
+	}
+	b := mesh.NetworkAddress.Bits() // from /12 (20 bits for host) to /29 (3 bits for host)
+	if b < 12 {
+		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, min=12)", mesh.NetworkAddress, b)
+	}
+	if b > 29 {
+		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, max=29)", mesh.NetworkAddress, b)
+	}
+	if len(mesh.WireGuardInterface) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.wireguard_interface'")
+	}
+	if len(mesh.WireGuardPrivKeyFname) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.wireguard_priv_key_fname'")
+	}
+	if len(mesh.RemoteBase) < 1 {
+		return fmt.Errorf("config: undefined 'mesh.remote_base'")
+	}
+	parts := strings.Split(mesh.RemoteBase, ":")
+	partsLen := len(parts)
+	if partsLen != 2 {
+		return fmt.Errorf("config: wrong 'mesh.remote_base=%s (parts=%d, required=2)'", mesh.RemoteBase, partsLen)
+	}
+	for k, v := range parts {
+		if len(v) < 1 {
+			return fmt.Errorf("config: wrong 'mesh.remote_base=%s (part[%d] is undefined2)'", mesh.RemoteBase, k)
+		}
+	}
+	strings.Contains(mesh.RemoteBase, ":")
 	return nil
 }
 
-func validatePushover(pushover *Pushover) error {
+func (c *Config) validatePushover() error {
+	pushover := c.Pushover
 	if pushover == nil {
 		return fmt.Errorf("config: undefined 'pushover'")
 	}
@@ -117,7 +197,8 @@ func validatePushover(pushover *Pushover) error {
 	return nil
 }
 
-func validateSshAuthorizedKeys(sshAuthorizedKeys []string) error {
+func (c *Config) validateSshAuthorizedKeys() error {
+	sshAuthorizedKeys := c.SshAuthorizedKeys
 	if len(sshAuthorizedKeys) < 1 {
 		return fmt.Errorf("config: undefined 'ssh_authorized_keys'")
 	}
@@ -129,72 +210,61 @@ func validateSshAuthorizedKeys(sshAuthorizedKeys []string) error {
 	return nil
 }
 
-func validateConfig(cfg *Config) error {
-	if len(cfg.RcloneRemote) < 1 {
-		return fmt.Errorf("config: undefined 'rclone_remote'")
+func (c *Config) validateButane() error {
+	butane := c.Butane
+	if butane == nil {
+		return nil
 	}
-	if len(cfg.K3sToken) < 1 {
-		return fmt.Errorf("config: undefined 'k3s_token'")
+	if len(butane.Mode) < 1 {
+		return fmt.Errorf("config: undefined 'butane.mode'")
 	}
-	if len(cfg.K3sAgentToken) < 1 {
-		return fmt.Errorf("config: undefined 'k3s_agent_token'")
+	validModes := ValidModes()
+	if !slices.Contains(validModes, butane.Mode.String()) {
+		return fmt.Errorf("config: invalid 'butane.mode=%s' (valid: %q)", butane.Mode.String(), validModes)
 	}
-	if err := validateI12e(cfg.I12e); err != nil {
-		return err
+	if len(butane.Output) < 1 {
+		return fmt.Errorf("config: undefined 'butane.output'")
 	}
-	if err := validatePortKnocking(cfg.PortKnocking); err != nil {
-		return err
-	}
-	if err := validateKubeVip(cfg.KubeVip); err != nil {
-		return err
-	}
-	if err := validateMesh(cfg.Mesh); err != nil {
-		return err
-	}
-	if err := validatePushover(cfg.Pushover); err != nil {
-		return err
-	}
-	if err := validateSshAuthorizedKeys(cfg.SshAuthorizedKeys); err != nil {
-		return err
+	validOutputs := ValidOutputs()
+	if !slices.Contains(validOutputs, butane.Output.String()) {
+		return fmt.Errorf("config: invalid 'butane.output=%s' (valid: %q)", butane.Output.String(), validOutputs)
 	}
 	return nil
 }
 
-func LoadConfig(prod bool) (*Config, error) {
-	e := "dev"
-	if prod {
-		e = "prod"
+func (c *Config) validateServer() error {
+	server := c.Server
+	if server == nil {
+		return fmt.Errorf("config: undefined 'server'")
 	}
-	cf := ConfFiles{
-		I12eYaml:      fmt.Sprintf("config/%s/i12e.yaml", e),
-		I12eEncYaml:   fmt.Sprintf("config/%s/i12e.enc.yaml", e),
-		ButaneEncYaml: fmt.Sprintf("config/%s/butane.enc.yaml", e),
+	if server.SlumberBase < 10*time.Second {
+		return fmt.Errorf("config: wrong 'mesh.slumber_base=%s' (min=10s)", server.SlumberBase)
 	}
-	fp, err := os.Open(cf.I12eYaml)
-	if err != nil {
-		return nil, err
+	if server.SlumberJitter < time.Second {
+		return fmt.Errorf("config: wrong 'mesh.slumber_jitter=%s' (min=1s)", server.SlumberJitter)
 	}
-	defer fp.Close()
-	bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cf.I12eEncYaml))
-	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+	return nil
+}
+
+func (cfg *Config) Validate() error {
+	if len(cfg.RcloneRemote) < 1 {
+		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
-	v := viper.New()
-	//v.SetEnvPrefix("I12E")
-	//v.AutomaticEnv()
-	v.SetConfigType("yaml")
-	if err := v.ReadConfig(fp); err != nil {
-		return nil, err
+	flist := []func() error{
+		cfg.validateI12e,
+		cfg.validateK3s,
+		cfg.validatePortKnocking,
+		cfg.validateKubeVip,
+		cfg.validateMesh,
+		cfg.validatePushover,
+		cfg.validateSshAuthorizedKeys,
+		cfg.validateButane,
+		cfg.validateServer,
 	}
-	if err := v.MergeConfig(bufOut); err != nil {
-		return nil, err
+	for _, f := range flist {
+		if err := f(); err != nil {
+			return err
+		}
 	}
-	cfg := Config{ConfFiles: &cf}
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, err
-	}
-	if err := validateConfig(&cfg); err != nil {
-		return nil, err
-	}
-	return &cfg, nil
+	return nil
 }

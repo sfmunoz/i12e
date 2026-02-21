@@ -3,7 +3,6 @@ package mesh
 import (
 	"fmt"
 	"net"
-	"net/netip"
 	"os"
 	"os/exec"
 	"slices"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh/node"
 	"github.com/sfmunoz/logit"
 
@@ -23,8 +23,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const settleTime = 15 * time.Second
 
 type Mesh struct {
-	meshNet *netip.Prefix
-	remBase string
+	cfg *config.Config
 }
 
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
@@ -42,7 +41,7 @@ func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
 }
 
 func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
-	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.remBase)
+	cmd := exec.Command("rclone", "lsf", "-R", "--files-only", m.cfg.Mesh.RemoteBase)
 	bo, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'rclone lsf' failed': %s (stdout=%s, stderr=%s)", err, bo.String(), be.String())
@@ -55,7 +54,7 @@ func (m *Mesh) getRemoteNodeList() ([]*node.NodeRemote, error) {
 		if len(entryTrimmed) < 1 { // when entries == ""
 			continue
 		}
-		n, err := node.NewNodeRemote(m.meshNet, entryTrimmed)
+		n, err := node.NewNodeRemote(m.cfg, entryTrimmed)
 		if err != nil {
 			log.Error("'node.NewNode()' failed", "err", err, "entry", entry)
 			continue
@@ -119,7 +118,7 @@ func (m *Mesh) getHomonymFromNodeList(nodeList []*node.NodeRemote, nodeLocal *no
 }
 
 func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
-	nodeLocalNew, err := node.NewNodeLocal(m.meshNet, true)
+	nodeLocalNew, err := node.NewNodeLocal(m.cfg, true)
 	if err != nil {
 		return fmt.Errorf("node-reset failed (nodeLocal=%s): %s", nodeLocalOld, err)
 	}
@@ -129,7 +128,7 @@ func (m *Mesh) nodeGiveUp(nodeLocalOld *node.NodeLocal) error {
 
 func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLocal, wgCli *wgctrl.Client) error {
 	nodeNameLocal := nodeLocal.GetNodeName()
-	iface := node.GetNodeInterface()
+	iface := m.cfg.Mesh.WireGuardInterface
 	peerConfigs := make([]wgtypes.PeerConfig, 0)
 	for _, n := range nodeList {
 		if n.GetNodeName() == nodeNameLocal {
@@ -168,7 +167,7 @@ func (m *Mesh) ifacePeersAdd(nodeList []*node.NodeRemote, nodeLocal *node.NodeLo
 }
 
 func (m *Mesh) ifacePeersPurge(nodeList []*node.NodeRemote, wgCli *wgctrl.Client) error {
-	iface := node.GetNodeInterface()
+	iface := m.cfg.Mesh.WireGuardInterface
 	wgDev, err := wgCli.Device(iface)
 	if err != nil {
 		return err
@@ -228,11 +227,11 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 }
 
 func (m *Mesh) run() error {
-	nodeLocal, err := node.NewNodeLocal(m.meshNet, false)
+	nodeLocal, err := node.NewNodeLocal(m.cfg, false)
 	if err != nil {
 		return err
 	}
-	if err := nodeLocal.PushToRemote(m.remBase); err != nil {
+	if err := nodeLocal.PushToRemote(m.cfg.Mesh.RemoteBase); err != nil {
 		return err
 	}
 	nodeListRaw, err := m.getRemoteNodeList()
@@ -253,7 +252,7 @@ func (m *Mesh) run() error {
 		log.Warn("nodeAge < settleTime; waiting...", "nodeAge", nodeAge, "settleTime", settleTime, "nodeLocal", nodeLocal, "nodeAge", nodeAge)
 		return nil
 	}
-	if err := nodeLocal.PurgeFromRemote(m.remBase); err != nil {
+	if err := nodeLocal.PurgeFromRemote(m.cfg.Mesh.RemoteBase); err != nil {
 		return err
 	}
 	if err := nodeLocal.HostnameConfig(); err != nil {
@@ -276,10 +275,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(meshNet *netip.Prefix, remBase string) *Mesh {
-	return &Mesh{meshNet, remBase}
+func newMesh(cfg *config.Config) *Mesh {
+	return &Mesh{cfg}
 }
 
-func Run(meshNet *netip.Prefix, remBase string) error {
-	return newMesh(meshNet, remBase).run()
+func Run(cfg *config.Config) error {
+	return newMesh(cfg).run()
 }

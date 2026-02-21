@@ -11,7 +11,7 @@ import (
 )
 
 func ifaceLoad() (*net.Interface, error) {
-	path := "/etc/i12e/iface.txt" // TODO unhardcode
+	path := "/etc/i12e/iface.txt" // TODO: unhardcode
 	_, err := os.Stat(path)
 	if err != nil {
 		return nil, err

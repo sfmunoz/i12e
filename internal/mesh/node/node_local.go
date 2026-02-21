@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
+	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh/netutil"
 	"github.com/vishvananda/netlink"
 
@@ -47,12 +48,12 @@ func (n *NodeLocal) HostnameConfig() error {
 }
 
 func (n *NodeLocal) IfaceLocalConfig(wgCli *wgctrl.Client) error {
-	nodeInt := GetNodeInterface()
+	nodeInt := n.cfg.Mesh.WireGuardInterface
 	link, err := netutil.IfaceCreate(nodeInt)
 	if err != nil {
 		return err
 	}
-	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.GetMeshNet().Bits()); err != nil {
+	if err := netutil.IfaceSyncAddresses(link, n.GetMeshIP(), n.cfg.Mesh.NetworkAddress.Bits()); err != nil {
 		return err
 	}
 	if err := netlink.LinkSetUp(link); err != nil {
@@ -82,8 +83,8 @@ func (n *NodeLocal) PushToRemote(remMeshBase string) error {
 		wgEndpoint.Port(),
 	)
 	mode, err := getEtcI12eMode()
-	if err == nil && mode == "main" { // TODO unhardcode
-		touchPath = fmt.Sprintf("%s/kmain", touchPath)
+	if err == nil && mode == "main" { // TODO: unhardcode
+		touchPath = fmt.Sprintf("%s/%s", touchPath, n.cfg.K3s.TlsSan)
 	}
 	cmd := exec.Command("rclone", "touch", touchPath)
 	bo, be, err := cmdutil.RunSimple(cmd)
@@ -119,23 +120,23 @@ func (n *NodeLocal) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
+func NewNodeLocal(cfg *config.Config, reset bool) (*NodeLocal, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err
 		}
 	}
-	nodeId, err := readEtcHostname(meshNet)
+	nodeId, err := readEtcHostname(cfg.Mesh.NetworkAddress)
 	if err != nil {
-		if err := writeRandomEtcHostname(meshNet); err != nil {
+		if err := writeRandomEtcHostname(cfg.Mesh.NetworkAddress); err != nil {
 			return nil, err
 		}
 	}
-	nodeId, err = readEtcHostname(meshNet)
+	nodeId, err = readEtcHostname(cfg.Mesh.NetworkAddress)
 	if err != nil {
 		return nil, err
 	}
-	wgKeyPriv, err := getWgKeyPriv(nodePrivKeyFname)
+	wgKeyPriv, err := getWgKeyPriv(cfg.Mesh.WireGuardPrivKeyFname)
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +144,11 @@ func NewNodeLocal(meshNet *netip.Prefix, reset bool) (*NodeLocal, error) {
 	if err != nil {
 		return nil, err
 	}
-	wgEndpoint := netip.AddrPortFrom(*addr, nodeEndpointPort)
+	wgEndpoint := netip.AddrPortFrom(*addr, uint16(cfg.Mesh.EndpointPort))
 	return &NodeLocal{
 		Node: Node{
+			cfg:        cfg,
 			id:         nodeId,
-			meshNet:    meshNet,
 			wgEndpoint: &wgEndpoint,
 		},
 		wgKeyPriv: wgKeyPriv,

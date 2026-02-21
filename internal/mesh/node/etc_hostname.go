@@ -21,8 +21,8 @@ func deleteEtcHostname() error {
 	return err
 }
 
-func writeRandomEtcHostname(meshNet *netip.Prefix) error {
-	nodeId, err := getRandomNodeId(meshNet)
+func writeRandomEtcHostname(p *netip.Prefix) error {
+	nodeId, err := getRandomNodeId(p)
 	if err != nil {
 		return err
 	}
@@ -33,12 +33,12 @@ func writeRandomEtcHostname(meshNet *netip.Prefix) error {
 	return nil
 }
 
-func readEtcHostname(meshNet *netip.Prefix) (uint32, error) {
+func readEtcHostname(p *netip.Prefix) (uint32, error) {
 	buf, err := os.ReadFile(etcHostname)
 	if err != nil {
 		return 0, err
 	}
-	nodeId, err := getNodeIdFromNodeName(meshNet, strings.TrimSpace(string(buf)))
+	nodeId, err := getNodeIdFromNodeName(p, strings.TrimSpace(string(buf)))
 	if err != nil {
 		return 0, err
 	}
