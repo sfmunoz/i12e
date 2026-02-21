@@ -8,7 +8,26 @@ import (
 	"time"
 )
 
+type Env int
+
+const (
+	EnvNone Env = iota
+	EnvDev
+	EnvProd
+)
+
+func (e Env) String() string {
+	if e == EnvDev {
+		return "dev"
+	}
+	if e == EnvProd {
+		return "prod"
+	}
+	return "none"
+}
+
 type Config struct {
+	Env  Env
 	I12e *struct {
 		Version   string `mapstructure:"version"`
 		Sha256sum string `mapstructure:"sha256sum"`
@@ -47,6 +66,25 @@ type Config struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base"`
 		SlumberJitter time.Duration `mapstructure:"slumber_jitter"`
 	} `mapstructure:"server"`
+}
+
+func (c *Config) fname(bname string) string {
+	if c.Env == EnvNone {
+		return fmt.Sprintf("/etc/i12e/%s", bname)
+	}
+	return fmt.Sprintf("config/%s/%s", c.Env.String(), bname)
+}
+
+func (c *Config) ButaneEncYaml() string {
+	return c.fname("butane.enc.yaml")
+}
+
+func (c *Config) I12eYaml() string {
+	return c.fname("i12e.yaml")
+}
+
+func (c *Config) I12eEncYaml() string {
+	return c.fname("i12e.enc.yaml")
 }
 
 func (c *Config) validateI12e() error {

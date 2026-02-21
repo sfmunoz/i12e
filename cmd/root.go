@@ -35,12 +35,19 @@ i12e is an infrastructure management tool for task automation:
   - artifact generation
   - butane to ignition translation`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			prod, err := cmd.Flags().GetBool("prod")
+			cfg.Env = config.EnvNone // when the command doesn't define -p/--prod use default config
+			if prod, err := cmd.Flags().GetBool("prod"); err == nil {
+				if prod {
+					cfg.Env = config.EnvProd
+				} else {
+					cfg.Env = config.EnvDev
+				}
+			}
 			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
-			if err != nil {
-				// when the command doesn't define -p/--prod use default config
-				v := viper.New()
-				setDefaults(v)
+			v := viper.New()
+			v.SetConfigType("yaml")
+			setDefaults(v)
+			if cfg.Env == config.EnvNone {
 				if err := v.Unmarshal(cfg, decodeHook); err != nil {
 					return err
 				}
@@ -49,24 +56,16 @@ i12e is an infrastructure management tool for task automation:
 				//}
 				return nil
 			}
-			e := "dev"
-			if prod {
-				e = "prod"
-			}
-			v := viper.New()
-			v.SetConfigType("yaml")
-			setDefaults(v)
 			if cmd.Name() == "butane" {
-				v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies 'Butane' structure definition
 				v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 				v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
 			}
-			fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
+			fp, err := os.Open(cfg.I12eYaml())
 			if err != nil {
 				return err
 			}
 			defer fp.Close()
-			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fmt.Sprintf("config/%s/i12e.enc.yaml", e)))
+			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.I12eEncYaml()))
 			if err != nil {
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
