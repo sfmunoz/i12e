@@ -39,7 +39,7 @@ type Config struct {
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
 	Butane            *struct {
 		Mode    Mode   `mapstructure:"mode"`
-		Bout    Bout   `mapstructure:"bout"`
+		Output  Output `mapstructure:"output"`
 		EncYaml string `mapstructure:"enc_yaml"`
 	} `mapstructure:"butane"`
 	Server *struct {
@@ -199,12 +199,12 @@ func (c *Config) validateButane() error {
 	if !slices.Contains(validModes, butane.Mode.String()) {
 		return fmt.Errorf("config: invalid 'butane.mode=%s' (valid: %q)", butane.Mode.String(), validModes)
 	}
-	if len(butane.Bout) < 1 {
+	if len(butane.Output) < 1 {
 		return fmt.Errorf("config: undefined 'butane.output'")
 	}
-	validOutputs := ValidBouts()
-	if !slices.Contains(validOutputs, butane.Bout.String()) {
-		return fmt.Errorf("config: invalid 'butane.output=%s' (valid: %q)", butane.Bout.String(), validOutputs)
+	validOutputs := ValidOutputs()
+	if !slices.Contains(validOutputs, butane.Output.String()) {
+		return fmt.Errorf("config: invalid 'butane.output=%s' (valid: %q)", butane.Output.String(), validOutputs)
 	}
 	if len(butane.EncYaml) < 1 {
 		return fmt.Errorf("config: undefined 'butane.enc_yaml'")

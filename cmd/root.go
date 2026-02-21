@@ -58,7 +58,7 @@ i12e is an infrastructure management tool for task automation:
 			if cmd.Name() == "butane" {
 				v.SetDefault("butane.enc_yaml", fmt.Sprintf("config/%s/butane.enc.yaml", e)) // implies 'Butane' structure definition
 				v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
-				v.BindPFlag("butane.bout", cmd.Flags().Lookup("output"))
+				v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
 			}
 			fp, err := os.Open(fmt.Sprintf("config/%s/i12e.yaml", e))
 			if err != nil {

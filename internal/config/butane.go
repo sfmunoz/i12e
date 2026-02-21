@@ -4,14 +4,14 @@ import (
 	"fmt"
 )
 
-type Bout string
+type Output string
 type Mode string
 
 const (
-	BoutBashB64  Bout = "bash_b64"
-	BoutBashRaw  Bout = "bash_raw"
-	BoutIgnition Bout = "ignition"
-	BoutDebug    Bout = "debug"
+	OutputBashB64  Output = "bash_b64"
+	OutputBashRaw  Output = "bash_raw"
+	OutputIgnition Output = "ignition"
+	OutputDebug    Output = "debug"
 )
 
 const (
@@ -20,28 +20,28 @@ const (
 	ModeAgent  Mode = "agent"
 )
 
-var bouts = []Bout{BoutBashB64, BoutBashRaw, BoutIgnition, BoutDebug}
+var outputs = []Output{OutputBashB64, OutputBashRaw, OutputIgnition, OutputDebug}
 var modes = []Mode{ModeMain, ModeServer, ModeAgent}
 
-func (b Bout) String() string {
-	return string(b)
+func (o Output) String() string {
+	return string(o)
 }
 
-func ValidBouts() []string {
-	ret := make([]string, len(bouts))
-	for i, v := range bouts {
+func ValidOutputs() []string {
+	ret := make([]string, len(outputs))
+	for i, v := range outputs {
 		ret[i] = string(v)
 	}
 	return ret
 }
 
-func GetBout(b string) (Bout, error) {
-	for _, v := range bouts {
-		if string(v) == b {
+func GetOutput(o string) (Output, error) {
+	for _, v := range outputs {
+		if string(v) == o {
 			return v, nil
 		}
 	}
-	return BoutBashB64, fmt.Errorf("unknown butane output '%s' (valid: %q)", b, ValidBouts())
+	return OutputBashB64, fmt.Errorf("unknown butane output '%s' (valid: %q)", o, ValidOutputs())
 }
 
 func (m Mode) String() string {
