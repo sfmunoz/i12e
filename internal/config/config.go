@@ -20,7 +20,7 @@ import (
 type Config struct {
 	Env  Env
 	I12e *struct {
-		Version   string `mapstructure:"version" validate:"required,semver_v"` // "semver" doesn't accept the leading v
+		Version   string `mapstructure:"version" validate:"semver_v"` // "semver" doesn't accept the leading v
 		Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
@@ -31,10 +31,10 @@ type Config struct {
 	RcloneRemote string `mapstructure:"rclone_remote" validate:"gte=1"`
 	PortKnocking []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
 	KubeVip      *struct {
-		Vip       string `mapstructure:"vip"`
-		Interface string `mapstructure:"interface"`
-		Kvversion string `mapstructure:"kvversion"`
-	} `mapstructure:"kube_vip"`
+		Vip       string `mapstructure:"vip" validate:"ip4_addr"`
+		Interface string `mapstructure:"interface" validate:"gte=2"`
+		Kvversion string `mapstructure:"kvversion" validate:"required,semver_v"`
+	} `mapstructure:"kube_vip"` // it's not required
 	Mesh *struct {
 		EndpointInterface     string        `mapstructure:"endpoint_interface"`
 		EndpointPort          int           `mapstructure:"endpoint_port"`
@@ -75,23 +75,6 @@ func (c *Config) I12eYaml() string {
 
 func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
-}
-
-func (c *Config) validateKubeVip() error {
-	kubeVip := c.KubeVip
-	if kubeVip == nil {
-		return nil // kube_vip is optional
-	}
-	if len(kubeVip.Vip) < 1 {
-		return fmt.Errorf("config: undefined 'kube_vip.vip'")
-	}
-	if len(kubeVip.Interface) < 1 {
-		return fmt.Errorf("config: undefined 'kube_vip.interface'")
-	}
-	if len(kubeVip.Kvversion) < 1 {
-		return fmt.Errorf("config: undefined 'kube_vip.kvversion'")
-	}
-	return nil
 }
 
 func (c *Config) validateMesh() error {
@@ -221,7 +204,6 @@ func (cfg *Config) Validate() error {
 		return err
 	}
 	flist := []func() error{
-		cfg.validateKubeVip,
 		cfg.validateMesh,
 		cfg.validatePushover,
 		cfg.validateSshAuthorizedKeys,
