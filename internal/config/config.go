@@ -53,9 +53,9 @@ type Config struct {
 		Output Output `mapstructure:"output"`
 	} `mapstructure:"butane"`
 	Server *struct {
-		SlumberBase   time.Duration `mapstructure:"slumber_base"`
-		SlumberJitter time.Duration `mapstructure:"slumber_jitter"`
-	} `mapstructure:"server"`
+		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
+		SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
+	} `mapstructure:"server" validate:"required"`
 }
 
 func (c *Config) fname(bname string) string {
@@ -150,20 +150,6 @@ func (c *Config) validateButane() error {
 	return nil
 }
 
-func (c *Config) validateServer() error {
-	server := c.Server
-	if server == nil {
-		return fmt.Errorf("config: undefined 'server'")
-	}
-	if server.SlumberBase < 10*time.Second {
-		return fmt.Errorf("config: wrong 'mesh.slumber_base=%s' (min=10s)", server.SlumberBase)
-	}
-	if server.SlumberJitter < time.Second {
-		return fmt.Errorf("config: wrong 'mesh.slumber_jitter=%s' (min=1s)", server.SlumberJitter)
-	}
-	return nil
-}
-
 func semverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
@@ -179,7 +165,6 @@ func (cfg *Config) Validate() error {
 	flist := []func() error{
 		cfg.validateMesh,
 		cfg.validateButane,
-		cfg.validateServer,
 	}
 	for _, f := range flist {
 		if err := f(); err != nil {
