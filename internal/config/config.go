@@ -28,7 +28,7 @@ type Config struct {
 		AgentToken string `mapstructure:"agent_token" validate:"gte=20"`
 		TlsSan     string `mapstructure:"tls_san" validate:"gte=1"`
 	} `mapstructure:"k3s" validate:"required"`
-	RcloneRemote string `mapstructure:"rclone_remote"`
+	RcloneRemote string `mapstructure:"rclone_remote" validate:"gte=1"`
 	PortKnocking []int  `mapstructure:"port_knocking"`
 	KubeVip      *struct {
 		Vip       string `mapstructure:"vip"`
@@ -224,9 +224,6 @@ func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	if err := validate.Struct(cfg); err != nil {
 		return err
-	}
-	if len(cfg.RcloneRemote) < 1 {
-		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
 	flist := []func() error{
 		cfg.validatePortKnocking,
