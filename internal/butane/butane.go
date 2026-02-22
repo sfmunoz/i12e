@@ -35,7 +35,7 @@ func (b *Butane) butaneCmd() *exec.Cmd {
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := b.cfg.ButaneEncYaml()
+	fname := b.cfg.Env.ButaneEncYaml()
 	_, err := os.Stat(fname)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

@@ -14,10 +14,6 @@ const (
 
 var envs = []Env{EnvNone, EnvDev, EnvProd}
 
-func (e Env) String() string {
-	return string(e)
-}
-
 func ValidEnvs() []string {
 	ret := make([]string, len(envs))
 	for i, v := range envs {
@@ -33,4 +29,27 @@ func GetEnv(e string) (Env, error) {
 		}
 	}
 	return EnvNone, fmt.Errorf("unknown env '%s' (valid: %q)", e, ValidEnvs())
+}
+
+func (e Env) String() string {
+	return string(e)
+}
+
+func (e Env) ButaneEncYaml() string {
+	return e.fname("butane.enc.yaml")
+}
+
+func (e Env) I12eYaml() string {
+	return e.fname("i12e.yaml")
+}
+
+func (e Env) I12eEncYaml() string {
+	return e.fname("i12e.enc.yaml")
+}
+
+func (e Env) fname(bname string) string {
+	if e == EnvNone {
+		return fmt.Sprintf("/etc/i12e/%s", bname)
+	}
+	return fmt.Sprintf("config/%s/%s", e.String(), bname)
 }

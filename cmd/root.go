@@ -60,12 +60,12 @@ i12e is an infrastructure management tool for task automation:
 				v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 				v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
 			}
-			fp, err := os.Open(cfg.I12eYaml())
+			fp, err := os.Open(cfg.Env.I12eYaml())
 			if err != nil {
 				return err
 			}
 			defer fp.Close()
-			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.I12eEncYaml()))
+			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.Env.I12eEncYaml()))
 			if err != nil {
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
