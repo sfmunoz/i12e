@@ -16,20 +16,19 @@ import (
 
 type Config struct {
 	Env      Env       `validate:"i12e_env"`
-	I12e     *I12e     `mapstructure:"i12e" validate:"i12e_required=artifact:butane:server"`
-	K3s      *K3s      `mapstructure:"k3s" validate:"i12e_required=artifact:butane:server"`
-	Rclone   *Rclone   `mapstructure:"rclone" validate:"i12e_required=artifact:butane:server"`
-	Artifact *Artifact `mapstructure:"artifact" validate:"i12e_required=artifact:butane:server"`
-	KubeVip  *KubeVip  `mapstructure:"kube_vip" validate:"i12e_required=artifact:butane:server"`
-	Mesh     *Mesh     `mapstructure:"mesh" validate:"i12e_required=artifact:butane:server"`
-	Pushover *Pushover `mapstructure:"pushover" validate:"i12e_required=artifact:butane:server"`
-	Butane   *Butane   `mapstructure:"butane" validate:"i12e_required=artifact:butane:server"`
-	Server   *Server   `mapstructure:"server" validate:"i12e_required=artifact:butane:server"`
+	I12e     *I12e     `mapstructure:"i12e" validate:"required"`
+	K3s      *K3s      `mapstructure:"k3s" validate:"required"`
+	Rclone   *Rclone   `mapstructure:"rclone" validate:"required"`
+	Artifact *Artifact `mapstructure:"artifact" validate:"required"`
+	KubeVip  *KubeVip  `mapstructure:"kube_vip" validate:"required"`
+	Mesh     *Mesh     `mapstructure:"mesh" validate:"required"`
+	Pushover *Pushover `mapstructure:"pushover" validate:"required"`
+	Butane   *Butane   `mapstructure:"butane" validate:"required"`
+	Server   *Server   `mapstructure:"server" validate:"required"`
 }
 
 func (cfg *Config) Validate(cmd string) error {
 	v := validator.New(validator.WithRequiredStructEnabled())
-	v.RegisterValidation("i12e_required", required(cmd))
 	registerValidations(v)
 	return v.Struct(cfg)
 }

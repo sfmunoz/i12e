@@ -24,16 +24,6 @@ func registerValidations(v *validator.Validate) {
 	v.RegisterValidation("i12e_mesh_network", validMeshNetwork)
 }
 
-func required(cmd string) func(validator.FieldLevel) bool {
-	return func(fl validator.FieldLevel) bool {
-		isNil := fl.Field().Addr().IsNil()
-		if slices.Contains(strings.Split(fl.Param(), ":"), cmd) {
-			return !isNil
-		}
-		return isNil
-	}
-}
-
 func inList(valid []string) func(validator.FieldLevel) bool {
 	return func(fl validator.FieldLevel) bool {
 		return slices.Contains(valid, fl.Field().String())
