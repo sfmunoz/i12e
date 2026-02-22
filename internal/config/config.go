@@ -68,13 +68,6 @@ func (cfg *Config) Validate() error {
 	return nil
 }
 
-func (c *Config) fname(bname string) string {
-	if c.Env == EnvNone {
-		return fmt.Sprintf("/etc/i12e/%s", bname)
-	}
-	return fmt.Sprintf("config/%s/%s", c.Env.String(), bname)
-}
-
 func (c *Config) ButaneEncYaml() string {
 	return c.fname("butane.enc.yaml")
 }
@@ -85,4 +78,11 @@ func (c *Config) I12eYaml() string {
 
 func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
+}
+
+func (c *Config) fname(bname string) string {
+	if c.Env == EnvNone {
+		return fmt.Sprintf("/etc/i12e/%s", bname)
+	}
+	return fmt.Sprintf("config/%s/%s", c.Env.String(), bname)
 }
