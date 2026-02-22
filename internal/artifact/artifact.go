@@ -236,7 +236,7 @@ func (a *Artifact) etcNftablesConf() error {
 		PortKnocking []int
 		EndpointPort int
 	}{
-		PortKnocking: a.cfg.PortKnocking,
+		PortKnocking: a.cfg.Artifact.PortKnocking,
 		EndpointPort: a.cfg.Mesh.EndpointPort,
 	}
 	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
