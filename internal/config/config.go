@@ -30,11 +30,20 @@ type Config struct {
 func (cfg *Config) Validate(cmd string) error {
 	v := validator.New(validator.WithRequiredStructEnabled())
 	v.RegisterValidation("i12e_required", required(cmd))
-	v.RegisterValidation("i12e_semver_v", validSemverV)
-	v.RegisterValidation("i12e_env", inList(ValidEnvs()))
-	v.RegisterValidation("i12e_butane_mode", inList(ValidModes()))
-	v.RegisterValidation("i12e_butane_output", inList(ValidOutputs()))
-	v.RegisterValidation("i12e_mesh_network", validMeshNetwork)
+	registerValidations(v)
+	return v.Struct(cfg)
+}
+
+type ServerConfig struct {
+	Env    Env     `validate:"i12e_env"`
+	K3s    *K3s    `mapstructure:"k3s" validate:"required"`
+	Mesh   *Mesh   `mapstructure:"mesh" validate:"required"`
+	Server *Server `mapstructure:"server" validate:"required"`
+}
+
+func (cfg *ServerConfig) Validate() error {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	registerValidations(v)
 	return v.Struct(cfg)
 }
 

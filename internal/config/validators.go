@@ -16,6 +16,14 @@ import (
 // Home:
 //   https://github.com/go-playground/validator
 
+func registerValidations(v *validator.Validate) {
+	v.RegisterValidation("i12e_semver_v", validSemverV)
+	v.RegisterValidation("i12e_env", inList(ValidEnvs()))
+	v.RegisterValidation("i12e_butane_mode", inList(ValidModes()))
+	v.RegisterValidation("i12e_butane_output", inList(ValidOutputs()))
+	v.RegisterValidation("i12e_mesh_network", validMeshNetwork)
+}
+
 func required(cmd string) func(validator.FieldLevel) bool {
 	return func(fl validator.FieldLevel) bool {
 		isNil := fl.Field().Addr().IsNil()
