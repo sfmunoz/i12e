@@ -63,9 +63,9 @@ func (cfg *Config) Validate(cmd string) error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("i12e_required", required(cmd))
 	validate.RegisterValidation("i12e_semver_v", validSemverV)
-	validate.RegisterValidation("i12e_env", validEnv)
-	validate.RegisterValidation("i12e_butane_mode", validButaneMode)
-	validate.RegisterValidation("i12e_butane_output", validButaneOutput)
+	validate.RegisterValidation("i12e_env", inList(ValidEnvs()))
+	validate.RegisterValidation("i12e_butane_mode", inList(ValidModes()))
+	validate.RegisterValidation("i12e_butane_output", inList(ValidOutputs()))
 	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)
 	if err := validate.Struct(cfg); err != nil {
 		return err
