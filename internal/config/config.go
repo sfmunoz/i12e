@@ -17,14 +17,14 @@ import (
 type Config struct {
 	Env      Env       `validate:"i12e_env"`
 	I12e     *I12e     `mapstructure:"i12e" validate:"required"`
+	Artifact *Artifact `mapstructure:"artifact" validate:"required"`
+	Butane   *Butane   `mapstructure:"butane" validate:"required"`
+	Server   *Server   `mapstructure:"server" validate:"required"`
 	K3s      *K3s      `mapstructure:"k3s" validate:"required"`
 	Rclone   *Rclone   `mapstructure:"rclone" validate:"required"`
-	Artifact *Artifact `mapstructure:"artifact" validate:"required"`
 	KubeVip  *KubeVip  `mapstructure:"kube_vip" validate:"required"`
 	Mesh     *Mesh     `mapstructure:"mesh" validate:"required"`
 	Pushover *Pushover `mapstructure:"pushover" validate:"required"`
-	Butane   *Butane   `mapstructure:"butane" validate:"required"`
-	Server   *Server   `mapstructure:"server" validate:"required"`
 }
 
 func (cfg *Config) Validate(cmd string) error {
@@ -35,9 +35,9 @@ func (cfg *Config) Validate(cmd string) error {
 
 type ServerConfig struct {
 	Env    Env     `validate:"i12e_env"`
+	Server *Server `mapstructure:"server" validate:"required"`
 	K3s    *K3s    `mapstructure:"k3s" validate:"required"`
 	Mesh   *Mesh   `mapstructure:"mesh" validate:"required"`
-	Server *Server `mapstructure:"server" validate:"required"`
 }
 
 func (cfg *ServerConfig) Validate() error {
@@ -51,6 +51,21 @@ type I12e struct {
 	Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 }
 
+type Artifact struct {
+	PortKnocking []int `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
+}
+
+type Butane struct {
+	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
+	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
+	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
+}
+
+type Server struct {
+	SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
+	SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
+}
+
 type K3s struct {
 	Token      string `mapstructure:"token" validate:"gte=20"`
 	AgentToken string `mapstructure:"agent_token" validate:"gte=20"`
@@ -59,10 +74,6 @@ type K3s struct {
 
 type Rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
-}
-
-type Artifact struct {
-	PortKnocking []int `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
 }
 
 type KubeVip struct {
@@ -83,15 +94,4 @@ type Mesh struct {
 type Pushover struct {
 	UserKey string `mapstructure:"user_key" validate:"gte=1"`
 	Token   string `mapstructure:"token" validate:"gte=1"`
-}
-
-type Butane struct {
-	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
-	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
-	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
-}
-
-type Server struct {
-	SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
-	SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
 }
