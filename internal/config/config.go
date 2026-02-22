@@ -34,7 +34,7 @@ type Config struct {
 		Vip       string `mapstructure:"vip" validate:"ip4_addr"`
 		Interface string `mapstructure:"interface" validate:"gte=2"`
 		Kvversion string `mapstructure:"kvversion" validate:"required,semver_v"`
-	} `mapstructure:"kube_vip"` // it's not required
+	} `mapstructure:"kube_vip"` // not required
 	Mesh *struct {
 		EndpointInterface     string        `mapstructure:"endpoint_interface"`
 		EndpointPort          int           `mapstructure:"endpoint_port"`
@@ -49,9 +49,9 @@ type Config struct {
 	} `mapstructure:"pushover" validate:"required"`
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Butane            *struct {
-		Mode   Mode   `mapstructure:"mode"`
-		Output Output `mapstructure:"output"`
-	} `mapstructure:"butane"`
+		Mode   Mode   `mapstructure:"mode" validate:"valid_mode"`
+		Output Output `mapstructure:"output" validate:"valid_output"`
+	} `mapstructure:"butane"` // not required
 	Server *struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
 		SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
@@ -128,44 +128,29 @@ func (c *Config) validateMesh() error {
 	return nil
 }
 
-func (c *Config) validateButane() error {
-	butane := c.Butane
-	if butane == nil {
-		return nil
-	}
-	if len(butane.Mode) < 1 {
-		return fmt.Errorf("config: undefined 'butane.mode'")
-	}
-	validModes := ValidModes()
-	if !slices.Contains(validModes, butane.Mode.String()) {
-		return fmt.Errorf("config: invalid 'butane.mode=%s' (valid: %q)", butane.Mode.String(), validModes)
-	}
-	if len(butane.Output) < 1 {
-		return fmt.Errorf("config: undefined 'butane.output'")
-	}
-	validOutputs := ValidOutputs()
-	if !slices.Contains(validOutputs, butane.Output.String()) {
-		return fmt.Errorf("config: invalid 'butane.output=%s' (valid: %q)", butane.Output.String(), validOutputs)
-	}
-	return nil
-}
-
 func semverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
 	return validator.New().Var(s2, "semver") == nil
 }
 
+func validMode(fl validator.FieldLevel) bool {
+	return slices.Contains(ValidModes(), fl.Field().String())
+}
+
+func validOutput(fl validator.FieldLevel) bool {
+	return slices.Contains(ValidOutputs(), fl.Field().String())
+}
+
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("semver_v", semverV)
+	validate.RegisterValidation("valid_mode", validMode)
+	validate.RegisterValidation("valid_output", validOutput)
 	if err := validate.Struct(cfg); err != nil {
 		return err
 	}
-	flist := []func() error{
-		cfg.validateMesh,
-		cfg.validateButane,
-	}
+	flist := []func() error{cfg.validateMesh}
 	for _, f := range flist {
 		if err := f(); err != nil {
 			return err
