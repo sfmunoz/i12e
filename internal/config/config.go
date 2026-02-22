@@ -48,7 +48,7 @@ type Config struct {
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Butane            *struct {
 		Mode   Mode   `mapstructure:"mode" validate:"i12e_mode"`
-		Output Output `mapstructure:"output" validate:"i12e_valid_output"`
+		Output Output `mapstructure:"output" validate:"i12e_output"`
 	} `mapstructure:"butane"` // not required
 	Server *struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
@@ -60,7 +60,7 @@ func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("i12e_semver_v", validSemverV)
 	validate.RegisterValidation("i12e_mode", validMode)
-	validate.RegisterValidation("i12e_valid_output", validOutput)
+	validate.RegisterValidation("i12e_output", validOutput)
 	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)
 	if err := validate.Struct(cfg); err != nil {
 		return err
