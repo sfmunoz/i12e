@@ -1,19 +1,36 @@
 package config
 
-type Env int
-
-const (
-	EnvNone Env = iota
-	EnvDev
-	EnvProd
+import (
+	"fmt"
 )
 
+type Env string
+
+const (
+	EnvNone Env = "none"
+	EnvDev  Env = "dev"
+	EnvProd Env = "prod"
+)
+
+var envs = []Env{EnvNone, EnvDev, EnvProd}
+
 func (e Env) String() string {
-	if e == EnvDev {
-		return "dev"
+	return string(e)
+}
+
+func ValidEnvs() []string {
+	ret := make([]string, len(envs))
+	for i, v := range envs {
+		ret[i] = string(v)
 	}
-	if e == EnvProd {
-		return "prod"
+	return ret
+}
+
+func GetEnv(e string) (Env, error) {
+	for _, v := range envs {
+		if string(v) == e {
+			return v, nil
+		}
 	}
-	return "none"
+	return EnvNone, fmt.Errorf("unknown env '%s' (valid: %q)", e, ValidEnvs())
 }
