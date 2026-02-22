@@ -47,7 +47,7 @@ type Config struct {
 		UserKey string `mapstructure:"user_key" validate:"gte=1"`
 		Token   string `mapstructure:"token" validate:"gte=1"`
 	} `mapstructure:"pushover" validate:"required"`
-	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
+	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Butane            *struct {
 		Mode   Mode   `mapstructure:"mode"`
 		Output Output `mapstructure:"output"`
@@ -128,19 +128,6 @@ func (c *Config) validateMesh() error {
 	return nil
 }
 
-func (c *Config) validateSshAuthorizedKeys() error {
-	sshAuthorizedKeys := c.SshAuthorizedKeys
-	if len(sshAuthorizedKeys) < 1 {
-		return fmt.Errorf("config: undefined 'ssh_authorized_keys'")
-	}
-	for i, s := range sshAuthorizedKeys {
-		if len(s) < 1 {
-			return fmt.Errorf("config: undefined 'ssh_authorized_keys[%d]'", i)
-		}
-	}
-	return nil
-}
-
 func (c *Config) validateButane() error {
 	butane := c.Butane
 	if butane == nil {
@@ -191,7 +178,6 @@ func (cfg *Config) Validate() error {
 	}
 	flist := []func() error{
 		cfg.validateMesh,
-		cfg.validateSshAuthorizedKeys,
 		cfg.validateButane,
 		cfg.validateServer,
 	}
