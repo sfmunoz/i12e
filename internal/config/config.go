@@ -20,7 +20,7 @@ import (
 type Config struct {
 	Env  Env
 	I12e *struct {
-		Version   string `mapstructure:"version" validate:"semver_v"` // "semver" doesn't accept the leading v
+		Version   string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
 		Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
@@ -33,7 +33,7 @@ type Config struct {
 	KubeVip      *struct {
 		Vip       string `mapstructure:"vip" validate:"ip4_addr"`
 		Interface string `mapstructure:"interface" validate:"gte=2"`
-		Kvversion string `mapstructure:"kvversion" validate:"required,semver_v"`
+		Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"`
 	} `mapstructure:"kube_vip"` // not required
 	Mesh *struct {
 		EndpointInterface     string        `mapstructure:"endpoint_interface"`
@@ -49,8 +49,8 @@ type Config struct {
 	} `mapstructure:"pushover" validate:"required"`
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Butane            *struct {
-		Mode   Mode   `mapstructure:"mode" validate:"valid_mode"`
-		Output Output `mapstructure:"output" validate:"valid_output"`
+		Mode   Mode   `mapstructure:"mode" validate:"i12e_valid_mode"`
+		Output Output `mapstructure:"output" validate:"i12e_valid_output"`
 	} `mapstructure:"butane"` // not required
 	Server *struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
@@ -144,9 +144,9 @@ func validOutput(fl validator.FieldLevel) bool {
 
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
-	validate.RegisterValidation("semver_v", semverV)
-	validate.RegisterValidation("valid_mode", validMode)
-	validate.RegisterValidation("valid_output", validOutput)
+	validate.RegisterValidation("i12e_semver_v", semverV)
+	validate.RegisterValidation("i12e_valid_mode", validMode)
+	validate.RegisterValidation("i12e_valid_output", validOutput)
 	if err := validate.Struct(cfg); err != nil {
 		return err
 	}
