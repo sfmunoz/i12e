@@ -21,7 +21,7 @@ type Config struct {
 	Env  Env
 	I12e *struct {
 		Version   string `mapstructure:"version" validate:"gte=6,lowercase,startswith=v"` // gte=6 -> v0.0.0
-		Sha256sum string `mapstructure:"sha256sum" validate:"len=64,lowercase"`
+		Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
 		Token      string `mapstructure:"token" validate:"gte=20"`
@@ -29,7 +29,7 @@ type Config struct {
 		TlsSan     string `mapstructure:"tls_san" validate:"gte=1"`
 	} `mapstructure:"k3s" validate:"required"`
 	RcloneRemote string `mapstructure:"rclone_remote" validate:"gte=1"`
-	PortKnocking []int  `mapstructure:"port_knocking"`
+	PortKnocking []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
 	KubeVip      *struct {
 		Vip       string `mapstructure:"vip"`
 		Interface string `mapstructure:"interface"`
@@ -75,18 +75,6 @@ func (c *Config) I12eYaml() string {
 
 func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
-}
-
-func (c *Config) validatePortKnocking() error {
-	portKnocking := c.PortKnocking
-	if len(portKnocking) < 1 {
-		return fmt.Errorf("config: undefined 'port_knocking'")
-	}
-	l := len(portKnocking)
-	if l != 4 {
-		return fmt.Errorf("config: 'len(port_knocking)=%d' (valid: 4, see https://github.com/sfmunoz/i12e/issues/138)", l)
-	}
-	return nil
 }
 
 func (c *Config) validateKubeVip() error {
@@ -226,7 +214,6 @@ func (cfg *Config) Validate() error {
 		return err
 	}
 	flist := []func() error{
-		cfg.validatePortKnocking,
 		cfg.validateKubeVip,
 		cfg.validateMesh,
 		cfg.validatePushover,
