@@ -295,7 +295,7 @@ func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 }
 
 func (a *Artifact) rclonePush() error {
-	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.RcloneRemote)
+	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.Rclone.Remote)
 	log.Info("rclonePush()", "remFile", remFile)
 	// --------
 	sha256_1 := fmt.Sprintf("%x", sha256.Sum256(a.obuf.Bytes())) // keep it before buffer read
