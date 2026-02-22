@@ -51,7 +51,7 @@ i12e is an infrastructure management tool for task automation:
 				if err := v.Unmarshal(cfg, decodeHook); err != nil {
 					return err
 				}
-				//if err := cfg.Validate(); err != nil {
+				//if err := cfg.Validate(cmd.Name()); err != nil {
 				//	return err
 				//}
 				return nil
@@ -78,7 +78,7 @@ i12e is an infrastructure management tool for task automation:
 			if err := v.Unmarshal(cfg, decodeHook); err != nil {
 				return err
 			}
-			return cfg.Validate()
+			return cfg.Validate(cmd.Name())
 		},
 	}
 	cmd.AddCommand(serverCmd(cfg))

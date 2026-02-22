@@ -16,6 +16,16 @@ import (
 // Home:
 //   https://github.com/go-playground/validator
 
+func required(cmd string) func(validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		isNil := fl.Field().Addr().IsNil()
+		if slices.Contains(strings.Split(fl.Param(), ":"), cmd) {
+			return !isNil
+		}
+		return isNil
+	}
+}
+
 func validSemverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
