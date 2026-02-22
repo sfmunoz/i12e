@@ -58,7 +58,7 @@ type Config struct {
 
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
-	validate.RegisterValidation("i12e_semver_v", semverV)
+	validate.RegisterValidation("i12e_semver_v", validSemverV)
 	validate.RegisterValidation("i12e_valid_mode", validMode)
 	validate.RegisterValidation("i12e_valid_output", validOutput)
 	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)

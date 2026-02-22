@@ -16,7 +16,7 @@ import (
 // Home:
 //   https://github.com/go-playground/validator
 
-func semverV(fl validator.FieldLevel) bool {
+func validSemverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
 	return validator.New().Var(s2, "semver") == nil
