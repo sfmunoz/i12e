@@ -47,8 +47,8 @@ type Config struct {
 	} `mapstructure:"pushover" validate:"required"`
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Butane            *struct {
-		Mode   Mode   `mapstructure:"mode" validate:"i12e_mode"`
-		Output Output `mapstructure:"output" validate:"i12e_output"`
+		Mode   Mode   `mapstructure:"mode" validate:"i12e_butane_mode"`
+		Output Output `mapstructure:"output" validate:"i12e_butane_output"`
 	} `mapstructure:"butane"` // not required
 	Server *struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
@@ -59,8 +59,8 @@ type Config struct {
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("i12e_semver_v", validSemverV)
-	validate.RegisterValidation("i12e_mode", validMode)
-	validate.RegisterValidation("i12e_output", validOutput)
+	validate.RegisterValidation("i12e_butane_mode", validButaneMode)
+	validate.RegisterValidation("i12e_butane_output", validButaneOutput)
 	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)
 	if err := validate.Struct(cfg); err != nil {
 		return err

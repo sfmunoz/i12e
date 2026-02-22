@@ -22,11 +22,11 @@ func validSemverV(fl validator.FieldLevel) bool {
 	return validator.New().Var(s2, "semver") == nil
 }
 
-func validMode(fl validator.FieldLevel) bool {
+func validButaneMode(fl validator.FieldLevel) bool {
 	return slices.Contains(ValidModes(), fl.Field().String())
 }
 
-func validOutput(fl validator.FieldLevel) bool {
+func validButaneOutput(fl validator.FieldLevel) bool {
 	return slices.Contains(ValidOutputs(), fl.Field().String())
 }
 
