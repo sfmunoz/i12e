@@ -44,9 +44,9 @@ type Config struct {
 		RemoteBase            string        `mapstructure:"remote_base"`
 	} `mapstructure:"mesh"`
 	Pushover *struct {
-		UserKey string `mapstructure:"user_key"`
-		Token   string `mapstructure:"token"`
-	} `mapstructure:"pushover"`
+		UserKey string `mapstructure:"user_key" validate:"gte=1"`
+		Token   string `mapstructure:"token" validate:"gte=1"`
+	} `mapstructure:"pushover" validate:"required"`
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys"`
 	Butane            *struct {
 		Mode   Mode   `mapstructure:"mode"`
@@ -128,20 +128,6 @@ func (c *Config) validateMesh() error {
 	return nil
 }
 
-func (c *Config) validatePushover() error {
-	pushover := c.Pushover
-	if pushover == nil {
-		return fmt.Errorf("config: undefined 'pushover'")
-	}
-	if len(pushover.UserKey) < 1 {
-		return fmt.Errorf("config: undefined 'pushover.user_key'")
-	}
-	if len(pushover.Token) < 1 {
-		return fmt.Errorf("config: undefined 'pushover.token'")
-	}
-	return nil
-}
-
 func (c *Config) validateSshAuthorizedKeys() error {
 	sshAuthorizedKeys := c.SshAuthorizedKeys
 	if len(sshAuthorizedKeys) < 1 {
@@ -205,7 +191,6 @@ func (cfg *Config) Validate() error {
 	}
 	flist := []func() error{
 		cfg.validateMesh,
-		cfg.validatePushover,
 		cfg.validateSshAuthorizedKeys,
 		cfg.validateButane,
 		cfg.validateServer,
