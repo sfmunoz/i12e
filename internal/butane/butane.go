@@ -95,7 +95,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		I12eVersion:               b.cfg.I12e.Version,
 		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Butane.Mode.String(),
-		SshAuthorizedKeys:         b.cfg.SshAuthorizedKeys,
+		SshAuthorizedKeys:         b.cfg.Butane.SshAuthorizedKeys,
 		RcloneConf:                rcloneConfig,
 	}
 	var ret bytes.Buffer

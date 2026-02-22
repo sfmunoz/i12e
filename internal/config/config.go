@@ -44,10 +44,10 @@ type Config struct {
 		UserKey string `mapstructure:"user_key" validate:"gte=1"`
 		Token   string `mapstructure:"token" validate:"gte=1"`
 	} `mapstructure:"pushover" validate:"required"`
-	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
-	Butane            *struct {
-		Mode   Mode   `mapstructure:"mode" validate:"i12e_butane_mode"`
-		Output Output `mapstructure:"output" validate:"i12e_butane_output"`
+	Butane *struct {
+		SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
+		Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
+		Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
 	} `mapstructure:"butane"` // not required
 	Server *struct {
 		SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
