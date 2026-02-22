@@ -16,7 +16,7 @@ import (
 //   https://github.com/go-playground/validator
 
 type Config struct {
-	Env  Env
+	Env  Env `validate:"i12e_env"`
 	I12e *struct {
 		Version   string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
 		Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
@@ -31,7 +31,7 @@ type Config struct {
 	KubeVip      *struct {
 		Vip       string `mapstructure:"vip" validate:"ip4_addr"`
 		Interface string `mapstructure:"interface" validate:"gte=2"`
-		Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"`
+		Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
 	} `mapstructure:"kube_vip"` // not required
 	Mesh *struct {
 		EndpointInterface     string        `mapstructure:"endpoint_interface"` // not required
@@ -59,6 +59,7 @@ type Config struct {
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("i12e_semver_v", validSemverV)
+	validate.RegisterValidation("i12e_env", validEnv)
 	validate.RegisterValidation("i12e_butane_mode", validButaneMode)
 	validate.RegisterValidation("i12e_butane_output", validButaneOutput)
 	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)

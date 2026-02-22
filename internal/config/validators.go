@@ -22,6 +22,10 @@ func validSemverV(fl validator.FieldLevel) bool {
 	return validator.New().Var(s2, "semver") == nil
 }
 
+func validEnv(fl validator.FieldLevel) bool {
+	return slices.Contains(ValidEnvs(), fl.Field().String())
+}
+
 func validButaneMode(fl validator.FieldLevel) bool {
 	return slices.Contains(ValidModes(), fl.Field().String())
 }
