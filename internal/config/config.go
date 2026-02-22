@@ -36,13 +36,13 @@ type Config struct {
 		Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"`
 	} `mapstructure:"kube_vip"` // not required
 	Mesh *struct {
-		EndpointInterface     string        `mapstructure:"endpoint_interface"`
-		EndpointPort          int           `mapstructure:"endpoint_port"`
-		NetworkAddress        *netip.Prefix `mapstructure:"network_address"`
-		WireGuardInterface    string        `mapstructure:"wireguard_interface"`
-		WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname"`
-		RemoteBase            string        `mapstructure:"remote_base"`
-	} `mapstructure:"mesh"`
+		EndpointInterface     string        `mapstructure:"endpoint_interface"` // not required
+		EndpointPort          int           `mapstructure:"endpoint_port" validate:"gte=1024,lt=65535"`
+		NetworkAddress        *netip.Prefix `mapstructure:"network_address" validate:"required,i12e_mesh_network"`
+		WireGuardInterface    string        `mapstructure:"wireguard_interface" validate:"gte=1"`
+		WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname" validate:"gte=1"`
+		RemoteBase            string        `mapstructure:"remote_base" validate:"startsnotwith=:,contains=:,endsnotwith=:"`
+	} `mapstructure:"mesh" validate:"required"`
 	Pushover *struct {
 		UserKey string `mapstructure:"user_key" validate:"gte=1"`
 		Token   string `mapstructure:"token" validate:"gte=1"`
@@ -77,57 +77,6 @@ func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
 }
 
-func (c *Config) validateMesh() error {
-	mesh := c.Mesh
-	if mesh == nil {
-		return fmt.Errorf("config: undefined 'mesh'")
-	}
-	if mesh.EndpointPort < 1024 {
-		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too low (min=1024)", mesh.EndpointPort)
-	}
-	if mesh.EndpointPort > 65_535 {
-		return fmt.Errorf("config: 'mesh.endpoint_port=%d' is too high (max=65535)", mesh.EndpointPort)
-	}
-	if mesh.NetworkAddress == nil {
-		return fmt.Errorf("config: undefined 'mesh.network_address")
-	}
-	meshAddr := mesh.NetworkAddress.Addr()
-	if !meshAddr.Is4() {
-		return fmt.Errorf("config: 'mesh.network_address=%s' is not IPv4", mesh.NetworkAddress)
-	}
-	if !meshAddr.IsPrivate() {
-		return fmt.Errorf("config: 'mesh.network_address=%s' is not private", mesh.NetworkAddress)
-	}
-	b := mesh.NetworkAddress.Bits() // from /12 (20 bits for host) to /29 (3 bits for host)
-	if b < 12 {
-		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, min=12)", mesh.NetworkAddress, b)
-	}
-	if b > 29 {
-		return fmt.Errorf("config: wrong 'mesh.network_address=%s' (bits=%d, max=29)", mesh.NetworkAddress, b)
-	}
-	if len(mesh.WireGuardInterface) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.wireguard_interface'")
-	}
-	if len(mesh.WireGuardPrivKeyFname) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.wireguard_priv_key_fname'")
-	}
-	if len(mesh.RemoteBase) < 1 {
-		return fmt.Errorf("config: undefined 'mesh.remote_base'")
-	}
-	parts := strings.Split(mesh.RemoteBase, ":")
-	partsLen := len(parts)
-	if partsLen != 2 {
-		return fmt.Errorf("config: wrong 'mesh.remote_base=%s (parts=%d, required=2)'", mesh.RemoteBase, partsLen)
-	}
-	for k, v := range parts {
-		if len(v) < 1 {
-			return fmt.Errorf("config: wrong 'mesh.remote_base=%s (part[%d] is undefined2)'", mesh.RemoteBase, k)
-		}
-	}
-	strings.Contains(mesh.RemoteBase, ":")
-	return nil
-}
-
 func semverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
@@ -142,19 +91,40 @@ func validOutput(fl validator.FieldLevel) bool {
 	return slices.Contains(ValidOutputs(), fl.Field().String())
 }
 
+func validMeshNetwork(fl validator.FieldLevel) bool {
+	p, ok := fl.Field().Addr().Interface().(*netip.Prefix)
+	if !ok {
+		return false
+	}
+	meshAddr := p.Addr()
+	if !meshAddr.Is4() {
+		fmt.Printf("config: 'mesh.network_address=%s' is not IPv4\n", p)
+		return false
+	}
+	if !meshAddr.IsPrivate() {
+		fmt.Printf("config: 'mesh.network_address=%s' is not private\n", p)
+		return false
+	}
+	b := p.Bits() // from /12 (20 bits for host) to /29 (3 bits for host)
+	if b < 12 {
+		fmt.Printf("config: wrong 'mesh.network_address=%s' (bits=%d, min=12)\n", p, b)
+		return false
+	}
+	if b > 29 {
+		fmt.Printf("config: wrong 'mesh.network_address=%s' (bits=%d, max=29)\n", p, b)
+		return false
+	}
+	return true
+}
+
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
 	validate.RegisterValidation("i12e_semver_v", semverV)
 	validate.RegisterValidation("i12e_valid_mode", validMode)
 	validate.RegisterValidation("i12e_valid_output", validOutput)
+	validate.RegisterValidation("i12e_mesh_network", validMeshNetwork)
 	if err := validate.Struct(cfg); err != nil {
 		return err
-	}
-	flist := []func() error{cfg.validateMesh}
-	for _, f := range flist {
-		if err := f(); err != nil {
-			return err
-		}
 	}
 	return nil
 }
