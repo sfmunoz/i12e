@@ -79,7 +79,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	rcloneConfig, err := RcloneConfig(b.cfg)
+	rcloneConf, err := rcloneConfig(b.cfg.RcloneRemote)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Butane.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.Butane.SshAuthorizedKeys,
-		RcloneConf:                rcloneConfig,
+		RcloneConf:                rcloneConf,
 	}
 	var ret bytes.Buffer
 	err = tpl.Execute(&ret, &data)
