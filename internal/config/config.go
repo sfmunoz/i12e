@@ -20,14 +20,14 @@ import (
 type Config struct {
 	Env  Env
 	I12e *struct {
-		Version   string `mapstructure:"version" validate:"gte=6,lowercase"` // gte=6 -> v0.0.0
+		Version   string `mapstructure:"version" validate:"gte=6,lowercase,startswith=v"` // gte=6 -> v0.0.0
 		Sha256sum string `mapstructure:"sha256sum" validate:"len=64,lowercase"`
 	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
-		Token      string `mapstructure:"token"`
-		AgentToken string `mapstructure:"agent_token"`
-		TlsSan     string `mapstructure:"tls_san"`
-	} `mapstructure:"k3s"`
+		Token      string `mapstructure:"token" validate:"gte=20"`
+		AgentToken string `mapstructure:"agent_token" validate:"gte=20"`
+		TlsSan     string `mapstructure:"tls_san" validate:"gte=1"`
+	} `mapstructure:"k3s" validate:"required"`
 	RcloneRemote string `mapstructure:"rclone_remote"`
 	PortKnocking []int  `mapstructure:"port_knocking"`
 	KubeVip      *struct {
@@ -75,23 +75,6 @@ func (c *Config) I12eYaml() string {
 
 func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
-}
-
-func (c *Config) validateK3s() error {
-	k3s := c.K3s
-	if k3s == nil {
-		return fmt.Errorf("config: undefined 'k3s'")
-	}
-	if len(k3s.Token) < 1 {
-		return fmt.Errorf("config: undefined 'k3s.token'")
-	}
-	if len(k3s.AgentToken) < 1 {
-		return fmt.Errorf("config: undefined 'k3s.agent_token'")
-	}
-	if len(k3s.TlsSan) < 1 {
-		return fmt.Errorf("config: undefined 'k3s.tls_san'")
-	}
-	return nil
 }
 
 func (c *Config) validatePortKnocking() error {
@@ -246,7 +229,6 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
 	flist := []func() error{
-		cfg.validateK3s,
 		cfg.validatePortKnocking,
 		cfg.validateKubeVip,
 		cfg.validateMesh,
