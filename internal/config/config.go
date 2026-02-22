@@ -20,7 +20,7 @@ import (
 type Config struct {
 	Env  Env
 	I12e *struct {
-		Version   string `mapstructure:"version" validate:"gte=6,lowercase,startswith=v"` // gte=6 -> v0.0.0
+		Version   string `mapstructure:"version" validate:"required,semver_v"` // "semver" doesn't accept the leading v
 		Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
@@ -208,8 +208,15 @@ func (c *Config) validateServer() error {
 	return nil
 }
 
+func semverV(fl validator.FieldLevel) bool {
+	s1 := fl.Field().String()
+	s2 := strings.TrimPrefix(s1, "v")
+	return validator.New().Var(s2, "semver") == nil
+}
+
 func (cfg *Config) Validate() error {
 	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate.RegisterValidation("semver_v", semverV)
 	if err := validate.Struct(cfg); err != nil {
 		return err
 	}
