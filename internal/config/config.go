@@ -6,14 +6,23 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
+
+// Docs refs:
+//   https://pkg.go.dev/github.com/go-playground/validator/v10
+//   ~/go/pkg/mod/github.com/go-playground/validator/v10@v10.30.1/baked_in.go
+//   ~/go/pkg/mod/github.com/go-playground/validator/v10@v10.30.1/_examples/simple/main.go
+// Home:
+//   https://github.com/go-playground/validator
 
 type Config struct {
 	Env  Env
 	I12e *struct {
-		Version   string `mapstructure:"version"`
-		Sha256sum string `mapstructure:"sha256sum"`
-	} `mapstructure:"i12e"`
+		Version   string `mapstructure:"version" validate:"gte=6,lowercase"` // gte=6 -> v0.0.0
+		Sha256sum string `mapstructure:"sha256sum" validate:"len=64,lowercase"`
+	} `mapstructure:"i12e" validate:"required"`
 	K3s *struct {
 		Token      string `mapstructure:"token"`
 		AgentToken string `mapstructure:"agent_token"`
@@ -66,24 +75,6 @@ func (c *Config) I12eYaml() string {
 
 func (c *Config) I12eEncYaml() string {
 	return c.fname("i12e.enc.yaml")
-}
-
-func (c *Config) validateI12e() error {
-	i12e := c.I12e
-	if i12e == nil {
-		return fmt.Errorf("config: undefined 'i12e'")
-	}
-	s256_len := len(i12e.Sha256sum)
-	if s256_len < 1 {
-		return fmt.Errorf("config: undefined 'i12e.sha256sum'")
-	}
-	if s256_len != 64 {
-		return fmt.Errorf("config: len(i12e.sha256sum)=%d (64 expected)", s256_len)
-	}
-	if len(i12e.Version) < 1 {
-		return fmt.Errorf("config: undefined 'i12e.version'")
-	}
-	return nil
 }
 
 func (c *Config) validateK3s() error {
@@ -247,11 +238,14 @@ func (c *Config) validateServer() error {
 }
 
 func (cfg *Config) Validate() error {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	if err := validate.Struct(cfg); err != nil {
+		return err
+	}
 	if len(cfg.RcloneRemote) < 1 {
 		return fmt.Errorf("config: undefined 'rclone_remote'")
 	}
 	flist := []func() error{
-		cfg.validateI12e,
 		cfg.validateK3s,
 		cfg.validatePortKnocking,
 		cfg.validateKubeVip,
