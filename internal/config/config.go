@@ -22,9 +22,9 @@ type Config struct {
 	Server   *Server   `mapstructure:"server" validate:"required"`
 	K3s      *K3s      `mapstructure:"k3s" validate:"required"`
 	Rclone   *Rclone   `mapstructure:"rclone" validate:"required"`
-	KubeVip  *KubeVip  `mapstructure:"kube_vip" validate:"required"`
 	Mesh     *Mesh     `mapstructure:"mesh" validate:"required"`
 	Pushover *Pushover `mapstructure:"pushover" validate:"required"`
+	KubeVip  *KubeVip  `mapstructure:"kube_vip"`
 }
 
 func (cfg *Config) Validate(cmd string) error {
@@ -76,12 +76,6 @@ type Rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
 }
 
-type KubeVip struct {
-	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
-	Interface string `mapstructure:"interface" validate:"gte=2"`
-	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
-}
-
 type Mesh struct {
 	EndpointInterface     string        `mapstructure:"endpoint_interface"` // not required
 	EndpointPort          int           `mapstructure:"endpoint_port" validate:"gte=1024,lt=65535"`
@@ -94,4 +88,10 @@ type Mesh struct {
 type Pushover struct {
 	UserKey string `mapstructure:"user_key" validate:"gte=1"`
 	Token   string `mapstructure:"token" validate:"gte=1"`
+}
+
+type KubeVip struct {
+	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
+	Interface string `mapstructure:"interface" validate:"gte=2"`
+	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
 }
