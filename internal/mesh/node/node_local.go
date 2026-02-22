@@ -120,7 +120,7 @@ func (n *NodeLocal) PurgeFromRemote(remMeshBase string) error {
 	return nil
 }
 
-func NewNodeLocal(cfg *config.Config, reset bool) (*NodeLocal, error) {
+func NewNodeLocal(cfg *config.ServerConfig, reset bool) (*NodeLocal, error) {
 	if reset {
 		if err := deleteEtcHostname(); err != nil {
 			return nil, err

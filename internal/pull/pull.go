@@ -16,7 +16,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 var rcloneScript string
 
 type Pull struct {
-	cfg *config.Config
+	cfg *config.ServerConfig
 }
 
 func (p *Pull) run() error {
@@ -42,10 +42,10 @@ func (p *Pull) run() error {
 	return nil
 }
 
-func newPull(cfg *config.Config) *Pull {
+func newPull(cfg *config.ServerConfig) *Pull {
 	return &Pull{cfg}
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ServerConfig) error {
 	return newPull(cfg).run()
 }

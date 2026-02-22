@@ -13,10 +13,10 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	cfg *config.Config
+	cfg *config.ServerConfig
 }
 
-func newServer(cfg *config.Config) *Server {
+func newServer(cfg *config.ServerConfig) *Server {
 	return &Server{cfg}
 }
 
@@ -35,6 +35,6 @@ func (s *Server) run() error {
 	}
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ServerConfig) error {
 	return newServer(cfg).run()
 }

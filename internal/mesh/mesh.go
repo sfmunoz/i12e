@@ -23,7 +23,7 @@ var log = logit.Logit().WithLevel(logit.LevelInfo)
 const settleTime = 15 * time.Second
 
 type Mesh struct {
-	cfg *config.Config
+	cfg *config.ServerConfig
 }
 
 func (m *Mesh) setNodeListTimestamps(nodeListRaw []*node.NodeRemote) {
@@ -275,10 +275,10 @@ func (m *Mesh) run() error {
 	return nil
 }
 
-func newMesh(cfg *config.Config) *Mesh {
+func newMesh(cfg *config.ServerConfig) *Mesh {
 	return &Mesh{cfg}
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ServerConfig) error {
 	return newMesh(cfg).run()
 }

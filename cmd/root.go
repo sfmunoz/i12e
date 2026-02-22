@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"time"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
@@ -12,16 +11,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func setDefaults(v *viper.Viper) {
-	// sub-object definition implies struct definition
-	v.SetDefault("k3s.tls_san", "kmain")
-	v.SetDefault("mesh.endpoint_port", 51823)             // wireguard default: 51820
-	v.SetDefault("mesh.network_address", "10.119.0.0/28") // from /12 (20 bits for host) to /29 (3 bits for host)
-	v.SetDefault("mesh.wireguard_interface", "wgi")
-	v.SetDefault("mesh.wireguard_priv_key_fname", "/etc/i12e/wg-priv-key")
-	v.SetDefault("mesh.remote_base", "rem:mesh")
-	v.SetDefault("server.slumber_base", 10*time.Second)
-	v.SetDefault("server.slumber_jitter", 5*time.Second)
+func viperNew() *viper.Viper {
+	v := viper.New()
+	v.SetConfigType("yaml")
+	setDefaults(v)
+	return v
 }
 
 func rootCmd(cfg *config.Config) *cobra.Command {
@@ -44,9 +38,7 @@ i12e is an infrastructure management tool for task automation:
 				}
 			}
 			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
-			v := viper.New()
-			v.SetConfigType("yaml")
-			setDefaults(v)
+			v := viperNew()
 			if cfg.Env == config.EnvNone {
 				if err := v.Unmarshal(cfg, decodeHook); err != nil {
 					return err
@@ -81,7 +73,7 @@ i12e is an infrastructure management tool for task automation:
 			return cfg.Validate(cmd.Name())
 		},
 	}
-	cmd.AddCommand(serverCmd(cfg))
+	cmd.AddCommand(serverCmd())
 	cmd.AddCommand(artifactCmd(cfg))
 	cmd.AddCommand(butaneCmd(cfg))
 	return cmd

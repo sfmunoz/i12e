@@ -131,7 +131,7 @@ func getTimestamp(tsStrIn string) (*time.Time, error) {
 	return &ts, nil
 }
 
-func NewNodeRemote(cfg *config.Config, entry string) (*NodeRemote, error) {
+func NewNodeRemote(cfg *config.ServerConfig, entry string) (*NodeRemote, error) {
 	arr := nodeRegex.FindStringSubmatch(entry)
 	if arr == nil {
 		return nil, fmt.Errorf("'nodeRegex.FindStringSubmatch(%s)' returned nil", entry)

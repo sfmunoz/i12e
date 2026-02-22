@@ -11,7 +11,7 @@ import (
 )
 
 type Node struct {
-	cfg        *config.Config
+	cfg        *config.ServerConfig
 	id         uint32
 	wgEndpoint *netip.AddrPort
 }
