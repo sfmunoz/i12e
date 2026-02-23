@@ -49,7 +49,7 @@ func artifactCmd() *cobra.Command {
 			if err := v.MergeConfig(bufOut); err != nil {
 				return err
 			}
-			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
+			decodeHook := viper.DecodeHook(PrefixDecodeHook())
 			if err := v.Unmarshal(cfg, decodeHook); err != nil {
 				return err
 			}

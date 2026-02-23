@@ -19,7 +19,7 @@ func serverCmd() *cobra.Command {
   - pulls artifacts from rclone server
   - configures network`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
+			decodeHook := viper.DecodeHook(PrefixDecodeHook())
 			v := viperNew()
 			cfg.Env = config.EnvNone
 			if err := v.Unmarshal(cfg, decodeHook); err != nil {
