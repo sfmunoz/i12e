@@ -63,7 +63,7 @@ func viperNew() *viper.Viper {
 	v.SetDefault("mesh.wireguard_interface", "wgi")
 	v.SetDefault("mesh.wireguard_priv_key_fname", "/etc/i12e/wg-priv-key")
 	v.SetDefault("mesh.remote_base", "rem:mesh")
-	v.SetDefault("server.slumber_base", 10*time.Second)
-	v.SetDefault("server.slumber_jitter", 5*time.Second)
+	v.SetDefault("server.slumber_base", 19*time.Minute)
+	v.SetDefault("server.slumber_jitter", 2*time.Minute)
 	return v
 }
