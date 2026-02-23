@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,8 +36,8 @@ func Execute() {
 	}
 }
 
-func PrefixDecodeHook() mapstructure.DecodeHookFunc {
-	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
+func PrefixDecodeHook() viper.DecoderConfigOption {
+	f := func(from reflect.Type, to reflect.Type, data any) (any, error) {
 		if from.Kind() != reflect.String {
 			return data, nil
 		}
@@ -52,6 +51,7 @@ func PrefixDecodeHook() mapstructure.DecodeHookFunc {
 		}
 		return &p, nil
 	}
+	return viper.DecodeHook(f)
 }
 
 func viperNew() *viper.Viper {

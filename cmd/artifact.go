@@ -9,7 +9,6 @@ import (
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func artifactCmd() *cobra.Command {
@@ -49,8 +48,7 @@ func artifactCmd() *cobra.Command {
 			if err := v.MergeConfig(bufOut); err != nil {
 				return err
 			}
-			decodeHook := viper.DecodeHook(PrefixDecodeHook())
-			if err := v.Unmarshal(cfg, decodeHook); err != nil {
+			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {
 				return err
 			}
 			return cfg.Validate()

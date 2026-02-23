@@ -6,7 +6,6 @@ import (
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/server"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func serverCmd() *cobra.Command {
@@ -19,10 +18,9 @@ func serverCmd() *cobra.Command {
   - pulls artifacts from rclone server
   - configures network`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			decodeHook := viper.DecodeHook(PrefixDecodeHook())
 			v := viperNew()
 			cfg.Env = config.EnvNone
-			if err := v.Unmarshal(cfg, decodeHook); err != nil {
+			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {
 				return err
 			}
 			return cfg.Validate()
