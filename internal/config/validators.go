@@ -16,22 +16,24 @@ import (
 // Home:
 //   https://github.com/go-playground/validator
 
+func registerValidations(v *validator.Validate) {
+	v.RegisterValidation("i12e_semver_v", validSemverV)
+	v.RegisterValidation("i12e_env", inList(ValidEnvs()))
+	v.RegisterValidation("i12e_butane_mode", inList(ValidModes()))
+	v.RegisterValidation("i12e_butane_output", inList(ValidOutputs()))
+	v.RegisterValidation("i12e_mesh_network", validMeshNetwork)
+}
+
+func inList(valid []string) func(validator.FieldLevel) bool {
+	return func(fl validator.FieldLevel) bool {
+		return slices.Contains(valid, fl.Field().String())
+	}
+}
+
 func validSemverV(fl validator.FieldLevel) bool {
 	s1 := fl.Field().String()
 	s2 := strings.TrimPrefix(s1, "v")
 	return validator.New().Var(s2, "semver") == nil
-}
-
-func validEnv(fl validator.FieldLevel) bool {
-	return slices.Contains(ValidEnvs(), fl.Field().String())
-}
-
-func validButaneMode(fl validator.FieldLevel) bool {
-	return slices.Contains(ValidModes(), fl.Field().String())
-}
-
-func validButaneOutput(fl validator.FieldLevel) bool {
-	return slices.Contains(ValidOutputs(), fl.Field().String())
 }
 
 func validMeshNetwork(fl validator.FieldLevel) bool {

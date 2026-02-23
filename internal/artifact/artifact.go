@@ -18,14 +18,14 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Artifact struct {
-	cfg    *config.Config
+	cfg    *config.ArtifactConfig
 	tnow   time.Time
 	tarOut *tar.Writer
 	gzOut  *gzip.Writer
 	obuf   *bytes.Buffer
 }
 
-func newArtifact(cfg *config.Config) (*Artifact, error) {
+func newArtifact(cfg *config.ArtifactConfig) (*Artifact, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("newArtifact(): undefined config")
 	}
@@ -205,8 +205,8 @@ func (a *Artifact) etcI12eK3sConfigYaml() error {
 		TlsSan        string
 	}{
 		I12eMode:      "",
-		K3sToken:      a.cfg.K3s.Token,
-		K3sAgentToken: a.cfg.K3s.AgentToken,
+		K3sToken:      a.cfg.Artifact.K3sToken,
+		K3sAgentToken: a.cfg.Artifact.K3sAgentToken,
 		K3sUrl:        fmt.Sprintf("https://%s:6443", a.cfg.K3s.TlsSan),
 		TlsSan:        a.cfg.K3s.TlsSan,
 	}
@@ -236,7 +236,7 @@ func (a *Artifact) etcNftablesConf() error {
 		PortKnocking []int
 		EndpointPort int
 	}{
-		PortKnocking: a.cfg.PortKnocking,
+		PortKnocking: a.cfg.Artifact.PortKnocking,
 		EndpointPort: a.cfg.Mesh.EndpointPort,
 	}
 	if err := a.addTemplate("nftables.conf", "etc/nftables.conf", 0600, &data); err != nil {
@@ -295,7 +295,7 @@ func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 }
 
 func (a *Artifact) rclonePush() error {
-	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.RcloneRemote)
+	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.Rclone.Remote)
 	log.Info("rclonePush()", "remFile", remFile)
 	// --------
 	sha256_1 := fmt.Sprintf("%x", sha256.Sum256(a.obuf.Bytes())) // keep it before buffer read
@@ -364,7 +364,7 @@ func (a *Artifact) run() error {
 	return nil
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ArtifactConfig) error {
 	a, err := newArtifact(cfg)
 	if err != nil {
 		return err

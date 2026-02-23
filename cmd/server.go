@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func serverCmd(cfg *config.Config) *cobra.Command {
+func serverCmd() *cobra.Command {
+	cfg := &config.ServerConfig{}
 	cmd := &cobra.Command{
 		Use:   "server",
 		Short: "Server to run on target hosts",
@@ -16,6 +17,14 @@ func serverCmd(cfg *config.Config) *cobra.Command {
 
   - pulls artifacts from rclone server
   - configures network`,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			v := viperNew()
+			cfg.Env = config.EnvNone
+			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {
+				return err
+			}
+			return cfg.Validate()
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cfg == nil {
 				return fmt.Errorf("undefined config")

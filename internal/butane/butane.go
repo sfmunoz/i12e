@@ -17,10 +17,10 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Butane struct {
-	cfg *config.Config
+	cfg *config.ButaneConfig
 }
 
-func newButane(cfg *config.Config) (*Butane, error) {
+func newButane(cfg *config.ButaneConfig) (*Butane, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("newButane(): undefined config")
 	}
@@ -79,7 +79,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	rcloneConfig, err := RcloneConfig(b.cfg)
+	rcloneConf, err := rcloneConfig(b.cfg.Rclone.Remote)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +95,8 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		I12eVersion:               b.cfg.I12e.Version,
 		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Butane.Mode.String(),
-		SshAuthorizedKeys:         b.cfg.SshAuthorizedKeys,
-		RcloneConf:                rcloneConfig,
+		SshAuthorizedKeys:         b.cfg.Butane.SshAuthorizedKeys,
+		RcloneConf:                rcloneConf,
 	}
 	var ret bytes.Buffer
 	err = tpl.Execute(&ret, &data)
@@ -207,7 +207,7 @@ func (b *Butane) run() error {
 	return nil
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ButaneConfig) error {
 	b, err := newButane(cfg)
 	if err != nil {
 		return err
