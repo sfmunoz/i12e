@@ -12,6 +12,31 @@ import (
 	"github.com/spf13/viper"
 )
 
+func rootCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "i12e",
+		Short: "infrastructure management tool",
+		Long: `Usage: i12e [OPTIONS] COMMAND
+
+i12e is an infrastructure management tool for task automation:
+
+  - artifact generation
+  - butane to ignition translation`,
+	}
+	flist := []func() *cobra.Command{serverCmd, artifactCmd, butaneCmd}
+	for _, f := range flist {
+		cmd.AddCommand(f())
+	}
+	return cmd
+}
+
+func Execute() {
+	err := rootCmd().Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
 func PrefixDecodeHook() mapstructure.DecodeHookFunc {
 	return func(from reflect.Type, to reflect.Type, data any) (any, error) {
 		if from.Kind() != reflect.String {
@@ -41,29 +66,4 @@ func viperNew() *viper.Viper {
 	v.SetDefault("server.slumber_base", 10*time.Second)
 	v.SetDefault("server.slumber_jitter", 5*time.Second)
 	return v
-}
-
-func rootCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "i12e",
-		Short: "infrastructure management tool",
-		Long: `Usage: i12e [OPTIONS] COMMAND
-
-i12e is an infrastructure management tool for task automation:
-
-  - artifact generation
-  - butane to ignition translation`,
-	}
-	flist := []func() *cobra.Command{serverCmd, artifactCmd, butaneCmd}
-	for _, f := range flist {
-		cmd.AddCommand(f())
-	}
-	return cmd
-}
-
-func Execute() {
-	err := rootCmd().Execute()
-	if err != nil {
-		os.Exit(1)
-	}
 }
