@@ -17,10 +17,10 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Butane struct {
-	cfg *config.Config
+	cfg *config.ButaneConfig
 }
 
-func newButane(cfg *config.Config) (*Butane, error) {
+func newButane(cfg *config.ButaneConfig) (*Butane, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("newButane(): undefined config")
 	}
@@ -207,7 +207,7 @@ func (b *Butane) run() error {
 	return nil
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ButaneConfig) error {
 	b, err := newButane(cfg)
 	if err != nil {
 		return err

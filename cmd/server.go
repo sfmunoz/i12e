@@ -30,7 +30,7 @@ func serverCmd() *cobra.Command {
 
   - pulls artifacts from rclone server
   - configures network`,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
 			v := setDefaults(viperNew())
 			cfg.Env = config.EnvNone

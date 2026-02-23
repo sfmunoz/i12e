@@ -14,20 +14,28 @@ import (
 // Home:
 //   https://github.com/go-playground/validator
 
-type Config struct {
+type ArtifactConfig struct {
 	Env      Env       `validate:"i12e_env"`
-	I12e     *I12e     `mapstructure:"i12e" validate:"required"`
-	Artifact *Artifact `mapstructure:"artifact" validate:"required"`
-	Butane   *Butane   `mapstructure:"butane" validate:"required"`
-	Server   *Server   `mapstructure:"server" validate:"required"`
-	K3s      *K3s      `mapstructure:"k3s" validate:"required"`
-	Rclone   *Rclone   `mapstructure:"rclone" validate:"required"`
-	Mesh     *Mesh     `mapstructure:"mesh" validate:"required"`
-	Pushover *Pushover `mapstructure:"pushover" validate:"required"`
-	KubeVip  *KubeVip  `mapstructure:"kube_vip"`
+	Artifact *artifact `mapstructure:"artifact" validate:"required"`
+	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
+	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
+	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
 }
 
-func (cfg *Config) Validate(cmd string) error {
+func (cfg *ArtifactConfig) Validate() error {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	registerValidations(v)
+	return v.Struct(cfg)
+}
+
+type ButaneConfig struct {
+	Env    Env     `validate:"i12e_env"`
+	Butane *butane `mapstructure:"butane" validate:"required"`
+	I12e   *i12e   `mapstructure:"i12e" validate:"required"`
+	Rclone *rclone `mapstructure:"rclone" validate:"required"`
+}
+
+func (cfg *ButaneConfig) Validate() error {
 	v := validator.New(validator.WithRequiredStructEnabled())
 	registerValidations(v)
 	return v.Struct(cfg)
@@ -35,9 +43,9 @@ func (cfg *Config) Validate(cmd string) error {
 
 type ServerConfig struct {
 	Env    Env     `validate:"i12e_env"`
-	Server *Server `mapstructure:"server" validate:"required"`
-	K3s    *K3s    `mapstructure:"k3s" validate:"required"`
-	Mesh   *Mesh   `mapstructure:"mesh" validate:"required"`
+	Server *server `mapstructure:"server" validate:"required"`
+	K3s    *k3s    `mapstructure:"k3s" validate:"required"`
+	Mesh   *mesh   `mapstructure:"mesh" validate:"required"`
 }
 
 func (cfg *ServerConfig) Validate() error {
@@ -46,37 +54,37 @@ func (cfg *ServerConfig) Validate() error {
 	return v.Struct(cfg)
 }
 
-type I12e struct {
+type i12e struct {
 	Version   string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
 	Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
 }
 
-type Artifact struct {
+type artifact struct {
 	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
 	K3sToken      string `mapstructure:"k3s_token" validate:"gte=20"`
 	K3sAgentToken string `mapstructure:"k3s_agent_token" validate:"gte=20"`
 }
 
-type Butane struct {
+type butane struct {
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
 	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
 	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
 }
 
-type Server struct {
+type server struct {
 	SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
 	SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
 }
 
-type K3s struct {
+type k3s struct {
 	TlsSan string `mapstructure:"tls_san" validate:"gte=1"`
 }
 
-type Rclone struct {
+type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
 }
 
-type Mesh struct {
+type mesh struct {
 	EndpointInterface     string        `mapstructure:"endpoint_interface"` // not required
 	EndpointPort          int           `mapstructure:"endpoint_port" validate:"gte=1024,lt=65535"`
 	NetworkAddress        *netip.Prefix `mapstructure:"network_address" validate:"required,i12e_mesh_network"`
@@ -85,13 +93,13 @@ type Mesh struct {
 	RemoteBase            string        `mapstructure:"remote_base" validate:"startsnotwith=:,contains=:,endsnotwith=:"`
 }
 
-type Pushover struct {
-	UserKey string `mapstructure:"user_key" validate:"gte=1"`
-	Token   string `mapstructure:"token" validate:"gte=1"`
-}
-
-type KubeVip struct {
-	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
-	Interface string `mapstructure:"interface" validate:"gte=2"`
-	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
-}
+// type pushover struct {
+// 	UserKey string `mapstructure:"user_key" validate:"gte=1"`
+// 	Token   string `mapstructure:"token" validate:"gte=1"`
+// }
+//
+// type kubeVip struct {
+// 	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
+// 	Interface string `mapstructure:"interface" validate:"gte=2"`
+// 	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
+// }

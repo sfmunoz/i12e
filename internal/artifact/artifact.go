@@ -18,14 +18,14 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Artifact struct {
-	cfg    *config.Config
+	cfg    *config.ArtifactConfig
 	tnow   time.Time
 	tarOut *tar.Writer
 	gzOut  *gzip.Writer
 	obuf   *bytes.Buffer
 }
 
-func newArtifact(cfg *config.Config) (*Artifact, error) {
+func newArtifact(cfg *config.ArtifactConfig) (*Artifact, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("newArtifact(): undefined config")
 	}
@@ -364,7 +364,7 @@ func (a *Artifact) run() error {
 	return nil
 }
 
-func Run(cfg *config.Config) error {
+func Run(cfg *config.ArtifactConfig) error {
 	a, err := newArtifact(cfg)
 	if err != nil {
 		return err
