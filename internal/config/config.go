@@ -52,7 +52,9 @@ type I12e struct {
 }
 
 type Artifact struct {
-	PortKnocking []int `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
+	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
+	K3sToken      string `mapstructure:"k3s_token" validate:"gte=20"`
+	K3sAgentToken string `mapstructure:"k3s_agent_token" validate:"gte=20"`
 }
 
 type Butane struct {
@@ -67,9 +69,7 @@ type Server struct {
 }
 
 type K3s struct {
-	Token      string `mapstructure:"token" validate:"gte=20"`
-	AgentToken string `mapstructure:"agent_token" validate:"gte=20"`
-	TlsSan     string `mapstructure:"tls_san" validate:"gte=1"`
+	TlsSan string `mapstructure:"tls_san" validate:"gte=1"`
 }
 
 type Rclone struct {

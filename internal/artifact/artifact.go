@@ -205,8 +205,8 @@ func (a *Artifact) etcI12eK3sConfigYaml() error {
 		TlsSan        string
 	}{
 		I12eMode:      "",
-		K3sToken:      a.cfg.K3s.Token,
-		K3sAgentToken: a.cfg.K3s.AgentToken,
+		K3sToken:      a.cfg.Artifact.K3sToken,
+		K3sAgentToken: a.cfg.Artifact.K3sAgentToken,
 		K3sUrl:        fmt.Sprintf("https://%s:6443", a.cfg.K3s.TlsSan),
 		TlsSan:        a.cfg.K3s.TlsSan,
 	}
