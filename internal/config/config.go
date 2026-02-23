@@ -22,12 +22,6 @@ type ArtifactConfig struct {
 	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
 }
 
-func (cfg *ArtifactConfig) Validate() error {
-	v := validator.New(validator.WithRequiredStructEnabled())
-	registerValidations(v)
-	return v.Struct(cfg)
-}
-
 type ButaneConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Butane *butane `mapstructure:"butane" validate:"required"`
@@ -35,23 +29,11 @@ type ButaneConfig struct {
 	Rclone *rclone `mapstructure:"rclone" validate:"required"`
 }
 
-func (cfg *ButaneConfig) Validate() error {
-	v := validator.New(validator.WithRequiredStructEnabled())
-	registerValidations(v)
-	return v.Struct(cfg)
-}
-
 type ServerConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Server *server `mapstructure:"server" validate:"required"`
 	K3s    *k3s    `mapstructure:"k3s" validate:"required"`
 	Mesh   *mesh   `mapstructure:"mesh" validate:"required"`
-}
-
-func (cfg *ServerConfig) Validate() error {
-	v := validator.New(validator.WithRequiredStructEnabled())
-	registerValidations(v)
-	return v.Struct(cfg)
 }
 
 type i12e struct {
@@ -103,3 +85,21 @@ type mesh struct {
 // 	Interface string `mapstructure:"interface" validate:"gte=2"`
 // 	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
 // }
+
+func (cfg *ArtifactConfig) Validate() error {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	registerValidations(v)
+	return v.Struct(cfg)
+}
+
+func (cfg *ButaneConfig) Validate() error {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	registerValidations(v)
+	return v.Struct(cfg)
+}
+
+func (cfg *ServerConfig) Validate() error {
+	v := validator.New(validator.WithRequiredStructEnabled())
+	registerValidations(v)
+	return v.Struct(cfg)
+}
