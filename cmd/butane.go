@@ -34,20 +34,8 @@ Examples:
 					cfg.Env = config.EnvDev
 				}
 			}
-			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
-			v := viperNew()
-			if cfg.Env == config.EnvNone {
-				if err := v.Unmarshal(cfg, decodeHook); err != nil {
-					return err
-				}
-				//if err := cfg.Validate(cmd.Name()); err != nil {
-				//	return err
-				//}
-				return nil
-			}
-			if cmd.Name() == "butane" {
-				v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
-				v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
+			if cfg.Env != config.EnvDev && cfg.Env != config.EnvProd {
+				return fmt.Errorf("wrong env '%s': it must be '%s' or '%s'", cfg.Env, config.EnvDev, config.EnvProd)
 			}
 			fp, err := os.Open(cfg.Env.I12eYaml())
 			if err != nil {
@@ -58,12 +46,16 @@ Examples:
 			if err != nil {
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
+			v := viperNew()
+			v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
+			v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
 			if err := v.ReadConfig(fp); err != nil {
 				return err
 			}
 			if err := v.MergeConfig(bufOut); err != nil {
 				return err
 			}
+			decodeHook := viper.DecodeHook(config.PrefixDecodeHook())
 			if err := v.Unmarshal(cfg, decodeHook); err != nil {
 				return err
 			}
