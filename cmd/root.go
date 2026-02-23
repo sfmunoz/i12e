@@ -14,7 +14,6 @@ import (
 func viperNew() *viper.Viper {
 	v := viper.New()
 	v.SetConfigType("yaml")
-	setDefaults(v)
 	return v
 }
 
