@@ -21,6 +21,7 @@ func newServer(cfg *config.ServerConfig) *Server {
 }
 
 func (s *Server) run() error {
+	i := 0
 	for {
 		log.Info("i12e running...")
 		if err := mesh.Run(s.cfg); err != nil {
@@ -30,6 +31,10 @@ func (s *Server) run() error {
 			log.Error("pull.Run() failed", "err", err)
 		}
 		slumber := s.cfg.Server.SlumberBase + time.Duration(rand.Int64N(int64(s.cfg.Server.SlumberJitter)))
+		if i < 4 {
+			i += 1
+			slumber = 16*time.Second + time.Duration(rand.Int64N(int64(4*time.Second)))
+		}
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
