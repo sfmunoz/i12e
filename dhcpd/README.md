@@ -1,10 +1,5 @@
 # dhcpd
 
-- [Requirements](#requirements)
-  - [busybox](#busybox)
-  - [ufw config](#ufw-config)
-- [Usage](#usage)
-
 ## Requirements
 
 ### busybox
