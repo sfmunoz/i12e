@@ -2,12 +2,6 @@
 
 **i12e** (infrastructure) **os** (Operating System)
 
-- [Usage](#usage)
-  - [I12E_ENV](#i12e_env)
-  - [I12E_DEBUG](#i12e_debug)
-  - [I12E_DIST](#i12e_dist)
-  - [I12E_KEEP_IMAGES](#i12e_keep_images)
-
 ## Usage
 
 Default (I12E_ENV=dev and I12_DEBUG=0):
