@@ -2,19 +2,11 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
-- [Guidelines](#guidelines)
-- [Architecture](#architecture)
-- [Requirements](#requirements)
-  - [butane](#butane)
-  - [age](#age)
-  - [sops](#sops)
-  - [helm](#helm)
-  - [helm-secrets](#helm-secrets)
-- [I12E Artifact](#i12e-artifact)
-- [I12E Butane](#i12e-butane)
-- Modules (not in this page)
-  - [os](os/README.md)
-  - [dhcpd](dhcpd/README.md)
+## Modules
+
+- [os](os/README.md)
+- [dhcpd](dhcpd/README.md)
+- [fileserver](fileserver/README.md)
 
 ## Guidelines
 
