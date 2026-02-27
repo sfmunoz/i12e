@@ -1,12 +1,25 @@
 #!/bin/bash
 #
-# Ref:
+# Refs:
 #   https://github.com/rustfs/rustfs/
+#   https://rustfs.com/download/?platform=linux
+#     $ curl -O https://github.com/rustfs/rustfs/releases/download/1.0.0-alpha.82/rustfs-linux-x86_64-gnu-latest.zip
+#     $ unzip rustfs-linux-x86_64-musl.zip
+#     $ ./rustfs --version
 #
 
 set -e
 cd "$(dirname "$0")"
-set -x
+
+if [ ! -f rustfs ]; then
+  set -x
+  curl -LO https://github.com/rustfs/rustfs/releases/download/1.0.0-alpha.83/rustfs-linux-x86_64-gnu-v1.0.0-alpha.83.zip
+  echo "b3fbf4e0dbdede70fc774719509181229f747d987571815de1f7163d511b1d9f  rustfs-linux-x86_64-gnu-v1.0.0-alpha.83.zip" | sha256sum -c
+  unzip rustfs-linux-x86_64-gnu-v1.0.0-alpha.83.zip
+  rm rustfs-linux-x86_64-gnu-v1.0.0-alpha.83.zip
+  { set +x; } 2>/dev/null
+fi
+
 sudo -u root mkdir -p data logs
 sudo -u root chown -R 10001:10001 data logs
 { set +x; } 2>/dev/null
