@@ -1,33 +1,40 @@
 #!/bin/bash
 #
-# Ref:
+# Refs:
 #   https://github.com/rustfs/rustfs/
+#   https://rustfs.com/download/?platform=linux
+#     $ curl -O https://github.com/rustfs/rustfs/releases/download/1.0.0-alpha.82/rustfs-linux-x86_64-gnu-latest.zip
+#     $ unzip rustfs-linux-x86_64-musl.zip
+#     $ ./rustfs --version
 #
 
-set -e
-cd "$(dirname "$0")"
-set -x
-sudo -u root mkdir -p data logs
-sudo -u root chown -R 10001:10001 data logs
-{ set +x; } 2>/dev/null
-set +e
+VERSION="1.0.0-alpha.83"
+SHA256SUM="b3fbf4e0dbdede70fc774719509181229f747d987571815de1f7163d511b1d9f"
 
-DATA_FOLDER="$(pwd)/data"
-LOGS_FOLDER="$(pwd)/logs"
+set -e -o pipefail
+cd "$(dirname "$0")"
+
+if [ ! -f rustfs ]; then
+  set -x
+  curl -LO https://github.com/rustfs/rustfs/releases/download/${VERSION}/rustfs-linux-x86_64-gnu-v${VERSION}.zip
+  echo "${SHA256SUM}  rustfs-linux-x86_64-gnu-v${VERSION}.zip" | sha256sum -c
+  unzip rustfs-linux-x86_64-gnu-v${VERSION}.zip
+  rm rustfs-linux-x86_64-gnu-v${VERSION}.zip
+  { set +x; } 2>/dev/null
+fi
+
+set -x
+mkdir -p data
+{ set +x; } 2>/dev/null
+
+set +e
 
 while true; do
   set -x
-  docker run \
-    -it \
-    --rm \
-    --name rustfs \
-    -p 127.0.0.1:9000:9000 \
-    -p 127.0.0.1:9001:9001 \
-    -p 192.168.56.1:9000:9000 \
-    -p 192.168.56.1:9001:9001 \
-    -v ${DATA_FOLDER}:/data \
-    -v ${LOGS_FOLDER}:/logs \
-    rustfs/rustfs:latest
+  ./rustfs \
+    --address 192.168.56.1:9000 \
+    --console-address 192.168.56.1:9001 \
+    data
   { set +x; } 2>/dev/null
   echo "waiting 1s to try again..."
   sleep 1
