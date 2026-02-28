@@ -2,11 +2,9 @@
 
 ## dhcpd
 
-### Requirements
+### busybox
 
-#### busybox
-
-**busybox** or **busybox-static** (only one can be installed on **Linux Mint 22.2**):
+**busybox** or **busybox-static** is used to run a simple DHCPD server (only one can be installed on **Linux Mint 22.3**):
 ```
 # apt install busybox
 ```
@@ -15,7 +13,7 @@ or
 # apt install busybox-static
 ```
 
-#### ufw config
+### ufw config
 
 **ufw** configuration to allow DHCP traffic:
 ```
