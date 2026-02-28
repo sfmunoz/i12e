@@ -49,6 +49,17 @@ udhcpd: started, v1.36.1
 - https://rustfs.com/
 - https://github.com/rustfs/rustfs
 
+### ufw config
+
+**ufw** configuration to allow TCP/9000 traffic:
+```
+# ufw allow in 9000/tcp
+```
+Alternative for just one interface:
+```
+# ufw allow in on vboxnet0 proto tcp to any port 9000
+```
+
 ### Usage
 
 ```
