@@ -1,6 +1,6 @@
 # dev-tools
 
-## dhcpd
+## DHCPD
 
 ### busybox
 
@@ -28,10 +28,8 @@ Alternative for just one interface:
 
 **Notice**: it may be required to start a VM in order to have **vboxnet0** up and running... otherwise DHCP server will fail to start.
 ```
-$ ./dhcpd/run.sh
-++ dirname ./dhcpd/run.sh
-+ cd ./dhcpd
-+ awk '!/^(#|$)/' udhcpd.conf
+$ ./dev-tools/dhcpd.sh
++ awk '!/^(#|$)/' dhcpd.conf
 start           192.168.56.20
 end             192.168.56.254
 interface       vboxnet0
@@ -39,10 +37,17 @@ lease_file      /dev/null
 static_lease 08:00:27:A8:56:51 192.168.56.51 fc1
 static_lease 08:00:27:A8:56:52 192.168.56.52 fc2
 static_lease 08:00:27:A8:56:53 192.168.56.53 fc3
-+ sudo busybox udhcpd -f udhcpd.conf
+static_lease 08:00:27:A8:56:54 192.168.56.54 fc4
+static_lease 08:00:27:A8:56:55 192.168.56.55 fc5
+static_lease 08:00:27:A8:56:56 192.168.56.56 fc6
+static_lease 08:00:27:A8:56:57 192.168.56.57 fc7
+static_lease 08:00:27:A8:56:58 192.168.56.58 fc8
+static_lease 08:00:27:A8:56:59 192.168.56.59 fc9
++ sudo busybox udhcpd -f dhcpd.conf
 udhcpd: started, v1.36.1
 ```
-## fileserver
+
+## RustFS
 
 ### References
 
@@ -63,18 +68,10 @@ Alternative for just one interface:
 ### Usage
 
 ```
-~/src/i12e/fileserver/run.sh
-+ sudo -u root mkdir -p data logs
-+ sudo -u root chown -R 10001:10001 data logs
-+ docker run -it --rm --name rustfs -p 127.0.0.1:9000:9000 -p 127.0.0.1:9001:9001 -p 192.168.56.1:9000:9000 -p 192.168.56.1:9001:9001 -v /home/sfm/src/i12e/fileserver/data:/data -v /home/sfm/src/i12e/fileserver/logs:/logs rustfs/rustfs:latest
-Initializing data directories: /data
-Initializing log directory: /logs
-!!!WARNING: Using default RUSTFS_ACCESS_KEY or RUSTFS_SECRET_KEY. Override them in production!
-Starting: /usr/bin/rustfs  /data
-RustFS Http API: http://172.17.0.2:9000  http://127.0.0.1:9000
-RustFS Start Time: 2026-02-27 17:14:41
-Console WebUI Start Time: 2026-02-27 17:14:41
-Console WebUI available at: http://172.17.0.2:9001/rustfs/console/index.html
-Console WebUI (localhost): http://127.0.0.1:9001/rustfs/console/index.html
-RustFS server version: refs/tags/1.0.0-alpha.82 started successfully at [::]:9000, current time: 2026-02-27T17:14:41.587088569Z[Etc/Unknown]
+$ ./dev-tools/rustfs.sh
++ mkdir -p .rustfs/data
++ cd .rustfs
++ ./rustfs --address 192.168.56.1:9000 --console-address 192.168.56.1:9001 data
+(...)
+RustFS server version: refs/tags/v0.0.24 started successfully at 192.168.56.1:9000, current time: 2026-02-28T08:47:43.329105831+00:00[UTC]
 ```
