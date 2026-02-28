@@ -14,6 +14,11 @@ SHA256SUM="b3fbf4e0dbdede70fc774719509181229f747d987571815de1f7163d511b1d9f"
 set -e -o pipefail
 cd "$(dirname "$0")"
 
+set -x
+mkdir -p .rustfs/data
+cd .rustfs
+{ set +x; } 2>/dev/null
+
 if [ ! -f rustfs ]; then
   set -x
   curl -LO https://github.com/rustfs/rustfs/releases/download/${VERSION}/rustfs-linux-x86_64-gnu-v${VERSION}.zip
@@ -22,10 +27,6 @@ if [ ! -f rustfs ]; then
   rm rustfs-linux-x86_64-gnu-v${VERSION}.zip
   { set +x; } 2>/dev/null
 fi
-
-set -x
-mkdir -p data
-{ set +x; } 2>/dev/null
 
 set +e
 
