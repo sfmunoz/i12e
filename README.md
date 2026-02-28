@@ -4,9 +4,8 @@
 
 ## Modules
 
+- [dev-tools](dev-tools/README.md)
 - [os](os/README.md)
-- [dhcpd](dhcpd/README.md)
-- [fileserver](fileserver/README.md)
 
 ## Guidelines
 

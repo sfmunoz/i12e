@@ -1,5 +1,4 @@
 bin
 build
 *.enc.yaml
-fileserver/data
-fileserver/logs
+dev-tools/.rustfs
