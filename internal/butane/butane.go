@@ -86,14 +86,12 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	data := struct {
 		IgnitionConfigMergeSource *bytes.Buffer
 		I12eVersion               string
-		I12eSha256sum             string
 		Mode                      string
 		SshAuthorizedKeys         []string
 		RcloneConf                *bytes.Buffer
 	}{
 		IgnitionConfigMergeSource: icms,
 		I12eVersion:               b.cfg.I12e.Version,
-		I12eSha256sum:             b.cfg.I12e.Sha256sum,
 		Mode:                      b.cfg.Butane.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.Butane.SshAuthorizedKeys,
 		RcloneConf:                rcloneConf,

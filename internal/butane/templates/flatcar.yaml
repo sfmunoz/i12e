@@ -19,7 +19,7 @@ systemd:
       Type=simple
       Restart=always
       RestartSec=5s
-      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; echo "{{ .I12eSha256sum }}  /etc/extensions/i12e-flatcar.raw" | sha256sum -c'
+      ExecStartPre=/bin/sh -c 'set -e -x -o pipefail ; cd /etc/extensions ; sha256sum -c /etc/i12e/i12e-flatcar.raw.sha256'
       ExecStart=/usr/bin/i12e server
       [Install]
       WantedBy=multi-user.target
@@ -43,6 +43,15 @@ storage:
     contents:
       inline: |
         {{ .Mode }}
+  - path: /etc/i12e/i12e-flatcar.raw.sha256
+    overwrite: true
+    mode: 0600
+    user:
+      name: root
+    group:
+      name: root
+    contents:
+      source: https://github.com/sfmunoz/i12e/releases/download/{{ .I12eVersion }}/i12e-flatcar.raw.sha256
   - path: /etc/extensions/i12e-flatcar.raw
     overwrite: true
     mode: 0644

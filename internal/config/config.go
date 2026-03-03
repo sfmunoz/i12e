@@ -37,8 +37,7 @@ type ServerConfig struct {
 }
 
 type i12e struct {
-	Version   string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
-	Sha256sum string `mapstructure:"sha256sum" validate:"sha256"`
+	Version string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
 }
 
 type artifact struct {
