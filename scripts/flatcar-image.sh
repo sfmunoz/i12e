@@ -42,12 +42,15 @@ cp /usr/bin/tmux "${ROOTFS}/usr/bin/tmux"
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* "${ROOTFS}/usr/lib64"
 mksquashfs "${ROOTFS}" "${DIST}/${FLATCAR_RAW}" -noappend -comp zstd -all-root
 
-(cd "${DIST}" && sha256sum "${FLATCAR_RAW}") >>"${DIST}/${CHECKSUMS_TXT}"
+FLATCAR_RAW_SHA256="$(cd "${DIST}" && sha256sum "${FLATCAR_RAW}")"
+
+echo "${FLATCAR_RAW_SHA256}" >>"${DIST}/${CHECKSUMS_TXT}"
+echo "${FLATCAR_RAW_SHA256}" >"${DIST}/${FLATCAR_RAW}.sha256"
 
 [ "$GITHUB_TOKEN" = "" ] && exit 0 # don't upload in local environment
 
 gh release upload "${TAG}" "${DIST}/${CHECKSUMS_TXT}" --clobber
-gh release upload "${TAG}" "${DIST}/${FLATCAR_RAW}"
+gh release upload "${TAG}" "${DIST}/${FLATCAR_RAW}" "${DIST}/${FLATCAR_RAW}.sha256"
 
 git tag -l --format='%(contents)' "$TAG" >"${REL_BODY}"
 echo >>"${REL_BODY}"
