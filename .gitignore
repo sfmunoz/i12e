@@ -1,4 +1,5 @@
 bin
 build
+dist
 *.enc.yaml
 dev-tools/.rustfs
