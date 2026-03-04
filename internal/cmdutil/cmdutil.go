@@ -23,8 +23,7 @@ func logOutput(out io.ReadCloser, prefix string) {
 	}
 }
 
-func RunCmd(name string, arg ...string) error {
-	cmd := exec.Command(name, arg...)
+func RunCmd(cmd *exec.Cmd) error {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return err
