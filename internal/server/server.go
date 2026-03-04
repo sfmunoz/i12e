@@ -24,6 +24,10 @@ func (s *Server) run() error {
 	i := 0
 	for {
 		log.Info("i12e running...")
+		if err := rclonePull(); err != nil {
+			log.Error("rclonePull() failed", "err", err)
+			continue
+		}
 		if err := mesh.Run(s.cfg); err != nil {
 			log.Error("mesh.Run() failed", "err", err)
 		}

@@ -3,6 +3,7 @@ package pull
 import (
 	_ "embed"
 	"net"
+	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
@@ -25,7 +26,8 @@ func (p *Pull) run() error {
 		log.Notice("Pull.run(): network interface doesn't exist yet", "iface", iface)
 		return nil
 	}
-	if err := cmdutil.RunCmd("/bin/sh", "-c", rcloneScript); err != nil {
+	cmd := exec.Command("/bin/sh", "-c", rcloneScript)
+	if err := cmdutil.RunCmd(cmd); err != nil {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
 	}
@@ -35,7 +37,8 @@ func (p *Pull) run() error {
 	}
 	ip := nodeLocal.GetMeshIP().String()
 	log.Info("Pull.run()", "iface", iface, "ip", ip)
-	if err := cmdutil.RunCmd("/opt/libexec/i12e/artifact-tune.sh", iface, ip); err != nil {
+	cmd = exec.Command("/opt/libexec/i12e/artifact-tune.sh", iface, ip)
+	if err := cmdutil.RunCmd(cmd); err != nil {
 		log.Error("/opt/libexec/i12e/artifact-tune.sh failed", "err", err, "iface", iface, "ip", ip)
 		return err
 	}
