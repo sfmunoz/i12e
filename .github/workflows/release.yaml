@@ -3,11 +3,6 @@ name: release
 on:
   push:
     tags: ["v*"]
-  #push:
-  #  branches: ["main"]
-  #pull_request:
-  #  branches: ["main"]
-  #workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,16 +22,24 @@ jobs:
           go-version: '1.26'
           cache: true
 
-      - name: goreleaser/goreleaser-action
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: go mod download
+        run: go mod download
 
-      - name: flatcar-image
-        run: bash scripts/flatcar-image.sh
+      - name: build.sh
+        run: bash scripts/build.sh
+
+      - name: release-notes.py
+        run: |
+          set -x -e -o pipefail
+          curl -sf https://raw.githubusercontent.com/sfmunoz/github-playground/refs/tags/v0.0.29/scripts/release-notes.py | python3 - dist/notes.md
+
+      - name: gh-release-create
+        run: |
+          set -x
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --verify-tag \
+            --notes-file dist/notes.md \
+            dist/*.raw dist/*.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
