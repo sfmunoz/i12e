@@ -29,8 +29,11 @@
 [ "$FS" = "" ] && FS="squashfs"
 
 case "$FS" in
- squashfs|erofs) ;;
- *) echo "error: unsupported FS='$FS'; it must be 'squashfs' (default) or 'erofs'" ; exit 1 ;;
+squashfs | erofs) ;;
+*)
+  echo "error: unsupported FS='$FS'; it must be 'squashfs' (default) or 'erofs'"
+  exit 1
+  ;;
 esac
 
 D="build/i12e-flatcar"
@@ -46,32 +49,24 @@ go build -trimpath -buildvcs=false -ldflags="-s -w" -o build/i12e main.go
 cp build/i12e $D/usr/bin/i12e
 cp /usr/bin/{tmux,rclone} $D/usr/bin
 cp -a /usr/lib/x86_64-linux-gnu/libutempter.so* $D/usr/lib64
-cat << __EOF > $D/usr/lib/extension-release.d/extension-release.i12e-flatcar
+cat <<__EOF >$D/usr/lib/extension-release.d/extension-release.i12e-flatcar
 ID=flatcar
 SYSEXT_LEVEL=1.0
 ARCHITECTURE=x86-64
 __EOF
 { set +x; } 2>/dev/null
 case "$FS" in
-  squashfs)
-    set -x
-    mksquashfs $D $DRAW -noappend -comp zstd -all-root
-    { set +x; } 2>/dev/null
+squashfs)
+  set -x
+  mksquashfs $D $DRAW -noappend -comp zstd -all-root
+  { set +x; } 2>/dev/null
   ;;
-  erofs)
-    set -x
-    mkfs.erofs --all-root -z lz4hc $DRAW $D
-    { set +x; } 2>/dev/null
+erofs)
+  set -x
+  mkfs.erofs --all-root -z lz4hc $DRAW $D
+  { set +x; } 2>/dev/null
   ;;
 esac
 set -x
 ls -l $DRAW
 sha256sum $DRAW
-[ "$I12E_TARGET" = "" ] && exit 0
-ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
-ssh "core@${I12E_TARGET}" "sudo systemd-sysext unmerge"
-ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
-ssh "core@${I12E_TARGET}" "sudo rm -fv /etc/extensions/i12e-flatcar.raw"
-ssh "core@${I12E_TARGET}" "sudo bash -c 'cat > /etc/extensions/i12e-flatcar.raw'" < $DRAW
-ssh "core@${I12E_TARGET}" "sudo systemd-sysext refresh"
-ssh "core@${I12E_TARGET}" "sudo systemd-sysext status"
