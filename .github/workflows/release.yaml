@@ -28,10 +28,10 @@ jobs:
       - name: build.sh
         run: bash scripts/build.sh
 
-      - name: release-notes.py
-        run: |
-          set -x -e -o pipefail
-          curl -sf https://raw.githubusercontent.com/sfmunoz/github-playground/refs/tags/v0.0.29/scripts/release-notes.py | python3 - dist/notes.md
+      - name: release-notes
+        uses: sfmunoz/actions/release-notes@v1
+        with:
+          output_file: dist/notes.md
 
       - name: gh-release-create
         run: |
@@ -40,6 +40,7 @@ jobs:
             --title "${GITHUB_REF_NAME}" \
             --verify-tag \
             --notes-file dist/notes.md \
-            dist/*.raw dist/*.sha256
+            dist/i12e-flatcar.raw \
+            dist/i12e-flatcar.raw.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
