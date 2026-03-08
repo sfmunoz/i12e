@@ -39,7 +39,8 @@ jobs:
           awk '/## Changelog/ {
             printf("Install (devel):\n```\n$ go run main.go butane | ssh core@192.168.56.51 bash\n```\n\n## Changelog\n")
             next
-          } { print }' dist/notes.md
+          } { print }' dist/notes.md > dist/notes.md.new
+          mv -v dist/notes.md.new dist/notes.md
 
       - name: gh-release-create
         run: |
