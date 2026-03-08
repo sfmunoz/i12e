@@ -33,9 +33,17 @@ jobs:
         with:
           output_file: dist/notes.md
 
+      - name: release-notes-patch
+        run: |
+          set -x -e -o pipefail
+          awk '/## Changelog/ {
+            printf("Install (devel):\n```\n$ go run main.go butane | ssh core@192.168.56.51 bash\n```\n\n## Changelog\n")
+            next
+          } { print }' dist/notes.md
+
       - name: gh-release-create
         run: |
-          set -x
+          set -x -e -o pipefail
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
             --verify-tag \
