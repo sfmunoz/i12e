@@ -8,8 +8,20 @@ import (
 	"github.com/sfmunoz/i12e/cmd"
 )
 
+var (
+	Version   = "???"
+	CommitSHA = "???"
+	BuildTime = "???"
+)
+
 // https://github.com/sfmunoz/i12e/issues/239
 func addOptBinToPath() {
+	if os.Getenv("I12E_DEBUG") == "1" {
+		println("Version .....", Version)
+		println("CommitSHA ...", CommitSHA)
+		println("BuildTime ...", BuildTime)
+		os.Exit(1)
+	}
 	sep := string(os.PathListSeparator)
 	optBin := "/opt/bin"
 	path := strings.TrimSpace(os.Getenv("PATH"))
