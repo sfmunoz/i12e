@@ -46,6 +46,7 @@ Examples:
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
 			v := viperNew()
+			v.BindPFlag("butane.version", cmd.Flags().Lookup("version"))
 			v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 			v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
 			if err := v.ReadConfig(fp); err != nil {

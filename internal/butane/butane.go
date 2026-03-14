@@ -84,8 +84,8 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 		return nil, err
 	}
 	releaseSubpath := "latest/download"
-	if b.cfg.I12e.Version != "latest" {
-		releaseSubpath = "download/" + b.cfg.I12e.Version // yes, it's the other way around
+	if b.cfg.Butane.Version != "latest" {
+		releaseSubpath = "download/" + b.cfg.Butane.Version // yes, it's the other way around
 	}
 	data := struct {
 		IgnitionConfigMergeSource *bytes.Buffer

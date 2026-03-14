@@ -48,6 +48,7 @@ type artifact struct {
 
 type butane struct {
 	SshAuthorizedKeys []string `mapstructure:"ssh_authorized_keys" validate:"gte=1,dive,gte=1"`
+	Version           string   `mapstructure:"version" validate:"gte=1"`
 	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
 	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
 }
