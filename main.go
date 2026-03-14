@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Version   = "???"
+	Version   = "latest"
 	CommitSHA = "???"
 	BuildTime = "???"
 )
