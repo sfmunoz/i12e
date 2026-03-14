@@ -67,7 +67,7 @@ Examples:
 		},
 	}
 	cmd.Flags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
-	cmd.Flags().StringP("version", "v", versionDefault, fmt.Sprintf("Set version to deploy", versionDefault))
+	cmd.Flags().StringP("version", "v", versionDefault, "Set version to deploy")
 	cmd.Flags().StringP("mode", "m", config.ModeMain.String(), fmt.Sprintf("Set target mode: %q", config.ValidModes()))
 	cmd.Flags().StringP("output", "o", config.OutputBashB64.String(), fmt.Sprintf("Set output format: %q", config.ValidOutputs()))
 	return cmd
