@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func butaneCmd() *cobra.Command {
+func butaneCmd(versionDefault string) *cobra.Command {
 	cfg := &config.ButaneConfig{}
 	cmd := &cobra.Command{
 		Use:   "butane",
@@ -67,6 +67,7 @@ Examples:
 		},
 	}
 	cmd.Flags().BoolP("prod", "p", false, "Environment: 'prod' if set (default: 'dev')")
+	cmd.Flags().StringP("version", "v", versionDefault, fmt.Sprintf("Set version to deploy", versionDefault))
 	cmd.Flags().StringP("mode", "m", config.ModeMain.String(), fmt.Sprintf("Set target mode: %q", config.ValidModes()))
 	cmd.Flags().StringP("output", "o", config.OutputBashB64.String(), fmt.Sprintf("Set output format: %q", config.ValidOutputs()))
 	return cmd

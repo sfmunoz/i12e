@@ -23,10 +23,7 @@ i12e is an infrastructure management tool for task automation:
   - butane to ignition translation`,
 		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commitSHA, buildTime),
 	}
-	flist := []func() *cobra.Command{serverCmd, artifactCmd, butaneCmd}
-	for _, f := range flist {
-		cmd.AddCommand(f())
-	}
+	cmd.AddCommand(serverCmd(), artifactCmd(), butaneCmd(version))
 	return cmd
 }
 
