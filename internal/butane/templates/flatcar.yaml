@@ -51,7 +51,7 @@ storage:
     group:
       name: root
     contents:
-      source: https://github.com/sfmunoz/i12e/releases/download/{{ .I12eVersion }}/i12e-flatcar.raw.sha256
+      source: https://github.com/sfmunoz/i12e/releases/{{ .ReleaseSubpath }}/i12e-flatcar.raw.sha256
   - path: /etc/extensions/i12e-flatcar.raw
     overwrite: true
     mode: 0644
@@ -60,7 +60,7 @@ storage:
     group:
       name: root
     contents:
-      source: https://github.com/sfmunoz/i12e/releases/download/{{ .I12eVersion }}/i12e-flatcar.raw
+      source: https://github.com/sfmunoz/i12e/releases/{{ .ReleaseSubpath }}/i12e-flatcar.raw
   - path: /root/.config/rclone/rclone.conf
     overwrite: true
     mode: 0600
