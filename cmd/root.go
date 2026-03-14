@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func rootCmd() *cobra.Command {
+func rootCmd(version, commitSHA, buildTime string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "i12e",
 		Short: "infrastructure management tool",
@@ -21,16 +21,14 @@ i12e is an infrastructure management tool for task automation:
 
   - artifact generation
   - butane to ignition translation`,
+		Version: fmt.Sprintf("%s (commit: %s, built: %s)", version, commitSHA, buildTime),
 	}
-	flist := []func() *cobra.Command{serverCmd, artifactCmd, butaneCmd}
-	for _, f := range flist {
-		cmd.AddCommand(f())
-	}
+	cmd.AddCommand(serverCmd(), artifactCmd(), butaneCmd(version))
 	return cmd
 }
 
-func Execute() {
-	err := rootCmd().Execute()
+func Execute(version, commitSHA, buildTime string) {
+	err := rootCmd(version, commitSHA, buildTime).Execute()
 	if err != nil {
 		os.Exit(1)
 	}

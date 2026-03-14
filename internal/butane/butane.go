@@ -83,15 +83,19 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
+	releaseSubpath := "latest/download"
+	if b.cfg.Butane.Version != "latest" {
+		releaseSubpath = "download/" + b.cfg.Butane.Version // yes, it's the other way around
+	}
 	data := struct {
 		IgnitionConfigMergeSource *bytes.Buffer
-		I12eVersion               string
+		ReleaseSubpath            string
 		Mode                      string
 		SshAuthorizedKeys         []string
 		RcloneConf                *bytes.Buffer
 	}{
 		IgnitionConfigMergeSource: icms,
-		I12eVersion:               b.cfg.I12e.Version,
+		ReleaseSubpath:            releaseSubpath,
 		Mode:                      b.cfg.Butane.Mode.String(),
 		SshAuthorizedKeys:         b.cfg.Butane.SshAuthorizedKeys,
 		RcloneConf:                rcloneConf,

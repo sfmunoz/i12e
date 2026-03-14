@@ -8,6 +8,12 @@ import (
 	"github.com/sfmunoz/i12e/cmd"
 )
 
+var (
+	Version   = "latest"
+	CommitSHA = "???"
+	BuildTime = "???"
+)
+
 // https://github.com/sfmunoz/i12e/issues/239
 func addOptBinToPath() {
 	sep := string(os.PathListSeparator)
@@ -28,5 +34,5 @@ func addOptBinToPath() {
 
 func main() {
 	addOptBinToPath()
-	cmd.Execute()
+	cmd.Execute(Version, CommitSHA, BuildTime)
 }

@@ -8,11 +8,20 @@ APP_NAME="i12e"
 FLATCAR_EXT="${APP_NAME}-flatcar"
 FLATCAR_EXT_RAW="${FLATCAR_EXT}.raw"
 
+VERSION="${GITHUB_REF_NAME}"
+COMMIT_SHA="${GITHUB_SHA:0:7}"
+BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
 set -x
 
 rm -rf "${DIST}"
 go test -v ./...
-go build -trimpath -buildvcs=false -ldflags="-s -w" -o "${DIST}/${APP_NAME}" main.go
+go build \
+  -trimpath \
+  -buildvcs=false \
+  -ldflags="-s -w -X main.Version=\"${VERSION}\" -X main.CommitSHA=\"${COMMIT_SHA}\" -X main.BuildTime=\"${BUILD_TIME}\"" \
+  -o "${DIST}/${APP_NAME}" \
+  main.go
 mkdir -p "${ROOTFS}/usr/bin" "${ROOTFS}/usr/lib/extension-release.d" "${ROOTFS}/usr/lib64"
 cp "${DIST}/${APP_NAME}" "${ROOTFS}/usr/bin/${APP_NAME}"
 cat <<__EOF >"${ROOTFS}/usr/lib/extension-release.d/extension-release.${FLATCAR_EXT}"
