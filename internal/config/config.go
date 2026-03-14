@@ -25,7 +25,7 @@ type ArtifactConfig struct {
 type ButaneConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Butane *butane `mapstructure:"butane" validate:"required"`
-	I12e   *i12e   `mapstructure:"i12e" validate:"required"`
+	// I12e   *i12e   `mapstructure:"i12e" validate:"required"`
 	Rclone *rclone `mapstructure:"rclone" validate:"required"`
 }
 
@@ -36,9 +36,9 @@ type ServerConfig struct {
 	Mesh   *mesh   `mapstructure:"mesh" validate:"required"`
 }
 
-type i12e struct {
-	Version string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
-}
+// type i12e struct {
+// 	Version string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
+// }
 
 type artifact struct {
 	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
