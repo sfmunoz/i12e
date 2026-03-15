@@ -14,7 +14,7 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 //go:embed static/artifact-pull.sh
-var rcloneScript string
+var artifactPullSh string
 
 type Pull struct {
 	cfg *config.ServerConfig
@@ -26,7 +26,7 @@ func (p *Pull) run() error {
 		log.Notice("Pull.run(): network interface doesn't exist yet", "iface", iface)
 		return nil
 	}
-	cmd := exec.Command("/bin/sh", "-c", rcloneScript)
+	cmd := exec.Command("/bin/sh", "-c", artifactPullSh)
 	if err := cmdutil.RunCmd(cmd); err != nil {
 		log.Error("Pull.run(): rcloneScript failed", "err", err)
 		return err
