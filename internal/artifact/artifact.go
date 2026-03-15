@@ -317,6 +317,13 @@ func (a *Artifact) optLibexecI12eArtifactTuneSh() error {
 	return nil
 }
 
+func (a *Artifact) optLibexecI12eK3sInstallSh() error {
+	if err := a.addStatic("static/k3s-install.sh", "opt/libexec/i12e/k3s-install.sh", 0755); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 	if err := a.addEmpty("etc/i12e/flags/artifact-pulled", 0600); err != nil {
 		return err
@@ -378,6 +385,7 @@ func (a *Artifact) run() error {
 		a.etcWireguard,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
+		a.optLibexecI12eK3sInstallSh,
 		a.etcI12eFlagsArtifactPulled,
 	}
 	for _, f := range funcList {
