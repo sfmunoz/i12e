@@ -61,7 +61,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/k3s", Mode: 0700},
 		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
-		{Name: "etc/wireguard", Mode: 0600}, // it's ok and harmless: it already exists like this
+		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
 		{Name: "opt/libexec", Mode: 0755},
 		{Name: "opt/libexec/i12e", Mode: 0755},
 	}
