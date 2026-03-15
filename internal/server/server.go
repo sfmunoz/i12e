@@ -6,7 +6,6 @@ import (
 
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/i12e/internal/mesh"
-	"github.com/sfmunoz/i12e/internal/pull"
 	"github.com/sfmunoz/logit"
 )
 
@@ -28,8 +27,8 @@ func (s *Server) runOne() {
 	if err := mesh.Run(s.cfg); err != nil {
 		log.Error("mesh.Run() failed", "err", err)
 	}
-	if err := pull.Run(s.cfg); err != nil {
-		log.Error("pull.Run() failed", "err", err)
+	if err := artifactPull(s.cfg); err != nil {
+		log.Error("artifactPull() failed", "err", err)
 	}
 }
 
