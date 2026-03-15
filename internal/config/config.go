@@ -20,6 +20,7 @@ type ArtifactConfig struct {
 	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
 	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
 	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
+	WgConf   []string  `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {

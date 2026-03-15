@@ -61,6 +61,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/k3s", Mode: 0700},
 		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
+		{Name: "etc/wireguard", Mode: 0600}, // it's ok and harmless: it already exists like this
 		{Name: "opt/libexec", Mode: 0755},
 		{Name: "opt/libexec/i12e", Mode: 0755},
 	}
@@ -273,6 +274,35 @@ func (a *Artifact) etcRancherK3sConfigYaml() error {
 	return nil
 }
 
+func (a *Artifact) etcWireguard() error {
+	if len(a.cfg.WgConf) < 1 {
+		log.Info("skipping: undefined 'wg_conf' array")
+		return nil
+	}
+	for i, v := range a.cfg.WgConf {
+		targetName := fmt.Sprintf("etc/wireguard/wg%d.conf", i)
+		body := []byte(v + "\n")
+		hdr := &tar.Header{
+			Typeflag: tar.TypeReg,
+			Name:     targetName,
+			ModTime:  a.tnow,
+			Size:     int64(len(body)),
+			Mode:     0600,
+			Uid:      0,
+			Gid:      0,
+			Uname:    "root",
+			Gname:    "root",
+		}
+		if err := a.tarOut.WriteHeader(hdr); err != nil {
+			return err
+		}
+		if _, err := a.tarOut.Write(body); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (a *Artifact) optBinE() error {
 	if err := a.addStatic("static/opt-bin-e", "opt/bin/e", 0755); err != nil {
 		return err
@@ -345,6 +375,7 @@ func (a *Artifact) run() error {
 		a.etcSystemdSystemK3sServiceDOverrideConf,
 		a.etcSystemdSystemNftablesService,
 		a.etcRancherK3sConfigYaml,
+		a.etcWireguard,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
 		a.etcI12eFlagsArtifactPulled,
