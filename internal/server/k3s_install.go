@@ -21,7 +21,6 @@ func k3sInstall(cfg *config.ServerConfig) error {
 		return err
 	}
 	ip := nodeLocal.GetMeshIP().String()
-	log.Info("k3sInstall()", "iface", iface, "ip", ip)
 	cmd := exec.Command("/opt/libexec/i12e/k3s-install.sh", iface, ip)
 	if err := cmdutil.RunCmd(cmd); err != nil {
 		log.Error("/opt/libexec/i12e/k3s-install.sh failed", "err", err, "iface", iface, "ip", ip)
