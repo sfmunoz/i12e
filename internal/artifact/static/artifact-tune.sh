@@ -35,4 +35,4 @@ function artifact_tune {
   touch "$FLAG_FILE"
   { set +x; } 2>/dev/null
 }
-artifact_tune "$1" "$2"
+artifact_tune
