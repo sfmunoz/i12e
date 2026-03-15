@@ -24,14 +24,14 @@ func (s *Server) runOne() {
 		log.Error("rclonePull() failed", "err", err)
 		return
 	}
-	if err := mesh.Run(s.cfg); err != nil {
-		log.Error("mesh.Run() failed", "err", err)
-	}
 	if err := artifactPull(); err != nil {
 		log.Error("artifactPull() failed", "err", err)
 	}
 	if err := artifactTune(); err != nil {
 		log.Error("artifactTune() failed", "err", err)
+	}
+	if err := mesh.Run(s.cfg); err != nil {
+		log.Error("mesh.Run() failed", "err", err)
 	}
 	if err := k3sInstall(s.cfg); err != nil {
 		log.Error("k3sInstall() failed", "err", err)
