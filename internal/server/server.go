@@ -30,6 +30,9 @@ func (s *Server) runOne() {
 	if err := artifactPull(s.cfg); err != nil {
 		log.Error("artifactPull() failed", "err", err)
 	}
+	if err := k3sInstall(s.cfg); err != nil {
+		log.Error("k3sInstall() failed", "err", err)
+	}
 }
 
 func (s *Server) run() error {
