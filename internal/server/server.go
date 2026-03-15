@@ -26,15 +26,19 @@ func (s *Server) runOne() {
 	}
 	if err := artifactPull(); err != nil {
 		log.Error("artifactPull() failed", "err", err)
+		return
 	}
 	if err := artifactTune(); err != nil {
 		log.Error("artifactTune() failed", "err", err)
+		return
 	}
 	if err := mesh.Run(s.cfg); err != nil {
 		log.Error("mesh.Run() failed", "err", err)
+		return
 	}
 	if err := k3sInstall(s.cfg); err != nil {
 		log.Error("k3sInstall() failed", "err", err)
+		return
 	}
 }
 
