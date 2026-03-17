@@ -7,5 +7,5 @@ metadata:
   namespace: kube-system
 spec:
   chart: oci://ghcr.io/sfmunoz/postgres-rclone
-  targetNamespace: {{ .Namespace | quote }}
+  targetNamespace: "{{ .Namespace }}"
   createNamespace: true
