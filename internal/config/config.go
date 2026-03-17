@@ -59,9 +59,13 @@ type server struct {
 	SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
 }
 
+type postgresRclone struct {
+	Version string `mapstructure:"version" validate:"i12e_semver_v"`
+}
+
 type k3s struct {
-	TlsSan                 string `mapstructure:"tls_san" validate:"gte=1"`
-	PostgresRcloneVersion  string `mapstructure:"postgres_rclone_version" validate:"i12e_semver_v"`
+	TlsSan         string          `mapstructure:"tls_san" validate:"gte=1"`
+	PostgresRclone *postgresRclone `mapstructure:"postgres_rclone" validate:"required"`
 }
 
 type rclone struct {

@@ -238,7 +238,7 @@ func (a *Artifact) etcI12eK3sPostgresRcloneYaml() error {
 		Version   string
 	}{
 		Namespace: a.cfg.Env.String(),
-		Version:   a.cfg.K3s.PostgresRcloneVersion,
+		Version:   a.cfg.K3s.PostgresRclone.Version,
 	}
 	return a.addTemplate("postgres-rclone.yaml", "etc/i12e/k3s/postgres-rclone.yaml", 0600, &data)
 }
