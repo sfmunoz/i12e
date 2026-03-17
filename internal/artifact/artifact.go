@@ -233,7 +233,13 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 }
 
 func (a *Artifact) etcI12eK3sPostgresRcloneYaml() error {
-	data := struct{ Namespace string }{Namespace: a.cfg.Env.String()}
+	data := struct {
+		Namespace string
+		Version   string
+	}{
+		Namespace: a.cfg.Env.String(),
+		Version:   a.cfg.K3s.PostgresRcloneVersion,
+	}
 	return a.addTemplate("postgres-rclone.yaml", "etc/i12e/k3s/postgres-rclone.yaml", 0600, &data)
 }
 

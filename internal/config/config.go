@@ -60,7 +60,8 @@ type server struct {
 }
 
 type k3s struct {
-	TlsSan string `mapstructure:"tls_san" validate:"gte=1"`
+	TlsSan                 string `mapstructure:"tls_san" validate:"gte=1"`
+	PostgresRcloneVersion  string `mapstructure:"postgres_rclone_version" validate:"i12e_semver_v"`
 }
 
 type rclone struct {
