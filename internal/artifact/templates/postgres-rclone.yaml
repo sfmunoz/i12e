@@ -1,0 +1,11 @@
+# https://docs.k3s.io/add-ons/helm
+# https://docs.k3s.io/installation/packaged-components
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: postgres-rclone
+  namespace: kube-system
+spec:
+  chart: oci://ghcr.io/sfmunoz/postgres-rclone
+  targetNamespace: {{ .Namespace | quote }}
+  createNamespace: true
