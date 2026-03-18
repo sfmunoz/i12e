@@ -232,17 +232,6 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 	return nil
 }
 
-func (a *Artifact) etcI12eK3sPostgresRcloneYaml() error {
-	data := struct {
-		Namespace string
-		Version   string
-	}{
-		Namespace: a.cfg.Env.String(),
-		Version:   a.cfg.Artifact.PostgresRclone.Version,
-	}
-	return a.addTemplate("postgres-rclone.yaml", "etc/i12e/k3s/postgres-rclone.yaml", 0600, &data)
-}
-
 func (a *Artifact) etcNftablesConf() error {
 	data := struct {
 		PortKnocking []int
@@ -388,7 +377,6 @@ func (a *Artifact) run() error {
 		a.etcI12eIfaceTxt,
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
-		a.etcI12eK3sPostgresRcloneYaml,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,

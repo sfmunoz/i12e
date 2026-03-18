@@ -42,10 +42,9 @@ type ServerConfig struct {
 // }
 
 type artifact struct {
-	PortKnocking   []int           `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
-	K3sToken       string          `mapstructure:"k3s_token" validate:"gte=20"`
-	K3sAgentToken  string          `mapstructure:"k3s_agent_token" validate:"gte=20"`
-	PostgresRclone *postgresRclone `mapstructure:"postgres_rclone" validate:"required"`
+	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
+	K3sToken      string `mapstructure:"k3s_token" validate:"gte=20"`
+	K3sAgentToken string `mapstructure:"k3s_agent_token" validate:"gte=20"`
 }
 
 type butane struct {
@@ -58,10 +57,6 @@ type butane struct {
 type server struct {
 	SlumberBase   time.Duration `mapstructure:"slumber_base" validate:"gte=10s"`
 	SlumberJitter time.Duration `mapstructure:"slumber_jitter" validate:"gte=1s"`
-}
-
-type postgresRclone struct {
-	Version string `mapstructure:"version" validate:"i12e_semver_v"`
 }
 
 type k3s struct {
