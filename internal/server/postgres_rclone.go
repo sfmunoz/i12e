@@ -2,7 +2,10 @@ package server
 
 import (
 	"bytes"
+	"crypto/sha256"
 	_ "embed"
+	"fmt"
+	"os"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/tplutil"
@@ -45,6 +48,22 @@ func postgresRclone() error {
 	if err != nil {
 		return err
 	}
-	println(body.String())
+	const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
+	bufNew := body.Bytes()
+	sumNew := sha256.Sum256(bufNew)
+	bufOld, err := os.ReadFile(destPath)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil && sha256.Sum256(bufOld) == sumNew {
+		return nil
+	}
+	log.Info("updating manifest", "destPath", destPath)
+	if err := os.WriteFile(destPath, bufNew, 0600); err != nil {
+		return err
+	}
+	if err := os.Chown(destPath, 0, 0); err != nil {
+		return fmt.Errorf("chown %s: %w", destPath, err)
+	}
 	return nil
 }
