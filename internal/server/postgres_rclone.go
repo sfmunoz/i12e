@@ -15,7 +15,8 @@ import (
 //go:embed templates/postgres-rclone.yaml
 var postgresRcloneYaml string
 
-const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
+const manifestsFolder = "/var/lib/rancher/k3s/server/manifests"
+const postgresRcloneYamlPath = manifestsFolder + "/postgres-rclone.yaml"
 
 const rcloneConfPath = "/root/.config/rclone/rclone.conf"
 
@@ -31,6 +32,9 @@ func removeBlankLines(s string) string {
 }
 
 func postgresRclone() error {
+	if _, err := os.Stat(manifestsFolder); os.IsNotExist(err) {
+		return nil
+	}
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
 	if err != nil {
 		return err
@@ -57,19 +61,19 @@ func postgresRclone() error {
 	}
 	bufNew := body.Bytes()
 	sumNew := sha256.Sum256(bufNew)
-	bufOld, err := os.ReadFile(destPath)
+	bufOld, err := os.ReadFile(postgresRcloneYamlPath)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	if err == nil && sha256.Sum256(bufOld) == sumNew {
 		return nil
 	}
-	log.Info("updating manifest", "destPath", destPath)
-	if err := os.WriteFile(destPath, bufNew, 0600); err != nil {
+	log.Info("updating manifest", "destPath", postgresRcloneYamlPath)
+	if err := os.WriteFile(postgresRcloneYamlPath, bufNew, 0600); err != nil {
 		return err
 	}
-	if err := os.Chown(destPath, 0, 0); err != nil {
-		return fmt.Errorf("chown %s: %w", destPath, err)
+	if err := os.Chown(postgresRcloneYamlPath, 0, 0); err != nil {
+		return fmt.Errorf("chown %s: %w", postgresRcloneYamlPath, err)
 	}
 	return nil
 }
