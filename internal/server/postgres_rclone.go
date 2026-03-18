@@ -19,6 +19,17 @@ const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
 
 const rcloneConfPath = "/root/.config/rclone/rclone.conf"
 
+func removeBlankLines(s string) string {
+	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
+	filtered := lines[:0]
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			filtered = append(filtered, line)
+		}
+	}
+	return strings.Join(filtered, "\n")
+}
+
 func postgresRclone() error {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
 	if err != nil {
@@ -36,7 +47,7 @@ func postgresRclone() error {
 	}{
 		Version:          "0.0.4",
 		Namespace:        "i12e",
-		RcloneConf:       bytes.NewBufferString(strings.TrimRight(string(rcloneConf), "\n")),
+		RcloneConf:       bytes.NewBufferString(removeBlankLines(string(rcloneConf))),
 		PostgresPassword: "changeme_now",
 	}
 	var body bytes.Buffer
