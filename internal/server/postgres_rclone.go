@@ -31,7 +31,7 @@ func removeBlankLines(s string) string {
 	return strings.Join(filtered, "\n")
 }
 
-func postgresRcloneYamlRender() ([]byte, error) {
+func postgresRcloneYamlRender() (*bytes.Buffer, error) {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
 	if err != nil {
 		return nil, err
@@ -55,11 +55,11 @@ func postgresRcloneYamlRender() ([]byte, error) {
 	if err = tpl.Execute(&body, data); err != nil {
 		return nil, err
 	}
-	return body.Bytes(), nil
+	return &body, nil
 }
 
-func postgresRcloneYamlWrite(bufNew []byte) error {
-	sumNew := sha256.Sum256(bufNew)
+func postgresRcloneYamlWrite(bufNew *bytes.Buffer) error {
+	sumNew := sha256.Sum256(bufNew.Bytes())
 	bufOld, err := os.ReadFile(postgresRcloneYamlPath)
 	if err != nil && !os.IsNotExist(err) {
 		return err
@@ -72,7 +72,7 @@ func postgresRcloneYamlWrite(bufNew []byte) error {
 	} else {
 		log.Info("updating manifest", "destPath", postgresRcloneYamlPath)
 	}
-	if err := os.WriteFile(postgresRcloneYamlPath, bufNew, 0600); err != nil {
+	if err := os.WriteFile(postgresRcloneYamlPath, bufNew.Bytes(), 0600); err != nil {
 		return err
 	}
 	if err := os.Chown(postgresRcloneYamlPath, 0, 0); err != nil {
