@@ -19,38 +19,25 @@ const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
 
 const rcloneConfPath = "/root/.config/rclone/rclone.conf"
 
-func buildValuesContent() (string, error) {
-	rcloneConf, err := os.ReadFile(rcloneConfPath)
-	if err != nil {
-		return "", fmt.Errorf("read %s: %w", rcloneConfPath, err)
-	}
-	lines := strings.Split(strings.TrimRight(string(rcloneConf), "\n"), "\n")
-	var indented strings.Builder
-	for _, line := range lines {
-		indented.WriteString("    ")
-		indented.WriteString(line)
-		indented.WriteByte('\n')
-	}
-	return "rclone:\n  conf: |\n" + indented.String() + "  postgres:\n    password: changeme_now", nil
-}
-
 func postgresRclone() error {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
 	if err != nil {
 		return err
 	}
-	valuesContent, err := buildValuesContent()
+	rcloneConf, err := os.ReadFile(rcloneConfPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("read %s: %w", rcloneConfPath, err)
 	}
 	data := struct {
-		Version       string
-		Namespace     string
-		ValuesContent *bytes.Buffer
+		Version          string
+		Namespace        string
+		RcloneConf       *bytes.Buffer
+		PostgresPassword string
 	}{
-		Version:       "0.0.4",
-		Namespace:     "i12e",
-		ValuesContent: bytes.NewBufferString(valuesContent),
+		Version:          "0.0.4",
+		Namespace:        "i12e",
+		RcloneConf:       bytes.NewBufferString(strings.TrimRight(string(rcloneConf), "\n")),
+		PostgresPassword: "changeme_now",
 	}
 	var body bytes.Buffer
 	err = tpl.Execute(&body, data)
