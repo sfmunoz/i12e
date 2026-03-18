@@ -31,17 +31,14 @@ func removeBlankLines(s string) string {
 	return strings.Join(filtered, "\n")
 }
 
-func postgresRclone() error {
-	if _, err := os.Stat(manifestsFolder); os.IsNotExist(err) {
-		return nil
-	}
+func postgresRcloneYamlRender() ([]byte, error) {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rcloneConf, err := os.ReadFile(rcloneConfPath)
 	if err != nil {
-		return fmt.Errorf("read %s: %w", rcloneConfPath, err)
+		return nil, fmt.Errorf("read %s: %w", rcloneConfPath, err)
 	}
 	data := struct {
 		Version          string
@@ -55,11 +52,13 @@ func postgresRclone() error {
 		PostgresPassword: "changeme_now",
 	}
 	var body bytes.Buffer
-	err = tpl.Execute(&body, data)
-	if err != nil {
-		return err
+	if err = tpl.Execute(&body, data); err != nil {
+		return nil, err
 	}
-	bufNew := body.Bytes()
+	return body.Bytes(), nil
+}
+
+func postgresRcloneYamlWrite(bufNew []byte) error {
 	sumNew := sha256.Sum256(bufNew)
 	bufOld, err := os.ReadFile(postgresRcloneYamlPath)
 	if err != nil && !os.IsNotExist(err) {
@@ -76,4 +75,15 @@ func postgresRclone() error {
 		return fmt.Errorf("chown %s: %w", postgresRcloneYamlPath, err)
 	}
 	return nil
+}
+
+func postgresRclone() error {
+	if _, err := os.Stat(manifestsFolder); os.IsNotExist(err) {
+		return nil
+	}
+	bufNew, err := postgresRcloneYamlRender()
+	if err != nil {
+		return err
+	}
+	return postgresRcloneYamlWrite(bufNew)
 }
