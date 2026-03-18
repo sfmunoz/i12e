@@ -67,7 +67,11 @@ func postgresRcloneYamlWrite(bufNew []byte) error {
 	if err == nil && sha256.Sum256(bufOld) == sumNew {
 		return nil
 	}
-	log.Info("updating manifest", "destPath", postgresRcloneYamlPath)
+	if err != nil {
+		log.Info("creating manifest", "destPath", postgresRcloneYamlPath)
+	} else {
+		log.Info("updating manifest", "destPath", postgresRcloneYamlPath)
+	}
 	if err := os.WriteFile(postgresRcloneYamlPath, bufNew, 0600); err != nil {
 		return err
 	}
