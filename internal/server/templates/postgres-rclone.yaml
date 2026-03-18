@@ -10,11 +10,15 @@ spec:
   version: "{{ .Version }}"
   targetNamespace: "{{ .Namespace }}"
   createNamespace: true
-  {{- if .RcloneConf }}
+  {{- if or .RcloneConf .PostgresPassword }}
   valuesContent: |-
     rclone:
+      {{- if .RcloneConf }}
       conf: |
         {{- .RcloneConf | nindent 8 }}
+      {{- end }}
+      {{- if .PostgresPassword }}
       postgres:
         password: {{ .PostgresPassword }}
+      {{- end }}
   {{- end }}
