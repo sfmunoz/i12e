@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/tplutil"
@@ -14,23 +15,31 @@ import (
 //go:embed templates/postgres-rclone.yaml
 var postgresRcloneYaml string
 
-const valuesContent = `rclone:
-  conf: |
-    [rem]
-    remote = rustfs:d01
-    type = alias
-    [rustfs]
-    acl = private
-    endpoint = http://192.168.56.1:9000
-    provider = Other
-    secret_access_key = rustfsadmin
-    type = s3
-    access_key_id = rustfsadmin
-  postgres:
-    password: changeme_now`
+const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
+
+const rcloneConfPath = "/root/.config/rclone/rclone.conf"
+
+func buildValuesContent() (string, error) {
+	rcloneConf, err := os.ReadFile(rcloneConfPath)
+	if err != nil {
+		return "", fmt.Errorf("read %s: %w", rcloneConfPath, err)
+	}
+	lines := strings.Split(strings.TrimRight(string(rcloneConf), "\n"), "\n")
+	var indented strings.Builder
+	for _, line := range lines {
+		indented.WriteString("    ")
+		indented.WriteString(line)
+		indented.WriteByte('\n')
+	}
+	return "rclone:\n  conf: |\n" + indented.String() + "  postgres:\n    password: changeme_now", nil
+}
 
 func postgresRclone() error {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
+	if err != nil {
+		return err
+	}
+	valuesContent, err := buildValuesContent()
 	if err != nil {
 		return err
 	}
@@ -48,7 +57,6 @@ func postgresRclone() error {
 	if err != nil {
 		return err
 	}
-	const destPath = "/var/lib/rancher/k3s/server/manifests/postgres-rclone.yaml"
 	bufNew := body.Bytes()
 	sumNew := sha256.Sum256(bufNew)
 	bufOld, err := os.ReadFile(destPath)
