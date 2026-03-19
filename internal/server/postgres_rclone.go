@@ -46,7 +46,7 @@ func postgresRcloneYamlRender() (*bytes.Buffer, error) {
 		RcloneConf       *bytes.Buffer
 		PostgresPassword string
 	}{
-		Version:          "0.0.4",
+		Version:          "0.0.7",
 		Namespace:        "i12e",
 		RcloneConf:       bytes.NewBufferString(removeBlankLines(string(rcloneConf))),
 		PostgresPassword: "changeme_now",
