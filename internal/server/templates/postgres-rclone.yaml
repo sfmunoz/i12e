@@ -12,13 +12,13 @@ spec:
   createNamespace: true
   {{- if or .RcloneConf .PostgresPassword }}
   valuesContent: |-
+    {{- if .RcloneConf }}
     rclone:
-      {{- if .RcloneConf }}
       conf: |
         {{- .RcloneConf | nindent 8 }}
-      {{- end }}
-      {{- if .PostgresPassword }}
-      postgres:
-        password: {{ .PostgresPassword }}
-      {{- end }}
+    {{- end }}
+    {{- if .PostgresPassword }}
+    postgres:
+      password: {{ .PostgresPassword }}
+    {{- end }}
   {{- end }}
