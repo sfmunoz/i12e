@@ -41,15 +41,13 @@ func postgresRcloneYamlRender() (*bytes.Buffer, error) {
 		return nil, fmt.Errorf("read %s: %w", rcloneConfPath, err)
 	}
 	data := struct {
-		Version          string
-		Namespace        string
-		RcloneConf       *bytes.Buffer
-		PostgresPassword string
+		Version    string
+		Namespace  string
+		RcloneConf *bytes.Buffer
 	}{
-		Version:          "0.0.7",
-		Namespace:        "i12e",
-		RcloneConf:       bytes.NewBufferString(removeBlankLines(string(rcloneConf))),
-		PostgresPassword: "changeme_now",
+		Version:    "0.0.7",
+		Namespace:  "i12e",
+		RcloneConf: bytes.NewBufferString(removeBlankLines(string(rcloneConf))),
 	}
 	var body bytes.Buffer
 	if err = tpl.Execute(&body, data); err != nil {
