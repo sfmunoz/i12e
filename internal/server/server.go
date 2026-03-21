@@ -44,6 +44,10 @@ func (s *Server) runOne() {
 		log.Error("postgresRclone() failed", "err", err)
 		return
 	}
+	if err := pluginsRun(); err != nil {
+		log.Error("pluginsRun() failed", "err", err)
+		return
+	}
 }
 
 func (s *Server) run() error {
