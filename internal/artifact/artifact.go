@@ -6,7 +6,9 @@ import (
 	"compress/gzip"
 	"crypto/sha256"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -64,6 +66,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
 		{Name: "opt/libexec", Mode: 0755},
 		{Name: "opt/libexec/i12e", Mode: 0755},
+		{Name: "opt/libexec/i12e/plugins", Mode: 0755},
 	}
 	for _, folder := range flist {
 		hdr := &tar.Header{
@@ -324,6 +327,51 @@ func (a *Artifact) optLibexecI12eK3sInstallSh() error {
 	return nil
 }
 
+func (a *Artifact) optLibexecI12ePlugins() error {
+	const pluginsDir = "plugins"
+	entries, err := os.ReadDir(pluginsDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Info("skipping: 'plugins/' folder not found")
+			return nil
+		}
+		return err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		srcPath := filepath.Join(pluginsDir, entry.Name())
+		body, err := os.ReadFile(srcPath)
+		if err != nil {
+			return err
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		targetName := "opt/libexec/i12e/plugins/" + entry.Name()
+		hdr := &tar.Header{
+			Typeflag: tar.TypeReg,
+			Name:     targetName,
+			ModTime:  a.tnow,
+			Size:     int64(len(body)),
+			Mode:     int64(info.Mode().Perm()),
+			Uid:      0,
+			Gid:      0,
+			Uname:    "root",
+			Gname:    "root",
+		}
+		if err := a.tarOut.WriteHeader(hdr); err != nil {
+			return err
+		}
+		if _, err := a.tarOut.Write(body); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 	if err := a.addEmpty("etc/i12e/flags/artifact-pulled", 0600); err != nil {
 		return err
@@ -386,6 +434,7 @@ func (a *Artifact) run() error {
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
 		a.optLibexecI12eK3sInstallSh,
+		a.optLibexecI12ePlugins,
 		a.etcI12eFlagsArtifactPulled,
 	}
 	for _, f := range funcList {
