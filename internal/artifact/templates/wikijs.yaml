@@ -1,0 +1,13 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: wikijs
+  namespace: kube-system
+spec:
+  chart: oci://ghcr.io/sfmunoz/wikijs
+  version: "0.0.1"
+  targetNamespace: "i12e"
+  createNamespace: true
+  valuesContent: |-
+    wikijs:
+      {{- .WikiJs | nindent 8 }}
