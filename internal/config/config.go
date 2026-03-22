@@ -20,8 +20,9 @@ type ArtifactConfig struct {
 	K3s      *k3s           `mapstructure:"k3s" validate:"required"`
 	Mesh     *mesh          `mapstructure:"mesh" validate:"required"`
 	Rclone   *rclone        `mapstructure:"rclone" validate:"required"`
-	WikiJs   map[string]any `mapstructure:"wikijs" validate:"required"`
-	WgConf   []string       `mapstructure:"wg_conf"`
+	WikiJs         map[string]any `mapstructure:"wikijs" validate:"required"`
+	AnkiSyncServer *ankiSyncServer `mapstructure:"anki_sync_server" validate:"required"`
+	WgConf         []string       `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
@@ -66,6 +67,17 @@ type k3s struct {
 
 type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
+}
+
+type AnkiSyncServerUser struct {
+	User string `mapstructure:"user" validate:"gte=1"`
+	Pass string `mapstructure:"pass" validate:"gte=1"`
+}
+
+type ankiSyncServer struct {
+	Version   string               `mapstructure:"version" validate:"gte=1"`
+	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
+	Hostname  string               `mapstructure:"hostname"`
 }
 
 type mesh struct {

@@ -64,6 +64,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/flags", Mode: 0700},
 		{Name: "etc/i12e/k3s", Mode: 0700},
 		{Name: "etc/i12e/wikijs", Mode: 0700},
+		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
 		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
@@ -247,6 +248,10 @@ func (a *Artifact) etcI12eWikiJs() error {
 		WikiJs: bytes.NewBuffer(bytes.TrimRight(wikiJsYaml, "\n")),
 	}
 	return a.addTemplate("wikijs.yaml", "etc/i12e/wikijs/wikijs.yaml", 0600, &data)
+}
+
+func (a *Artifact) etcI12eAnkiSyncServer() error {
+	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, a.cfg.AnkiSyncServer)
 }
 
 func (a *Artifact) etcNftablesConf() error {
@@ -440,6 +445,7 @@ func (a *Artifact) run() error {
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
 		a.etcI12eWikiJs,
+		a.etcI12eAnkiSyncServer,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,
