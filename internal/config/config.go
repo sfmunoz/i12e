@@ -20,8 +20,9 @@ type ArtifactConfig struct {
 	K3s      *k3s           `mapstructure:"k3s" validate:"required"`
 	Mesh     *mesh          `mapstructure:"mesh" validate:"required"`
 	Rclone   *rclone        `mapstructure:"rclone" validate:"required"`
-	WikiJs   map[string]any `mapstructure:"wikijs" validate:"required"`
-	WgConf   []string       `mapstructure:"wg_conf"`
+	WikiJs         map[string]any `mapstructure:"wikijs" validate:"required"`
+	AnkiSyncServer map[string]any `mapstructure:"anki_sync_server" validate:"required"`
+	WgConf         []string       `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
