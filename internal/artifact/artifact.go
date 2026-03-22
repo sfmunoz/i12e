@@ -254,9 +254,11 @@ func (a *Artifact) etcI12eAnkiSyncServer() error {
 	data := struct {
 		Version   string
 		SyncUsers []config.AnkiSyncServerUser
+		Hostname  string
 	}{
 		Version:   a.cfg.AnkiSyncServer.Version,
 		SyncUsers: a.cfg.AnkiSyncServer.SyncUsers,
+		Hostname:  a.cfg.AnkiSyncServer.Hostname,
 	}
 	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, &data)
 }

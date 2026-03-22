@@ -75,8 +75,9 @@ type AnkiSyncServerUser struct {
 }
 
 type ankiSyncServer struct {
-	Version   string                `mapstructure:"version" validate:"gte=1"`
-	SyncUsers []AnkiSyncServerUser  `mapstructure:"sync_users" validate:"gte=1"`
+	Version   string               `mapstructure:"version" validate:"gte=1"`
+	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
+	Hostname  string               `mapstructure:"hostname"`
 }
 
 type mesh struct {

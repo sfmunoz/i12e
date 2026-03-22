@@ -56,7 +56,7 @@ metadata:
   namespace: i12e
 spec:
   rules:
-  - host: anki.local
+  - host: {{ if .Hostname }}{{ .Hostname }}{{ else }}anki.local{{ end }}
     http:
       paths:
       - path: /
