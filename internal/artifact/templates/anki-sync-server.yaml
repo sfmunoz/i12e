@@ -20,11 +20,11 @@ spec:
     spec:
       containers:
       - name: anki-sync-server
-        image: ghcr.io/sfmunoz/anki-sync-server:{{ index .AnkiSyncServer "version" }}
+        image: ghcr.io/sfmunoz/anki-sync-server:{{ .Version }}
         ports:
         - containerPort: 8080
         env:
-        {{- range $i, $user := index .AnkiSyncServer "sync_users" }}
+        {{- range $i, $user := .SyncUsers }}
         - name: SYNC_USER{{ add $i 1 }}
           value: {{ $user }}
         {{- end }}

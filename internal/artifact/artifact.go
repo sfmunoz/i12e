@@ -251,8 +251,12 @@ func (a *Artifact) etcI12eWikiJs() error {
 }
 
 func (a *Artifact) etcI12eAnkiSyncServer() error {
-	data := struct{ AnkiSyncServer map[string]any }{
-		AnkiSyncServer: a.cfg.AnkiSyncServer,
+	data := struct {
+		Version   string
+		SyncUsers []string
+	}{
+		Version:   a.cfg.AnkiSyncServer.Version,
+		SyncUsers: a.cfg.AnkiSyncServer.SyncUsers,
 	}
 	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, &data)
 }

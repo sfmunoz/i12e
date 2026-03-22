@@ -21,7 +21,7 @@ type ArtifactConfig struct {
 	Mesh     *mesh          `mapstructure:"mesh" validate:"required"`
 	Rclone   *rclone        `mapstructure:"rclone" validate:"required"`
 	WikiJs         map[string]any `mapstructure:"wikijs" validate:"required"`
-	AnkiSyncServer map[string]any `mapstructure:"anki_sync_server" validate:"required"`
+	AnkiSyncServer *ankiSyncServer `mapstructure:"anki_sync_server" validate:"required"`
 	WgConf         []string       `mapstructure:"wg_conf"`
 }
 
@@ -67,6 +67,11 @@ type k3s struct {
 
 type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
+}
+
+type ankiSyncServer struct {
+	Version   string   `mapstructure:"version" validate:"gte=1"`
+	SyncUsers []string `mapstructure:"sync_users" validate:"gte=1,dive,gte=1"`
 }
 
 type mesh struct {
