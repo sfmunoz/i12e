@@ -253,7 +253,7 @@ func (a *Artifact) etcI12eWikiJs() error {
 func (a *Artifact) etcI12eAnkiSyncServer() error {
 	data := struct {
 		Version   string
-		SyncUsers []string
+		SyncUsers []config.AnkiSyncServerUser
 	}{
 		Version:   a.cfg.AnkiSyncServer.Version,
 		SyncUsers: a.cfg.AnkiSyncServer.SyncUsers,

@@ -69,9 +69,14 @@ type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
 }
 
+type AnkiSyncServerUser struct {
+	User string `mapstructure:"user" validate:"gte=1"`
+	Pass string `mapstructure:"pass" validate:"gte=1"`
+}
+
 type ankiSyncServer struct {
-	Version   string   `mapstructure:"version" validate:"gte=1"`
-	SyncUsers []string `mapstructure:"sync_users" validate:"gte=1,dive,gte=1"`
+	Version   string                `mapstructure:"version" validate:"gte=1"`
+	SyncUsers []AnkiSyncServerUser  `mapstructure:"sync_users" validate:"gte=1"`
 }
 
 type mesh struct {

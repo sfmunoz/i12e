@@ -24,9 +24,9 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        {{- range $i, $user := .SyncUsers }}
+        {{- range $i, $u := .SyncUsers }}
         - name: SYNC_USER{{ add $i 1 }}
-          value: {{ $user }}
+          value: {{ $u.User }}:{{ $u.Pass }}
         {{- end }}
         volumeMounts:
         - name: data

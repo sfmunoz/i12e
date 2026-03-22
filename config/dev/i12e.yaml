@@ -1,4 +1,7 @@
 anki_sync_server:
   version: "25.09.2-2"
   sync_users:
-    - "user1:password1"
+    - user: user1
+      pass: password1
+    - user: user2
+      pass: password2
