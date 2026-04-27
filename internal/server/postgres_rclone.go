@@ -45,7 +45,7 @@ func postgresRcloneYamlRender() (*bytes.Buffer, error) {
 		Namespace  string
 		RcloneConf *bytes.Buffer
 	}{
-		Version:    "0.0.7",
+		Version:    "0.0.8",
 		Namespace:  "i12e",
 		RcloneConf: bytes.NewBufferString(removeBlankLines(string(rcloneConf))),
 	}
