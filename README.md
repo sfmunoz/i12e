@@ -109,6 +109,12 @@ NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
 secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
 ```
 
+Update (last version):
+
+```
+$ helm plugin update secrets
+```
+
 ## I12E Artifact
 
 Help:
