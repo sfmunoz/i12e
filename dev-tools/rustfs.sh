@@ -8,8 +8,8 @@
 #     $ ./rustfs --version
 #
 
-VERSION="1.0.0-alpha.83"
-SHA256SUM="b3fbf4e0dbdede70fc774719509181229f747d987571815de1f7163d511b1d9f"
+VERSION="1.0.0-beta.11"
+SHA256SUM="ae77d173c520d523b7fd48fea93e8f8c4ad0c496b16cb47f14660677621424d5"
 
 set -e -o pipefail
 cd "$(dirname "$0")"
