@@ -227,10 +227,8 @@ Running as unit: run-rb96ef8572bb2485e9ba0e96db33005c0.service; invocation ID: 3
 
 Follow these steps to enable insecure access to [Traefik](https://traefik.io/traefik) dashboard:
 
-- **(1)** Edit **kube-system.traefik** deployment:
-  - `kubectl edit deployments.apps -n kube-system traefik`
-  - Add `--api.insecure=true` to `spec.template.spec.containers.args` (after `--api.dashboard=true` is OK)
-- **(2)** Wait until new Traefik pod is deployed using `kubectl get pods -n kube-system` to check
+- **(1)** `kubectl apply -f misc/traefik-config.yaml` → `--api.insecure=true`
+- **(2)** `kubectl get deployments.apps -n kube-system traefik -o yaml` → verify
 - **(3)** Forward traffic: `kubectl port-forward -n kube-system deployments/traefik 8080:8080`
 - **(4)** Access dashboard at http://localhost:8080/dashboard/
 
