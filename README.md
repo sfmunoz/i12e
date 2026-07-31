@@ -233,3 +233,22 @@ Follow these steps to enable insecure access to [Traefik](https://traefik.io/tra
 - **(2)** Wait until new Traefik pod is deployed using `kubectl get pods -n kube-system` to check
 - **(3)** Forward traffic: `kubectl port-forward -n kube-system deployments/traefik 8080:8080`
 - **(4)** Access dashboard at http://localhost:8080/dashboard/
+
+## TLS
+
+Temporary procedure since it will be integrated:
+
+- **(1)** `kubectl create secret tls -n i12e example.com --cert=tls.crt --key=tls.key`
+- **(2)** `kubectl get ingresses.networking.k8s.io -A` → anki-sync-server, wikijs, ...
+- **(3)** `kubectl edit ingresses.networking.k8s.io -n i12e wikijs` → add **spec.tls** block referring to the created secret:
+```yaml
+(...)
+spec:
+  tls:
+  - secretName: example.com
+    hosts:
+    - www.example.com
+  rules:
+  - host: www.example.com
+(...)
+```
