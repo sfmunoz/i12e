@@ -239,6 +239,8 @@ Follow these steps to enable insecure access to [Traefik](https://traefik.io/tra
 Temporary procedure since it will be integrated:
 
 - **(1)** `kubectl create secret tls -n i12e example.com --cert=tls.crt --key=tls.key`
+  - **tls.key**: the private key (e.g. Let's Encrypt **privkey.pem**)
+  - **tls.crt**: the full certificate chain (e.g. Let's Encrypt **fullchain.pem** instead of **cert.pem**)
 - **(2)** `kubectl get ingresses.networking.k8s.io -A` → anki-sync-server, wikijs, ...
 - **(3)** `kubectl edit ingresses.networking.k8s.io -n i12e wikijs` → add **spec.tls** block referring to the created secret:
 ```yaml
