@@ -252,7 +252,5 @@ spec:
   - host: www.example.com
 (...)
 ```
-Check for errors:
-```
-$ kubectl logs -n kube-system deployments/traefik -f
-```
+- **(4)** `kubectl describe ingresses.networking.k8s.io -n i12e wikijs` → verify "TLS: example.com terminates www.example.com"
+- **(5)** `kubectl logs -n kube-system deployments/traefik -f` → check for errors
