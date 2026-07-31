@@ -252,3 +252,7 @@ spec:
   - host: www.example.com
 (...)
 ```
+Check for errors:
+```
+$ kubectl logs -n kube-system deployments/traefik -f
+```
