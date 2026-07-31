@@ -247,13 +247,12 @@ kubectl apply -f misc/traefik-config.yaml
 
 ## TLS
 
-Temporary procedure since it will be integrated:
+Temporary procedure since it will be integrated in the project:
 
-- **(1)** `kubectl create secret tls -n i12e example.com --cert=tls.crt --key=tls.key`
-  - **tls.key**: the private key (e.g. Let's Encrypt **privkey.pem**)
-  - **tls.crt**: the full certificate chain (e.g. Let's Encrypt **fullchain.pem** instead of **cert.pem**)
-- **(2)** `kubectl get ingresses.networking.k8s.io -A` → anki-sync-server, wikijs, ...
-- **(3)** `kubectl edit ingresses.networking.k8s.io -n i12e wikijs` → add **spec.tls** block referring to the created secret:
+- **(1)** `kubectl create secret tls -n i12e example.com --key=privkey.pem --cert=fullchain.pem`
+  - **privkey.pem**: the private key (**Let's Encrypt** filename)
+  - **fullchain.pem**: the full certificate chain (**Let's Encrypt** filename, **cert.pem** is not enough)
+- **(2)** `kubectl edit ingresses.networking.k8s.io -n i12e wikijs` → add **spec.tls** block referring to the created secret:
 ```yaml
 (...)
 spec:
@@ -265,5 +264,8 @@ spec:
   - host: www.example.com
 (...)
 ```
-- **(4)** `kubectl describe ingresses.networking.k8s.io -n i12e wikijs` → verify "TLS: example.com terminates www.example.com"
-- **(5)** `kubectl logs -n kube-system deployments/traefik -f` → check for errors
+
+Inspect:
+
+- `kubectl describe ingresses.networking.k8s.io -n i12e wikijs` → verify "TLS: example.com terminates www.example.com"
+- `kubectl logs -n kube-system deployments/traefik -f` → check for errors
