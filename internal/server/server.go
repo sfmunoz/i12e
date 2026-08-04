@@ -40,6 +40,10 @@ func (s *Server) runOne() {
 		log.Error("k3sInstall() failed", "err", err)
 		return
 	}
+	if err := rcloneConf(); err != nil {
+		log.Error("rcloneConf() failed", "err", err)
+		return
+	}
 	if err := postgresRclone(); err != nil {
 		log.Error("postgresRclone() failed", "err", err)
 		return
