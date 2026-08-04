@@ -1,0 +1,10 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: csi-rclone
+  namespace: kube-system
+spec:
+  chart: oci://registry-1.docker.io/veloxpack/csi-driver-rclone-charts
+  version: "1.0.0"
+  targetNamespace: "veloxpack"
+  createNamespace: true

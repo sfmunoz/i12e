@@ -254,6 +254,13 @@ func (a *Artifact) etcI12eAnkiSyncServer() error {
 	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, a.cfg.AnkiSyncServer)
 }
 
+func (a *Artifact) etcI12eCsiRclone() error {
+	if err := a.addStatic("static/csi-rclone.yaml", "etc/i12e/csi-rclone/csi-rclone.yaml", 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) etcNftablesConf() error {
 	data := struct {
 		PortKnocking []int
@@ -446,6 +453,7 @@ func (a *Artifact) run() error {
 		a.etcI12eK3sOverrideConf,
 		a.etcI12eWikiJs,
 		a.etcI12eAnkiSyncServer,
+		a.etcI12eCsiRclone,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,
