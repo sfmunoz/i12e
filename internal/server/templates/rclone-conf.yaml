@@ -1,4 +1,3 @@
-# https://docs.k3s.io/add-ons/helm
 # https://docs.k3s.io/installation/packaged-components
 apiVersion: v1
 kind: Secret
