@@ -1,0 +1,9 @@
+# https://docs.k3s.io/installation/packaged-components
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: rclone-conf
+  namespace: "{{ .Namespace }}"
+data:
+  conf: "{{ .RcloneConf }}"
