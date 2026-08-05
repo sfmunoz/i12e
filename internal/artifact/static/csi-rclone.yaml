@@ -1,3 +1,10 @@
+#
+# https://docs.k3s.io/installation/packaged-components
+# https://docs.k3s.io/add-ons/helm
+# https://www.veloxpack.io/docs/csi-driver-rclone/install
+# https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
+#
+
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
@@ -8,3 +15,57 @@ spec:
   version: "1.0.0"
   targetNamespace: "veloxpack"
   createNamespace: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rem-multi
+provisioner: rclone.csi.veloxpack.io
+parameters:
+  remote: "rem"
+  remotePath: "${pvc.metadata.namespace}/${pvc.metadata.name}"
+  csi.storage.k8s.io/node-publish-secret-name: "rclone-conf"
+  csi.storage.k8s.io/node-publish-secret-namespace: "i12e"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web
+  namespace: i12e
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: rem-multi
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rem-fs
+provisioner: rclone.csi.veloxpack.io
+parameters:
+  remote: "rem"
+  remotePath: "fs"
+  csi.storage.k8s.io/node-publish-secret-name: "rclone-conf"
+  csi.storage.k8s.io/node-publish-secret-namespace: "i12e"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rem-fs
+  namespace: i12e
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: rem-fs
