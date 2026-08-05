@@ -1,4 +1,5 @@
 # https://docs.k3s.io/installation/packaged-components
+# https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
 apiVersion: v1
 kind: Secret
 type: Opaque
