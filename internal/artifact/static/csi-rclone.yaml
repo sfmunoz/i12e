@@ -1,3 +1,10 @@
+#
+# https://docs.k3s.io/installation/packaged-components
+# https://docs.k3s.io/add-ons/helm
+# https://www.veloxpack.io/docs/csi-driver-rclone/install
+# https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
+#
+
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
