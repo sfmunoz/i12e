@@ -6,4 +6,4 @@ metadata:
   name: rclone-conf
   namespace: "{{ .Namespace }}"
 data:
-  conf: "{{ .RcloneConf }}"
+  configData: "{{ .RcloneConf }}"
