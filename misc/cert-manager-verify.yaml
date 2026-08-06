@@ -41,3 +41,40 @@ spec:
   secretName: selfsigned-cert-tls
   issuerRef:
     name: test-selfsigned
+
+---
+
+#
+# https://cert-manager.io/docs/concepts/issuer/
+#
+
+#apiVersion: v1
+#data:
+#  tls.crt: LS0tLS1CRUd...
+#  tls.key: LS0tLS1CRUd...
+#kind: Secret
+#metadata:
+#  name: test-ca-local
+#  namespace: cert-manager-test
+#type: kubernetes.io/tls
+#---
+#apiVersion: cert-manager.io/v1
+#kind: Issuer
+#metadata:
+#  name: test-ca-local
+#  namespace: cert-manager-test
+#spec:
+#  ca:
+#    secretName: test-ca-local
+#---
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  name: local-cert
+#  namespace: cert-manager-test
+#spec:
+#  dnsNames:
+#    - example.com
+#  secretName: local-cert
+#  issuerRef:
+#    name: test-ca-local
