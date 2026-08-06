@@ -28,6 +28,7 @@ spec:
 # kubectl get certs -n cert-manager-test selfsigned-cert -o yaml
 # + kubectl get crs -n cert-manager-test selfsigned-cert-1 -o yaml
 # + kubectl get secrets -n cert-manager-test selfsigned-cert-tls
+#
 
 apiVersion: cert-manager.io/v1
 kind: Certificate
