@@ -7,6 +7,8 @@ set -x -e -o pipefail
 
 cd "$(dirname "$0")"
 
+# https://cert-manager.io/docs/installation/helm/
+
 helm upgrade --install \
   cert-manager oci://quay.io/jetstack/charts/cert-manager \
   --version v1.21.1 \
