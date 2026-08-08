@@ -46,6 +46,7 @@ spec:
 
 #
 # https://cert-manager.io/docs/concepts/issuer/
+# https://cert-manager.io/docs/configuration/ca/
 #
 
 #apiVersion: v1
