@@ -10,7 +10,7 @@ spec:
     solvers:
       - dns01:
           webhook:
-            groupName: acme.example.com
+            groupName: acme.i12e
             solverName: ovh
             config:
               # https://github.com/aureq/cert-manager-webhook-ovh/blob/main/main.go
@@ -40,7 +40,7 @@ spec:
     solvers:
       - dns01:
           webhook:
-            groupName: acme.example.com
+            groupName: acme.i12e
             solverName: ovh
             config:
               # https://github.com/aureq/cert-manager-webhook-ovh/blob/main/main.go

@@ -19,4 +19,4 @@ helm upgrade --install \
   --version 0.9.15 \
   --namespace cert-manager \
   --create-namespace \
-  --set groupName=acme.example.com
+  --set groupName=acme.i12e
