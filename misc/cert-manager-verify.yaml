@@ -49,6 +49,13 @@ spec:
 # https://cert-manager.io/docs/configuration/ca/
 #
 
+# k3s example (simplified testing in development):
+#
+# k3s kubectl create secret tls k3s-client-ca \
+#   -n cert-manager-test \
+#   --key=/var/lib/rancher/k3s/server/tls/client-ca.key \
+#   --cert=/var/lib/rancher/k3s/server/tls/client-ca.crt
+
 #apiVersion: v1
 #data:
 #  tls.crt: LS0tLS1CRUdJ...
