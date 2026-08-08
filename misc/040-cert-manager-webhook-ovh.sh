@@ -16,6 +16,7 @@ helm repo update
 helm upgrade --install \
   cert-manager-webhook-ovh \
   cert-manager-webhook-ovh/cert-manager-webhook-ovh \
+  --version 0.9.15 \
   --namespace cert-manager \
   --create-namespace \
   --set groupName=acme.example.com
