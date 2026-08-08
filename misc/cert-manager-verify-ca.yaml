@@ -98,7 +98,8 @@ metadata:
   # https://cert-manager.io/docs/reference/annotations/
   annotations:
     cert-manager.io/issuer: "k3s-client-ca"
-    cert-manager.io/alt-names: "web2.local,web3.local"
+    cert-manager.io/common-name: "web-local-cert"
+    cert-manager.io/alt-names: "web2.local,web3.local,*.local"
 spec:
   rules:
   - host: web.local
