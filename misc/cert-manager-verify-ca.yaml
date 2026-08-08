@@ -97,6 +97,7 @@ metadata:
   name: web
   annotations:
     cert-manager.io/issuer: "k3s-client-ca"
+    cert-manager.io/alt-names: "web2.local,web3.local"
 spec:
   rules:
   - host: web.local
