@@ -13,6 +13,8 @@ spec:
             groupName: acme.example.com
             solverName: ovh
             config:
+              # https://github.com/aureq/cert-manager-webhook-ovh/blob/main/main.go
+              authenticationMethod: application
               endpoint: ovh-eu
               applicationKeyRef:
                 name: ovh-credentials
@@ -41,6 +43,8 @@ spec:
             groupName: acme.example.com
             solverName: ovh
             config:
+              # https://github.com/aureq/cert-manager-webhook-ovh/blob/main/main.go
+              authenticationMethod: application
               endpoint: ovh-eu
               applicationKeyRef:
                 name: ovh-credentials
