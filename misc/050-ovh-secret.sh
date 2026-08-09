@@ -10,9 +10,9 @@ function error_and_exit {
 
 set -e -o pipefail
 
-cd "$(dirname "$0")"
+[ "$1" != "" ] || error_and_exit "OVH credentials file must be provided as first argument with AK (16 chars), AS (32 chars) and CK (32 chars)"
 
-source ovh.creds
+source "$1"
 
 [ "${#AK}" -eq 16 ] || error_and_exit "AK length is not 16"
 [ "${#AS}" -eq 32 ] || error_and_exit "AS length is not 32"
