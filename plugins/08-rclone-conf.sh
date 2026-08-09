@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# https://docs.k3s.io/installation/packaged-components
+# https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
+#
 
 FIN="/root/.config/rclone/rclone.conf"
 SECRET_NAME="rclone-conf"
