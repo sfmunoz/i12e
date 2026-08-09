@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/sfmunoz/i12e/internal/tplutil"
@@ -14,7 +15,21 @@ import (
 //go:embed templates/postgres-rclone.yaml
 var postgresRcloneYaml string
 
+const rcloneConfPath = "/root/.config/rclone/rclone.conf"
+
+const manifestsFolder = "/var/lib/rancher/k3s/server/manifests"
 const postgresRcloneYamlPath = manifestsFolder + "/postgres-rclone.yaml"
+
+func removeBlankLines(s string) string {
+	lines := strings.Split(strings.TrimRight(s, "\n"), "\n")
+	filtered := lines[:0]
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			filtered = append(filtered, line)
+		}
+	}
+	return strings.Join(filtered, "\n")
+}
 
 func postgresRcloneYamlRender() (*bytes.Buffer, error) {
 	tpl, err := template.New("templates/postgres-rclone.yaml").Funcs(tplutil.FuncMap()).Option("missingkey=error").Parse(postgresRcloneYaml)
