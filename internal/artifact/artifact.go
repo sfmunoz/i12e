@@ -67,6 +67,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
 		{Name: "etc/i12e/csi-rclone", Mode: 0700},
 		{Name: "etc/i12e/traefik-config", Mode: 0700},
+		{Name: "etc/i12e/reflector", Mode: 0700},
 		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
@@ -270,6 +271,13 @@ func (a *Artifact) etcI12eTraefikConfig() error {
 	return nil
 }
 
+func (a *Artifact) etcI12eReflector() error {
+	if err := a.addStatic("static/reflector.yaml", "etc/i12e/reflector/reflector.yaml", 0600); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) etcNftablesConf() error {
 	data := struct {
 		PortKnocking []int
@@ -464,6 +472,7 @@ func (a *Artifact) run() error {
 		a.etcI12eAnkiSyncServer,
 		a.etcI12eCsiRclone,
 		a.etcI12eTraefikConfig,
+		a.etcI12eReflector,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemK3sServiceDOverrideConf,
