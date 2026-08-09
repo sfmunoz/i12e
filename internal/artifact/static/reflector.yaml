@@ -1,0 +1,21 @@
+#
+# https://github.com/emberstack/kubernetes-reflector
+#
+# $ helm repo add emberstack https://emberstack.github.io/helm-charts
+# $ helm repo update
+# $ helm upgrade --install -n reflector --create-namespace --version 10.0.63 reflector emberstack/reflector
+#
+# Notice: helm upgrade --install reflector oci://ghcr.io/emberstack/helm-charts/reflector returns 403: denied
+#
+
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: reflector
+  namespace: kube-system
+spec:
+  repo: https://emberstack.github.io/helm-charts
+  chart: reflector
+  version: 10.0.63
+  targetNamespace: reflector
+  createNamespace: true
