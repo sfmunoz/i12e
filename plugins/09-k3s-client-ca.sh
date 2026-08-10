@@ -10,6 +10,8 @@ FOUT="/var/lib/rancher/k3s/server/manifests/${SECRET_NAME}.yaml"
 [[ -f "$FCERT" ]] || exit 0
 [[ "$FKEY" -nt "$FOUT" || "$FCERT" -nt "$FOUT" ]] || exit 0
 
+umask 077
+
 set -x -e -o pipefail
 
 (
