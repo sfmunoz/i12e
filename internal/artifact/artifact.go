@@ -296,10 +296,7 @@ func (a *Artifact) etcI12eNamespaces() error {
 }
 
 func (a *Artifact) etcI12eCertManager() error {
-	if err := a.addStatic("static/cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
+	return a.addTemplate("cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600, a.cfg.Ovh)
 }
 
 func (a *Artifact) etcNftablesConf() error {
