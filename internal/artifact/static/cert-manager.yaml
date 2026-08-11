@@ -1,12 +1,4 @@
-#
-# https://github.com/sfmunoz/i12e/issues/276
-#
 # https://cert-manager.io/docs/installation/helm/
-#
-# Equivalent of 010-cert-manager.sh using the k3s HelmChart CRD
-# (helm.cattle.io/v1) so it can be applied with kubectl apply on a k3s
-# server (helm controller is built-in, no Helm CLI needed).
-#
 
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
