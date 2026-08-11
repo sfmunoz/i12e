@@ -1,4 +1,6 @@
+#
 # https://cert-manager.io/docs/installation/helm/
+#
 
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -12,3 +14,23 @@ spec:
   createNamespace: true
   set:
     crds.enabled: "true"
+
+---
+
+#
+# https://kubernetes.recipes/recipes/security/certmanager-ovh-dns01-wildcard-tls/
+#
+
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cert-manager-webhook-ovh
+  namespace: kube-system
+spec:
+  chart: cert-manager-webhook-ovh
+  repo: https://aureq.github.io/cert-manager-webhook-ovh
+  version: 0.9.15
+  targetNamespace: cert-manager
+  createNamespace: true
+  valuesContent: |
+    groupName: acme.i12e
