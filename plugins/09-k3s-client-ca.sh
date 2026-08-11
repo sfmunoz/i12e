@@ -15,7 +15,7 @@ umask 077
 set -x -e -o pipefail
 
 k3s kubectl create secret tls "${SECRET_NAME}" \
-  -n i12e \
+  -n cert-manager \
   --key="$FKEY" \
   --cert="$FCERT" \
   --dry-run=client \
