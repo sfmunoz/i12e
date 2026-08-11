@@ -15,14 +15,14 @@ import (
 //   https://github.com/go-playground/validator
 
 type ArtifactConfig struct {
-	Env      Env            `validate:"i12e_env"`
-	Artifact *artifact      `mapstructure:"artifact" validate:"required"`
-	K3s      *k3s           `mapstructure:"k3s" validate:"required"`
-	Mesh     *mesh          `mapstructure:"mesh" validate:"required"`
-	Rclone   *rclone        `mapstructure:"rclone" validate:"required"`
-	WikiJs         map[string]any `mapstructure:"wikijs" validate:"required"`
+	Env            Env             `validate:"i12e_env"`
+	Artifact       *artifact       `mapstructure:"artifact" validate:"required"`
+	K3s            *k3s            `mapstructure:"k3s" validate:"required"`
+	Mesh           *mesh           `mapstructure:"mesh" validate:"required"`
+	Rclone         *rclone         `mapstructure:"rclone" validate:"required"`
+	WikiJs         map[string]any  `mapstructure:"wikijs" validate:"required"`
 	AnkiSyncServer *ankiSyncServer `mapstructure:"anki_sync_server" validate:"required"`
-	WgConf         []string       `mapstructure:"wg_conf"`
+	WgConf         []string        `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
