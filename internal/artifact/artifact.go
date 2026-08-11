@@ -412,17 +412,13 @@ func (a *Artifact) optLibexecI12ePlugins() error {
 		if err != nil {
 			return err
 		}
-		info, err := entry.Info()
-		if err != nil {
-			return err
-		}
 		targetName := "opt/libexec/i12e/plugins/" + entry.Name()
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,
 			Name:     targetName,
 			ModTime:  a.tnow,
 			Size:     int64(len(body)),
-			Mode:     int64(info.Mode().Perm()),
+			Mode:     0644,
 			Uid:      0,
 			Gid:      0,
 			Uname:    "root",
