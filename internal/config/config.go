@@ -22,6 +22,7 @@ type ArtifactConfig struct {
 	Rclone         *rclone         `mapstructure:"rclone" validate:"required"`
 	WikiJs         map[string]any  `mapstructure:"wikijs" validate:"required"`
 	AnkiSyncServer *ankiSyncServer `mapstructure:"anki_sync_server" validate:"required"`
+	Ovh            *ovh            `mapstructure:"ovh" validate:"required"`
 	WgConf         []string        `mapstructure:"wg_conf"`
 }
 
@@ -78,6 +79,12 @@ type ankiSyncServer struct {
 	Version   string               `mapstructure:"version" validate:"gte=1"`
 	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
 	Hostname  string               `mapstructure:"hostname"`
+}
+
+type ovh struct {
+	Ak string `mapstructure:"ak" validate:"len=16"`
+	As string `mapstructure:"as" validate:"len=32"`
+	Ck string `mapstructure:"ck" validate:"len=32"`
 }
 
 type mesh struct {
