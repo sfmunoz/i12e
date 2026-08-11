@@ -386,6 +386,13 @@ func (a *Artifact) optLibexecI12eK3sInstallSh() error {
 	return nil
 }
 
+func (a *Artifact) optLibexecI12ePluginRunSh() error {
+	if err := a.addStatic("static/plugin-run.sh", "opt/libexec/i12e/plugin-run.sh", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optLibexecI12ePlugins() error {
 	const pluginsDir = "plugins"
 	entries, err := os.ReadDir(pluginsDir)
@@ -500,6 +507,7 @@ func (a *Artifact) run() error {
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
 		a.optLibexecI12eK3sInstallSh,
+		a.optLibexecI12ePluginRunSh,
 		a.optLibexecI12ePlugins,
 		a.etcI12eFlagsArtifactPulled,
 	}
