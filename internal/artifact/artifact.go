@@ -386,6 +386,13 @@ func (a *Artifact) optLibexecI12eK3sInstallSh() error {
 	return nil
 }
 
+func (a *Artifact) optLibexecI12ePluginRunSh() error {
+	if err := a.addStatic("static/plugin-run.sh", "opt/libexec/i12e/plugin-run.sh", 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *Artifact) optLibexecI12ePlugins() error {
 	const pluginsDir = "plugins"
 	entries, err := os.ReadDir(pluginsDir)
@@ -405,17 +412,13 @@ func (a *Artifact) optLibexecI12ePlugins() error {
 		if err != nil {
 			return err
 		}
-		info, err := entry.Info()
-		if err != nil {
-			return err
-		}
 		targetName := "opt/libexec/i12e/plugins/" + entry.Name()
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,
 			Name:     targetName,
 			ModTime:  a.tnow,
 			Size:     int64(len(body)),
-			Mode:     int64(info.Mode().Perm()),
+			Mode:     0644,
 			Uid:      0,
 			Gid:      0,
 			Uname:    "root",
@@ -500,6 +503,7 @@ func (a *Artifact) run() error {
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
 		a.optLibexecI12eK3sInstallSh,
+		a.optLibexecI12ePluginRunSh,
 		a.optLibexecI12ePlugins,
 		a.etcI12eFlagsArtifactPulled,
 	}
