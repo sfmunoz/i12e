@@ -14,10 +14,9 @@ umask 077
 
 set -x -e -o pipefail
 
-(
-  k3s kubectl create ns i12e --dry-run=client -o yaml
-
-  echo "---"
-
-  k3s kubectl create secret tls "${SECRET_NAME}" -n i12e --key="$FKEY" --cert="$FCERT" --dry-run=client -o yaml
-) >"$FOUT"
+k3s kubectl create secret tls "${SECRET_NAME}" \
+  -n i12e \
+  --key="$FKEY" \
+  --cert="$FCERT" \
+  --dry-run=client \
+  -o yaml >"$FOUT"
