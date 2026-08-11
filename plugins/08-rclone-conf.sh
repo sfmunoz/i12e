@@ -15,15 +15,9 @@ umask 077
 
 set -x -e -o pipefail
 
-(
-  k3s kubectl create ns i12e --dry-run=client -o yaml
-
-  echo "---"
-
-  k3s kubectl create secret generic "${SECRET_NAME}" \
-    --type Opaque \
-    -n i12e \
-    --from-file=configData="${FIN}" \
-    --dry-run=client \
-    -o yaml
-) >"$FOUT"
+k3s kubectl create secret generic "${SECRET_NAME}" \
+  --type Opaque \
+  -n i12e \
+  --from-file=configData="${FIN}" \
+  --dry-run=client \
+  -o yaml >"$FOUT"
