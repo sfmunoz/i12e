@@ -88,3 +88,15 @@ spec:
   issuerRef:
     name: cert-manager-k3s-client
 
+---
+
+apiVersion: v1
+data:
+  applicationKey: {{ .Ak }}
+  applicationSecret: {{ .As }}
+  consumerKey: {{ .Ck }}
+kind: Secret
+metadata:
+  name: ovh-credentials
+  namespace: cert-manager
+

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -296,7 +297,16 @@ func (a *Artifact) etcI12eNamespaces() error {
 }
 
 func (a *Artifact) etcI12eCertManager() error {
-	return a.addTemplate("cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600, a.cfg.Ovh)
+	data := struct {
+		Ak string
+		As string
+		Ck string
+	}{
+		Ak: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ak)),
+		As: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.As)),
+		Ck: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ck)),
+	}
+	return a.addTemplate("cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600, &data)
 }
 
 func (a *Artifact) etcNftablesConf() error {
