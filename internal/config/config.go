@@ -82,9 +82,9 @@ type ankiSyncServer struct {
 }
 
 type ovh struct {
-	Ak string `mapstructure:"ak" validate:"len=16"`
-	As string `mapstructure:"as" validate:"len=32"`
-	Ck string `mapstructure:"ck" validate:"len=32"`
+	Ak string `mapstructure:"ak" validate:"len=16,hexadecimal"` // hexadecimal = [0-9a-fA-F] -> enough despite [A-Z] inclusion
+	As string `mapstructure:"as" validate:"md5"`                // md5 = 32 x [0-9a-f]
+	Ck string `mapstructure:"ck" validate:"md5"`                // md5 = 32 x [0-9a-f]
 }
 
 type mesh struct {
