@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+
+	"go.yaml.in/yaml/v3"
 
 	"github.com/sfmunoz/i12e/internal/artifact"
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -41,6 +44,7 @@ func artifactCmd() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
+			baux := bytes.Clone(bufOut.Bytes())
 			v := viperNew()
 			if err := v.ReadConfig(fp); err != nil {
 				return err
@@ -50,6 +54,16 @@ func artifactCmd() *cobra.Command {
 			}
 			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {
 				return err
+			}
+			// XXX hack to preserve 'certs:' bypassing viper relentless lowercase conversion of the keys
+			if len(cfg.Certs) > 0 {
+				var cfgRaw struct {
+					Certs []map[string]any `yaml:"certs"`
+				}
+				if err := yaml.Unmarshal(baux, &cfgRaw); err != nil {
+					return err
+				}
+				cfg.Certs = cfgRaw.Certs
 			}
 			return cfg.Validate()
 		},

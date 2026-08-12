@@ -15,14 +15,16 @@ import (
 //   https://github.com/go-playground/validator
 
 type ArtifactConfig struct {
-	Env      Env            `validate:"i12e_env"`
-	Artifact *artifact      `mapstructure:"artifact" validate:"required"`
-	K3s      *k3s           `mapstructure:"k3s" validate:"required"`
-	Mesh     *mesh          `mapstructure:"mesh" validate:"required"`
-	Rclone   *rclone        `mapstructure:"rclone" validate:"required"`
-	WikiJs         map[string]any `mapstructure:"wikijs" validate:"required"`
-	AnkiSyncServer *ankiSyncServer `mapstructure:"anki_sync_server" validate:"required"`
-	WgConf         []string       `mapstructure:"wg_conf"`
+	Env            Env              `validate:"i12e_env"`
+	Artifact       *artifact        `mapstructure:"artifact" validate:"required"`
+	K3s            *k3s             `mapstructure:"k3s" validate:"required"`
+	Mesh           *mesh            `mapstructure:"mesh" validate:"required"`
+	Rclone         *rclone          `mapstructure:"rclone" validate:"required"`
+	WikiJs         map[string]any   `mapstructure:"wikijs" validate:"required"`
+	AnkiSyncServer *ankiSyncServer  `mapstructure:"anki_sync_server" validate:"required"`
+	Ovh            *ovh             `mapstructure:"ovh" validate:"required"`
+	Certs          []map[string]any `mapstructure:"certs"`
+	WgConf         []string         `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
@@ -78,6 +80,12 @@ type ankiSyncServer struct {
 	Version   string               `mapstructure:"version" validate:"gte=1"`
 	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
 	Hostname  string               `mapstructure:"hostname"`
+}
+
+type ovh struct {
+	Ak string `mapstructure:"ak" validate:"len=16,hexadecimal"` // hexadecimal = [0-9a-fA-F] -> enough despite [A-Z] inclusion
+	As string `mapstructure:"as" validate:"md5"`                // md5 = 32 x [0-9a-f]
+	Ck string `mapstructure:"ck" validate:"md5"`                // md5 = 32 x [0-9a-f]
 }
 
 type mesh struct {
