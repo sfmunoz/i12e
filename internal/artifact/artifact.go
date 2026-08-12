@@ -297,14 +297,24 @@ func (a *Artifact) etcI12eNamespaces() error {
 }
 
 func (a *Artifact) etcI12eCertManager() error {
+	certsYaml := make([]*bytes.Buffer, len(a.cfg.Certs))
+	for i, c := range a.cfg.Certs {
+		buf, err := yaml.Marshal(c)
+		if err != nil {
+			return err
+		}
+		certsYaml[i] = bytes.NewBuffer(bytes.TrimRight(buf, "\n"))
+	}
 	data := struct {
-		Ak string
-		As string
-		Ck string
+		Ak    string
+		As    string
+		Ck    string
+		Certs []*bytes.Buffer
 	}{
-		Ak: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ak)),
-		As: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.As)),
-		Ck: base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ck)),
+		Ak:    base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ak)),
+		As:    base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.As)),
+		Ck:    base64.StdEncoding.EncodeToString([]byte(a.cfg.Ovh.Ck)),
+		Certs: certsYaml,
 	}
 	return a.addTemplate("cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600, &data)
 }

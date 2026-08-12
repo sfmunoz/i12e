@@ -251,3 +251,9 @@ spec:
                 name: ovh-credentials
                 key: consumerKey
 
+{{- range $i, $c := .Certs }}
+
+---
+
+{{ $c }}
+{{- end }}
