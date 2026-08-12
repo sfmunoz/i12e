@@ -14,10 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type cfgRaw struct {
-	Certs []map[string]any `yaml:"certs"`
-}
-
 func artifactCmd() *cobra.Command {
 	cfg := &config.ArtifactConfig{}
 	cmd := &cobra.Command{
@@ -61,11 +57,13 @@ func artifactCmd() *cobra.Command {
 			}
 			// XXX hack to preserve 'certs:' bypassing viper relentless lowercase conversion of the keys
 			if len(cfg.Certs) > 0 {
-				var cRaw cfgRaw
-				if err := yaml.Unmarshal(baux, &cRaw); err != nil {
+				var cfgRaw struct {
+					Certs []map[string]any `yaml:"certs"`
+				}
+				if err := yaml.Unmarshal(baux, &cfgRaw); err != nil {
 					return err
 				}
-				cfg.Certs = cRaw.Certs
+				cfg.Certs = cfgRaw.Certs
 			}
 			return cfg.Validate()
 		},
