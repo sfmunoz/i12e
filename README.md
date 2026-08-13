@@ -2,16 +2,6 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
-## Deleted references
-
-- [os: helm chart deleted](https://github.com/sfmunoz/i12e/commit/0b7c418e016362d8a9817821fdd178612940f38c) → https://github.com/sfmunoz/i12e/issues/296
-  - https://kube-vip.io/ install
-  - https://prometheus.io/ install
-- [fake: helm chart deleted ](https://github.com/sfmunoz/i12e/commit/68bb822a8d44ab22b8e5cdaa40405fec258892dc) → https://github.com/sfmunoz/i12e/issues/297
-  - k8s-bulk used
-  - Python HTTP client
-  - Python HTTP server
-
 ## Guidelines
 
 Simple outline:
@@ -274,3 +264,13 @@ Inspect:
 
 - `kubectl describe ingresses.networking.k8s.io -n i12e wikijs` → verify "TLS: example.com terminates www.example.com"
 - `kubectl logs -n kube-system deployments/traefik -f` → check for errors
+
+## Deleted references
+
+- [os: helm chart deleted](https://github.com/sfmunoz/i12e/commit/0b7c418e016362d8a9817821fdd178612940f38c) → https://github.com/sfmunoz/i12e/issues/296
+  - https://kube-vip.io/ install
+  - https://prometheus.io/ install
+- [fake: helm chart deleted ](https://github.com/sfmunoz/i12e/commit/68bb822a8d44ab22b8e5cdaa40405fec258892dc) → https://github.com/sfmunoz/i12e/issues/297
+  - k8s-bulk used
+  - Python HTTP client
+  - Python HTTP server
