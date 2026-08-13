@@ -72,7 +72,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
 		{Name: "etc/i12e/namespaces", Mode: 0700},
 		{Name: "etc/i12e/cert-manager", Mode: 0700},
-		{Name: "etc/systemd/system/k3s.service.d", Mode: 0755},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
 		{Name: "opt/libexec", Mode: 0755},
@@ -340,22 +339,8 @@ func (a *Artifact) etcSystemdSystemConfDI12eConf() error {
 	return nil
 }
 
-func (a *Artifact) etcSystemdSystemK3sServiceDOverrideConf() error {
-	if err := a.addEmpty("etc/systemd/system/k3s.service.d/override.conf", 0644); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a *Artifact) etcSystemdSystemNftablesService() error {
 	if err := a.addStatic("static/nftables.service", "etc/systemd/system/nftables.service", 0644); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *Artifact) etcRancherK3sConfigYaml() error {
-	if err := a.addEmpty("etc/rancher/k3s/config.yaml", 0600); err != nil {
 		return err
 	}
 	return nil
@@ -522,9 +507,7 @@ func (a *Artifact) run() error {
 		a.etcI12eCertManager,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
-		a.etcSystemdSystemK3sServiceDOverrideConf,
 		a.etcSystemdSystemNftablesService,
-		a.etcRancherK3sConfigYaml,
 		a.etcWireguard,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,

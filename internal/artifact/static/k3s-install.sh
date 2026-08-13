@@ -7,7 +7,10 @@ function k3s_install {
   [ -f "$MODE_FILE" ] || return 0
   MODE="$(cat "$MODE_FILE")"
   set -x
+  mkdir -p /etc/rancher/k3s /etc/systemd/system/k3s.service.d
+  chmod 755 /etc/rancher /etc/rancher/k3s /etc/systemd/system/k3s.service.d
   cat /etc/i12e/k3s/override-${MODE}.conf >/etc/systemd/system/k3s.service.d/override.conf
+  chmod 644 /etc/systemd/system/k3s.service.d/override.conf
   awk \
     -v IFACE="$1" \
     -v IP="$2" \
@@ -18,6 +21,7 @@ function k3s_install {
       }
     }' \
     /etc/i12e/k3s/config-${MODE}.yaml >/etc/rancher/k3s/config.yaml
+  chmod 600 /etc/rancher/k3s/config.yaml
   export INSTALL_K3S_VERSION="v1.34.3+k3s1"
   export INSTALL_K3S_SKIP_SELINUX_RPM="true"
   curl -sfL https://get.k3s.io | sh -s
