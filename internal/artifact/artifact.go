@@ -346,13 +346,6 @@ func (a *Artifact) etcSystemdSystemNftablesService() error {
 	return nil
 }
 
-func (a *Artifact) etcRancherK3sConfigYaml() error {
-	if err := a.addEmpty("etc/rancher/k3s/config.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a *Artifact) etcWireguard() error {
 	if len(a.cfg.WgConf) < 1 {
 		log.Info("skipping: undefined 'wg_conf' array")
@@ -515,7 +508,6 @@ func (a *Artifact) run() error {
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemNftablesService,
-		a.etcRancherK3sConfigYaml,
 		a.etcWireguard,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
