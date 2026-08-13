@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+exit 0
 
 FKEY="/var/lib/rancher/k3s/server/tls/client-ca.key"
 FCERT="/var/lib/rancher/k3s/server/tls/client-ca.crt"
