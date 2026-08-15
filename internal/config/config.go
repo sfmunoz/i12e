@@ -20,6 +20,7 @@ type ArtifactConfig struct {
 	K3s            *k3s             `mapstructure:"k3s" validate:"required"`
 	Mesh           *mesh            `mapstructure:"mesh" validate:"required"`
 	Rclone         *rclone          `mapstructure:"rclone" validate:"required"`
+	GitHub         *github          `mapstructure:"github" validate:"required"`
 	WikiJs         map[string]any   `mapstructure:"wikijs" validate:"required"`
 	AnkiSyncServer *ankiSyncServer  `mapstructure:"anki_sync_server" validate:"required"`
 	Ovh            *ovh             `mapstructure:"ovh" validate:"required"`
@@ -69,6 +70,10 @@ type k3s struct {
 
 type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
+}
+
+type github struct {
+	Token string `mapstructure:"token" validate:"startswith=github_pat_"`
 }
 
 type AnkiSyncServerUser struct {
