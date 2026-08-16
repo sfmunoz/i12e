@@ -3,6 +3,7 @@ export FLUX_VERSION="2.9.4" # exported: it's used by https://fluxcd.io/install.s
 SHA256SUM="0c91d4bbbc2aa9c84b42608184534437ef92e5f2d6b862e99a11c0bb24ad0941"
 FLUX_BIN="/opt/bin/flux"
 FLUX_CFG="/etc/i12e/flux/flux.cfg"
+SOPS_AGE_YAML="/etc/i12e/flux/sops-age.yaml"
 [ "$KUBECONFIG" = "" ] && KUBECONFIG="/etc/rancher/k3s/k3s.yaml"
 export KUBECONFIG
 set -x -e -o pipefail
@@ -17,15 +18,14 @@ function flux_bin_install {
 }
 function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
-  # set +x ... set -x: make sure GITHUB_TOKEN and AGE_KEY are not shown
+  # set +x ... set -x: make sure GITHUB_TOKEN is not shown
   { set +x; } 2>/dev/null
   echo "+ source $FLUX_CFG" >&2
-  source "$FLUX_CFG" # read CLUSTER, GITHUB_TOKEN and AGE_KEY
+  source "$FLUX_CFG" # read CLUSTER and GITHUB_TOKEN
   set -x
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
-  [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
-  export CLUSTER GITHUB_TOKEN AGE_KEY
+  export CLUSTER GITHUB_TOKEN
   return 0
 }
 function flux_bootstrap {
@@ -42,31 +42,13 @@ function flux_bootstrap {
   return $?
 }
 function flux_create_secret_sops_age {
-  # https://docs.k3s.io/installation/packaged-components
-  NS="flux-system"
-  SECRET_NAME="sops-age"
-  FOUT="/var/lib/rancher/k3s/server/manifests/${NS}-${SECRET_NAME}.yaml"
-  if [[ -f "$FOUT" ]]; then
-    kubectl apply --server-side=true -f "${FOUT}"
-    return $?
-  fi
-  touch "$FOUT"
-  chmod 0600 "$FOUT"
-  (
-    { set +x; } 2>/dev/null
-    echo -n "${AGE_KEY}"
-  ) | k3s kubectl create secret generic "${SECRET_NAME}" \
-    --type Opaque \
-    -n "${NS}" \
-    --from-file=age.agekey=/dev/stdin \
-    --dry-run=client \
-    -o yaml >"$FOUT"
+  [ -f "$SOPS_AGE_YAML" ] || return 1
+  k3s kubectl apply --server-side=true -f "${SOPS_AGE_YAML}"
   return $?
 }
 flux_bin_install || exit $?
 flux check --pre || exit $?
 if flux check; then
-  flux_cfg_read || exit $?
   flux_create_secret_sops_age
   exit $?
 fi
