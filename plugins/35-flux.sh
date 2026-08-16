@@ -15,7 +15,7 @@ function flux_bin_install {
   echo "error: '${FLUX_BIN}' download failed" >&2
   return 1
 }
-function flux_bootstrap {
+function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
   # set +x ... set -x: make sure GITHUB_TOKEN is not shown
   { set +x; } 2>/dev/null
@@ -25,6 +25,9 @@ function flux_bootstrap {
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
   export GITHUB_TOKEN
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
+  return 0
+}
+function flux_bootstrap {
   flux bootstrap github \
     --token-auth \
     --owner=sfmunoz \
@@ -35,10 +38,11 @@ function flux_bootstrap {
     --personal=true \
     --author-name "flux-${CLUSTER}-bot" \
     --author-email "46285520+sfmunoz@users.noreply.github.com"
-  return 0
+  return $?
 }
 flux_bin_install || exit $?
 flux check --pre || exit $?
 flux check && exit 0
+flux_cfg_read || exit $?
 flux_bootstrap || exit $?
 exit 0
