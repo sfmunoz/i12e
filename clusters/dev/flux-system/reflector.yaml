@@ -1,0 +1,23 @@
+#
+# https://fluxcd.io/flux/components/helm/
+#   https://fluxcd.io/flux/components/helm/helmreleases/
+# https://fluxcd.io/flux/guides/helmreleases/
+# https://fluxcd.io/flux/use-cases/helm/
+# ---
+# https://github.com/emberstack/kubernetes-reflector
+#
+# $ helm repo add emberstack https://emberstack.github.io/helm-charts
+# $ helm repo update
+# $ helm upgrade --install -n reflector --create-namespace --version 10.0.63 reflector emberstack/reflector
+#
+# Notice: helm upgrade --install reflector oci://ghcr.io/emberstack/helm-charts/reflector returns 403: denied
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: reflector
+  namespace: flux-system
+spec:
+  interval: 24h31m
+  url: https://emberstack.github.io/helm-charts
