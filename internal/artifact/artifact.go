@@ -323,9 +323,11 @@ func (a *Artifact) etcI12eFluxCfg() error {
 	data := struct {
 		Cluster     string
 		GitHubToken string
+		AgeKey      string
 	}{
 		Cluster:     a.cfg.Env.String(),
 		GitHubToken: a.cfg.GitHub.Token,
+		AgeKey:      a.cfg.Flux.AgeKey,
 	}
 	return a.addTemplate("flux.cfg", "etc/i12e/flux/flux.cfg", 0600, &data)
 }
