@@ -320,7 +320,13 @@ func (a *Artifact) etcI12eCertManager() error {
 }
 
 func (a *Artifact) etcI12eFluxCfg() error {
-	data := struct{ GitHubToken string }{GitHubToken: a.cfg.GitHub.Token}
+	data := struct {
+		Cluster     string
+		GitHubToken string
+	}{
+		Cluster:     a.cfg.Env.String(),
+		GitHubToken: a.cfg.GitHub.Token,
+	}
 	return a.addTemplate("flux.cfg", "etc/i12e/flux/flux.cfg", 0600, &data)
 }
 
