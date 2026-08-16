@@ -7,7 +7,7 @@ parameters:
   remote: "rem"
   remotePath: "${pvc.metadata.namespace}/${pvc.metadata.name}"
   csi.storage.k8s.io/node-publish-secret-name: "rclone-conf"
-  csi.storage.k8s.io/node-publish-secret-namespace: "i12e"
+  csi.storage.k8s.io/node-publish-secret-namespace: "kube-system"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
