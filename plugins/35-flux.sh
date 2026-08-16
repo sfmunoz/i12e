@@ -17,8 +17,12 @@ function flux_bin_install {
 }
 function flux_bootstrap {
   [ -f "$FLUX_CFG" ] || return 1
+  # set +x ... set -x: make sure GITHUB_TOKEN is not shown
+  { set +x; } 2>/dev/null
+  echo "+ source $FLUX_CFG" >&2
   source "$FLUX_CFG"
-  [ "$GITHUB_TOKEN" != "" ] || return 1
+  set -x
+  [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
   export GITHUB_TOKEN
   CLUSTER="dev"
   flux bootstrap github \
