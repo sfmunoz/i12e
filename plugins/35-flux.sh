@@ -46,7 +46,10 @@ function flux_create_secret_sops_age {
   NS="flux-system"
   SECRET_NAME="sops-age"
   FOUT="/var/lib/rancher/k3s/server/manifests/${NS}-${SECRET_NAME}.yaml"
-  [[ -f "$FOUT" ]] && return 0
+  if [[ -f "$FOUT" ]]; then
+    kubectl apply --server-side=true -f "${FOUT}"
+    return $?
+  fi
   touch "$FOUT"
   chmod 0600 "$FOUT"
   (
