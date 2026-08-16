@@ -41,9 +41,19 @@ function flux_bootstrap {
     --author-email "46285520+sfmunoz@users.noreply.github.com"
   return $?
 }
+function flux_create_secret_sops_age {
+  k3s kubectl create secret generic sops-age \
+    -n flux-system \
+    --from-literal=age.agekey="${AGE_KEY}"
+  return $?
+}
 flux_bin_install || exit $?
 flux check --pre || exit $?
-flux check && exit 0
+if flux check; then
+  flux_cfg_read || exit $?
+  flux_create_secret_sops_age
+  exit $?
+fi
 flux_cfg_read || exit $?
 flux_bootstrap || exit $?
 exit 0
