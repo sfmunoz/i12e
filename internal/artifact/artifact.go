@@ -70,7 +70,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/traefik-config", Mode: 0700},
 		{Name: "etc/i12e/reflector", Mode: 0700},
 		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
-		{Name: "etc/i12e/namespaces", Mode: 0700},
 		{Name: "etc/i12e/cert-manager", Mode: 0700},
 		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
@@ -284,13 +283,6 @@ func (a *Artifact) etcI12eReflector() error {
 
 func (a *Artifact) etcI12ePostgresRclone() error {
 	if err := a.addStatic("static/postgres-rclone.yaml", "etc/i12e/postgres-rclone/postgres-rclone.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *Artifact) etcI12eNamespaces() error {
-	if err := a.addStatic("static/namespaces.yaml", "etc/i12e/namespaces/namespaces.yaml", 0600); err != nil {
 		return err
 	}
 	return nil
@@ -524,7 +516,6 @@ func (a *Artifact) run() error {
 		a.etcI12eTraefikConfig,
 		a.etcI12eReflector,
 		a.etcI12ePostgresRclone,
-		a.etcI12eNamespaces,
 		a.etcI12eCertManager,
 		a.etcI12eFluxCfg,
 		a.etcI12eFluxSopsAgeYaml,
