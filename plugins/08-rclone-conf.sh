@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+exit 0
 #
 # https://docs.k3s.io/installation/packaged-components
 # https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
