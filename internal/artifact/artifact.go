@@ -66,11 +66,8 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/k3s", Mode: 0700},
 		{Name: "etc/i12e/wikijs", Mode: 0700},
 		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
-		{Name: "etc/i12e/csi-rclone", Mode: 0700},
-		{Name: "etc/i12e/traefik-config", Mode: 0700},
 		{Name: "etc/i12e/reflector", Mode: 0700},
 		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
-		{Name: "etc/i12e/namespaces", Mode: 0700},
 		{Name: "etc/i12e/cert-manager", Mode: 0700},
 		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
@@ -261,20 +258,6 @@ func (a *Artifact) etcI12eAnkiSyncServer() error {
 	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, a.cfg.AnkiSyncServer)
 }
 
-func (a *Artifact) etcI12eCsiRclone() error {
-	if err := a.addStatic("static/csi-rclone.yaml", "etc/i12e/csi-rclone/csi-rclone.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *Artifact) etcI12eTraefikConfig() error {
-	if err := a.addStatic("static/traefik-config.yaml", "etc/i12e/traefik-config/traefik-config.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a *Artifact) etcI12eReflector() error {
 	if err := a.addStatic("static/reflector.yaml", "etc/i12e/reflector/reflector.yaml", 0600); err != nil {
 		return err
@@ -284,13 +267,6 @@ func (a *Artifact) etcI12eReflector() error {
 
 func (a *Artifact) etcI12ePostgresRclone() error {
 	if err := a.addStatic("static/postgres-rclone.yaml", "etc/i12e/postgres-rclone/postgres-rclone.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *Artifact) etcI12eNamespaces() error {
-	if err := a.addStatic("static/namespaces.yaml", "etc/i12e/namespaces/namespaces.yaml", 0600); err != nil {
 		return err
 	}
 	return nil
@@ -520,11 +496,8 @@ func (a *Artifact) run() error {
 		a.etcI12eK3sOverrideConf,
 		a.etcI12eWikiJs,
 		a.etcI12eAnkiSyncServer,
-		a.etcI12eCsiRclone,
-		a.etcI12eTraefikConfig,
 		a.etcI12eReflector,
 		a.etcI12ePostgresRclone,
-		a.etcI12eNamespaces,
 		a.etcI12eCertManager,
 		a.etcI12eFluxCfg,
 		a.etcI12eFluxSopsAgeYaml,
