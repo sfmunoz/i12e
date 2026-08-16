@@ -67,7 +67,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/wikijs", Mode: 0700},
 		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
 		{Name: "etc/i12e/csi-rclone", Mode: 0700},
-		{Name: "etc/i12e/traefik-config", Mode: 0700},
 		{Name: "etc/i12e/reflector", Mode: 0700},
 		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
 		{Name: "etc/i12e/cert-manager", Mode: 0700},
@@ -262,13 +261,6 @@ func (a *Artifact) etcI12eAnkiSyncServer() error {
 
 func (a *Artifact) etcI12eCsiRclone() error {
 	if err := a.addStatic("static/csi-rclone.yaml", "etc/i12e/csi-rclone/csi-rclone.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *Artifact) etcI12eTraefikConfig() error {
-	if err := a.addStatic("static/traefik-config.yaml", "etc/i12e/traefik-config/traefik-config.yaml", 0600); err != nil {
 		return err
 	}
 	return nil
@@ -513,7 +505,6 @@ func (a *Artifact) run() error {
 		a.etcI12eWikiJs,
 		a.etcI12eAnkiSyncServer,
 		a.etcI12eCsiRclone,
-		a.etcI12eTraefikConfig,
 		a.etcI12eReflector,
 		a.etcI12ePostgresRclone,
 		a.etcI12eCertManager,
