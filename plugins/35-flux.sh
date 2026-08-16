@@ -37,13 +37,8 @@ function flux_bootstrap {
     --author-email "46285520+sfmunoz@users.noreply.github.com"
   return 0
 }
-function flux_cluster_install {
-  # capture errors: main program "flux_cluster_install || exit" disables "set -e" here
-  flux check --pre || return $?
-  flux check && return 0
-  flux_bootstrap || return $?
-  return 0
-}
 flux_bin_install || exit $?
-flux_cluster_install || exit $?
+flux check --pre || exit $?
+flux check && exit 0
+flux_bootstrap || exit $?
 exit 0
