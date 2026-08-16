@@ -29,5 +29,5 @@ spec:
         kind: HelmRepository
         name: reflector
         namespace: flux-system
-      interval: 5m
+      interval: 1h5m
   releaseName: reflector
