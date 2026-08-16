@@ -42,9 +42,19 @@ function flux_bootstrap {
   return $?
 }
 function flux_create_secret_sops_age {
-  k3s kubectl create secret generic sops-age \
-    -n flux-system \
-    --from-literal=age.agekey="${AGE_KEY}"
+  # https://docs.k3s.io/installation/packaged-components
+  NS="flux-system"
+  SECRET_NAME="sops-age"
+  FOUT="/var/lib/rancher/k3s/server/manifests/${NS}-${SECRET_NAME}.yaml"
+  [[ -f "$FOUT" ]] && return 0
+  touch "$FOUT"
+  chmod 0600 "$FOUT"
+  k3s kubectl create secret generic "${SECRET_NAME}" \
+    --type Opaque \
+    -n "${NS}" \
+    --from-literal=age.agekey="${AGE_KEY}" \
+    --dry-run=client \
+    -o yaml >"$FOUT"
   return $?
 }
 flux_bin_install || exit $?
