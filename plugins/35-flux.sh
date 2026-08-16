@@ -20,11 +20,11 @@ function flux_bootstrap {
   # set +x ... set -x: make sure GITHUB_TOKEN is not shown
   { set +x; } 2>/dev/null
   echo "+ source $FLUX_CFG" >&2
-  source "$FLUX_CFG"
+  source "$FLUX_CFG" # read GITHUB_TOKEN and CLUSTER
   set -x
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
   export GITHUB_TOKEN
-  CLUSTER="dev"
+  [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
   flux bootstrap github \
     --token-auth \
     --owner=sfmunoz \
