@@ -15,16 +15,20 @@ function flux_bin_install {
   echo "error: '${FLUX_BIN}' download failed" >&2
   return 1
 }
-function flux_bootstrap {
+function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
-  # set +x ... set -x: make sure GITHUB_TOKEN is not shown
+  # set +x ... set -x: make sure GITHUB_TOKEN and AGE_KEY are not shown
   { set +x; } 2>/dev/null
   echo "+ source $FLUX_CFG" >&2
-  source "$FLUX_CFG" # read GITHUB_TOKEN and CLUSTER
+  source "$FLUX_CFG" # read CLUSTER, GITHUB_TOKEN and AGE_KEY
   set -x
-  [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
-  export GITHUB_TOKEN
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
+  [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
+  [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
+  export CLUSTER GITHUB_TOKEN AGE_KEY
+  return 0
+}
+function flux_bootstrap {
   flux bootstrap github \
     --token-auth \
     --owner=sfmunoz \
@@ -35,15 +39,37 @@ function flux_bootstrap {
     --personal=true \
     --author-name "flux-${CLUSTER}-bot" \
     --author-email "46285520+sfmunoz@users.noreply.github.com"
-  return 0
+  return $?
 }
-function flux_cluster_install {
-  # capture errors: main program "flux_cluster_install || exit" disables "set -e" here
-  flux check --pre || return $?
-  flux check && return 0
-  flux_bootstrap || return $?
-  return 0
+function flux_create_secret_sops_age {
+  # https://docs.k3s.io/installation/packaged-components
+  NS="flux-system"
+  SECRET_NAME="sops-age"
+  FOUT="/var/lib/rancher/k3s/server/manifests/${NS}-${SECRET_NAME}.yaml"
+  if [[ -f "$FOUT" ]]; then
+    kubectl apply --server-side=true -f "${FOUT}"
+    return $?
+  fi
+  touch "$FOUT"
+  chmod 0600 "$FOUT"
+  (
+    { set +x; } 2>/dev/null
+    echo -n "${AGE_KEY}"
+  ) | k3s kubectl create secret generic "${SECRET_NAME}" \
+    --type Opaque \
+    -n "${NS}" \
+    --from-file=age.agekey=/dev/stdin \
+    --dry-run=client \
+    -o yaml >"$FOUT"
+  return $?
 }
 flux_bin_install || exit $?
-flux_cluster_install || exit $?
+flux check --pre || exit $?
+if flux check; then
+  flux_cfg_read || exit $?
+  flux_create_secret_sops_age
+  exit $?
+fi
+flux_cfg_read || exit $?
+flux_bootstrap || exit $?
 exit 0
