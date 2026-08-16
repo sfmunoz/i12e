@@ -49,10 +49,13 @@ function flux_create_secret_sops_age {
   [[ -f "$FOUT" ]] && return 0
   touch "$FOUT"
   chmod 0600 "$FOUT"
-  k3s kubectl create secret generic "${SECRET_NAME}" \
+  (
+    { set +x; } 2>/dev/null
+    echo -n "${AGE_KEY}"
+  ) | k3s kubectl create secret generic "${SECRET_NAME}" \
     --type Opaque \
     -n "${NS}" \
-    --from-literal=age.agekey="${AGE_KEY}" \
+    --from-file=age.agekey=/dev/stdin \
     --dry-run=client \
     -o yaml >"$FOUT"
   return $?
