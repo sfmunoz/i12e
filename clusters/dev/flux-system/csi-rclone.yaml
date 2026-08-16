@@ -1,0 +1,21 @@
+#
+# https://fluxcd.io/flux/guides/helmreleases/
+# https://fluxcd.io/flux/use-cases/helm/
+# ---
+# https://www.veloxpack.io/docs/csi-driver-rclone/install
+# https://www.veloxpack.io/docs/csi-driver-rclone/rclone-configuration
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: csi-rclone
+  namespace: flux-system
+spec:
+  interval: 24h51m
+  url: oci://registry-1.docker.io/veloxpack/csi-driver-rclone-charts
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+    operation: copy
+  ref:
+    semver: "1.0.0"

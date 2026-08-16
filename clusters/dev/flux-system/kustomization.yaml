@@ -4,5 +4,6 @@ resources:
 - gotk-components.yaml
 - gotk-sync.yaml
 - secrets-sync.yaml
+- csi-rclone.yaml
 patches:
 - path: git-repo-config.yaml
