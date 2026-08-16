@@ -1,4 +1,6 @@
 #
+# https://fluxcd.io/flux/components/helm/
+#   https://fluxcd.io/flux/components/helm/helmreleases/
 # https://fluxcd.io/flux/guides/helmreleases/
 # https://fluxcd.io/flux/use-cases/helm/
 # ---
