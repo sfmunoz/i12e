@@ -2,6 +2,9 @@
 export FLUX_VERSION="2.9.4" # exported: it's used by https://fluxcd.io/install.sh
 SHA256SUM="0c91d4bbbc2aa9c84b42608184534437ef92e5f2d6b862e99a11c0bb24ad0941"
 FLUX_BIN="/opt/bin/flux"
+FLUX_CFG="/etc/i12e/flux/flux.cfg"
+[ "$KUBECONFIG" = "" ] && KUBECONFIG="/etc/rancher/k3s/k3s.yaml"
+export KUBECONFIG
 set -x -e -o pipefail
 function flux_bin_install {
   [ -x "${FLUX_BIN}" ] && [ "$(sha256sum "${FLUX_BIN}")" = "${SHA256SUM}  ${FLUX_BIN}" ] && return 0
@@ -12,5 +15,31 @@ function flux_bin_install {
   echo "error: '${FLUX_BIN}' download failed" >&2
   return 1
 }
+function flux_bootstrap {
+  [ -f "$FLUX_CFG" ] || return 1
+  source "$FLUX_CFG"
+  [ "$GITHUB_TOKEN" != "" ] || return 1
+  export GITHUB_TOKEN
+  CLUSTER="dev"
+  flux bootstrap github \
+    --token-auth \
+    --owner=sfmunoz \
+    --repository=i12e \
+    --path=clusters/${CLUSTER} \
+    --branch=main \
+    --private=false \
+    --personal=true \
+    --author-name "flux-${CLUSTER}-bot" \
+    --author-email "46285520+sfmunoz@users.noreply.github.com"
+  return 0
+}
+function flux_cluster_install {
+  # capture errors: main program "flux_cluster_install || exit" disables "set -e" here
+  flux check --pre || return $?
+  flux check && return 0
+  flux_bootstrap || return $?
+  return 0
+}
 flux_bin_install || exit $?
+flux_cluster_install || exit $?
 exit 0
