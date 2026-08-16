@@ -274,3 +274,83 @@ Inspect:
   - k8s-bulk used
   - Python HTTP client
   - Python HTTP server
+
+## Flux
+
+### Dev cluster bootstrap
+
+```
+$ export GITHUB_TOKEN="github_pat_..."
+
+$ ./misc/flux-bootstrap.sh dev
++ flux bootstrap github --token-auth --owner=sfmunoz --repository=i12e --path=clusters/dev --branch=main --private=false --personal=true --author-name flux-dev-bot --author-email 46285520+sfmunoz@users.noreply.github.com
+► connecting to github.com
+► cloning branch "main" from Git repository "https://github.com/sfmunoz/i12e.git"
+✔ cloned repository
+► generating component manifests
+✔ generated component manifests
+✔ committed component manifests to "main" ("7fdd758720510de70d0ea4d0442ba17deb71e9fe")
+► pushing component manifests to "https://github.com/sfmunoz/i12e.git"
+► installing components in "flux-system" namespace
+✔ installed components
+✔ reconciled components
+► determining if source secret "flux-system/flux-system" exists
+► generating source secret
+► applying source secret "flux-system/flux-system"
+✔ reconciled source secret
+► generating sync manifests
+✔ generated sync manifests
+✔ committed sync manifests to "main" ("fc1f7754e57c6c4500caeb94cfd0447f47b8836b")
+► pushing sync manifests to "https://github.com/sfmunoz/i12e.git"
+► applying sync manifests
+✔ reconciled sync configuration
+◎ waiting for GitRepository "flux-system/flux-system" to be reconciled
+✔ GitRepository reconciled successfully
+◎ waiting for Kustomization "flux-system/flux-system" to be reconciled
+✔ Kustomization reconciled successfully
+► confirming components are healthy
+✔ helm-controller: deployment ready
+✔ kustomize-controller: deployment ready
+✔ notification-controller: deployment ready
+✔ source-controller: deployment ready
+✔ all components are healthy
+```
+
+### Prod cluster bootstrap
+
+```
+$ export GITHUB_TOKEN="github_pat_..."
+
+$ ./misc/flux-bootstrap.sh prod
++ flux bootstrap github --token-auth --owner=sfmunoz --repository=i12e --path=clusters/prod --branch=main --private=false --personal=true --author-name flux-prod-bot --author-email 46285520+sfmunoz@users.noreply.github.com
+► connecting to github.com
+► cloning branch "main" from Git repository "https://github.com/sfmunoz/i12e.git"
+✔ cloned repository
+► generating component manifests
+✔ generated component manifests
+✔ committed component manifests to "main" ("653812519d8bae0a33f2ee8d6cfec9ad613cb741")
+► pushing component manifests to "https://github.com/sfmunoz/i12e.git"
+► installing components in "flux-system" namespace
+✔ installed components
+✔ reconciled components
+► determining if source secret "flux-system/flux-system" exists
+► generating source secret
+► applying source secret "flux-system/flux-system"
+✔ reconciled source secret
+► generating sync manifests
+✔ generated sync manifests
+✔ committed sync manifests to "main" ("6c5a2e4eb420616debbf2e52973a2b1c0f0380ce")
+► pushing sync manifests to "https://github.com/sfmunoz/i12e.git"
+► applying sync manifests
+✔ reconciled sync configuration
+◎ waiting for GitRepository "flux-system/flux-system" to be reconciled
+✔ GitRepository reconciled successfully
+◎ waiting for Kustomization "flux-system/flux-system" to be reconciled
+✔ Kustomization reconciled successfully
+► confirming components are healthy
+✔ helm-controller: deployment ready
+✔ kustomize-controller: deployment ready
+✔ notification-controller: deployment ready
+✔ source-controller: deployment ready
+✔ all components are healthy
+```

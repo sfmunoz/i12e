@@ -72,6 +72,7 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
 		{Name: "etc/i12e/namespaces", Mode: 0700},
 		{Name: "etc/i12e/cert-manager", Mode: 0700},
+		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
 		{Name: "opt/libexec", Mode: 0755},
@@ -318,6 +319,17 @@ func (a *Artifact) etcI12eCertManager() error {
 	return a.addTemplate("cert-manager.yaml", "etc/i12e/cert-manager/cert-manager.yaml", 0600, &data)
 }
 
+func (a *Artifact) etcI12eFluxCfg() error {
+	data := struct {
+		Cluster     string
+		GitHubToken string
+	}{
+		Cluster:     a.cfg.Env.String(),
+		GitHubToken: a.cfg.GitHub.Token,
+	}
+	return a.addTemplate("flux.cfg", "etc/i12e/flux/flux.cfg", 0600, &data)
+}
+
 func (a *Artifact) etcNftablesConf() error {
 	data := struct {
 		PortKnocking []int
@@ -505,6 +517,7 @@ func (a *Artifact) run() error {
 		a.etcI12ePostgresRclone,
 		a.etcI12eNamespaces,
 		a.etcI12eCertManager,
+		a.etcI12eFluxCfg,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemNftablesService,
