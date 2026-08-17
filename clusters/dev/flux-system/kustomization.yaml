@@ -6,5 +6,6 @@ resources:
 - secrets-sync.yaml
 - csi-rclone.yaml
 - reflector.yaml
+- cert-manager.yaml
 patches:
 - path: git-repo-config.yaml
