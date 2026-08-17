@@ -6,3 +6,4 @@ resources:
 - cert-selfsigned.yaml
 - cert-standalone.yaml
 - rbac.yaml
+- issuers.yaml
