@@ -4,3 +4,4 @@ resources:
 - namespace.yaml
 - cert-manager.yaml
 - cert-selfsigned.yaml
+- cert-standalone.yaml
