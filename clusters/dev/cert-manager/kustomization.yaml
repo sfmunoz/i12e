@@ -5,3 +5,4 @@ resources:
 - cert-manager.yaml
 - cert-selfsigned.yaml
 - cert-standalone.yaml
+- rbac.yaml
