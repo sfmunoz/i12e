@@ -1,0 +1,24 @@
+#
+# https://fluxcd.io/flux/components/helm/
+#   https://fluxcd.io/flux/components/helm/helmreleases/
+# https://fluxcd.io/flux/guides/helmreleases/
+# https://fluxcd.io/flux/use-cases/helm/
+# ---
+#
+# https://cert-manager.io/docs/installation/helm/
+#
+
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  interval: 24h42m
+  url: oci://quay.io/jetstack/charts/cert-manager
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+    operation: copy
+  ref:
+    tag: "v1.21.1"
