@@ -18,6 +18,7 @@ metadata:
   name: cert-selfsigned
   namespace: cert-manager
 spec:
+  isCA: true
   dnsNames:
     - cert.local
   secretName: cert-selfsigned
