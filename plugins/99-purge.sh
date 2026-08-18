@@ -7,6 +7,7 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/02-namespaces.sh"
   "/opt/libexec/i12e/plugins/05-traefik-config.sh"
   "/opt/libexec/i12e/plugins/08-rclone-conf.sh"
+  "/opt/libexec/i12e/plugins/09-k3s-client-ca.sh"
   "/opt/libexec/i12e/plugins/10-csi-rclone.sh"
   "/opt/libexec/i12e/plugins/20-reflector.sh"
 )
