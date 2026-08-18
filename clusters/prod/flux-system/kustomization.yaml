@@ -7,5 +7,6 @@ resources:
 - csi-rclone.yaml
 - reflector.yaml
 - cert-manager.yaml
+- postgres-rclone.yaml
 patches:
 - path: git-repo-config.yaml
