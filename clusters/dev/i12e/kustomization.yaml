@@ -4,3 +4,4 @@ resources:
 - namespace.yaml
 - csi-rclone.yaml
 - postgres-rclone.yaml
+- wikijs.yaml
