@@ -16,3 +16,7 @@ spec:
     name: wikijs
     namespace: flux-system
   interval: 11m26s
+  valuesFrom:
+    - kind: Secret
+      name: wikijs-conf
+      valuesKey: values.yaml
