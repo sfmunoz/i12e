@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anki-sync-server
+  namespace: i12e
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anki-sync-server
+  template:
+    metadata:
+      labels:
+        app: anki-sync-server
+    spec:
+      containers:
+      - name: anki-sync-server
+        image: "ghcr.io/sfmunoz/anki-sync-server:{{ .Chart.AppVersion }}"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SYNC_USER1
+          value: "{{ .Values.username }}:{{ .Values.password }}"
+        volumeMounts:
+        - name: data
+          mountPath: /anki_data/
+      volumes:
+      - name: data
+        hostPath:
+          path: /opt/anki-sync-server
+          type: DirectoryOrCreate
