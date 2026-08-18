@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cert-manager-standalone
+  namespace: cert-manager
+spec:
+  ca:
+    secretName: cert-selfsigned
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-standalone
+  namespace: cert-manager
+spec:
+  dnsNames:
+    - cert2.local
+  secretName: cert-standalone
+  issuerRef:
+    name: cert-manager-standalone
+

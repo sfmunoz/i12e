@@ -1,0 +1,26 @@
+#
+# https://cert-manager.io/docs/installation/helm/ -> -> https://cert-manager.io/docs/installation/kubectl/#verify
+#
+
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cert-manager-selfsigned
+  namespace: cert-manager
+spec:
+  selfSigned: {}
+
+---
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-selfsigned
+  namespace: cert-manager
+spec:
+  isCA: true
+  dnsNames:
+    - cert.local
+  secretName: cert-selfsigned
+  issuerRef:
+    name: cert-manager-selfsigned
