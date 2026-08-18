@@ -8,5 +8,6 @@ resources:
 - reflector.yaml
 - cert-manager.yaml
 - postgres-rclone.yaml
+- wikijs.yaml
 patches:
 - path: git-repo-config.yaml
