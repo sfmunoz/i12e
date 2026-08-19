@@ -20,4 +20,5 @@ flux bootstrap github \
   --private=false \
   --personal=true \
   --author-name "flux-${CLUSTER}-bot" \
-  --author-email "46285520+sfmunoz@users.noreply.github.com"
+  --author-email "46285520+sfmunoz@users.noreply.github.com" \
+  --components-extra=source-watcher
