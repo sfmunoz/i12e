@@ -15,15 +15,14 @@ import (
 //   https://github.com/go-playground/validator
 
 type ArtifactConfig struct {
-	Env      Env              `validate:"i12e_env"`
-	Artifact *artifact        `mapstructure:"artifact" validate:"required"`
-	K3s      *k3s             `mapstructure:"k3s" validate:"required"`
-	Mesh     *mesh            `mapstructure:"mesh" validate:"required"`
-	Rclone   *rclone          `mapstructure:"rclone" validate:"required"`
-	GitHub   *github          `mapstructure:"github" validate:"required"`
-	Flux     *flux            `mapstructure:"flux" validate:"required"`
-	Certs    []map[string]any `mapstructure:"certs"`
-	WgConf   []string         `mapstructure:"wg_conf"`
+	Env      Env       `validate:"i12e_env"`
+	Artifact *artifact `mapstructure:"artifact" validate:"required"`
+	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
+	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
+	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
+	GitHub   *github   `mapstructure:"github" validate:"required"`
+	Flux     *flux     `mapstructure:"flux" validate:"required"`
+	WgConf   []string  `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
