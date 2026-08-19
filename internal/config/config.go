@@ -20,7 +20,6 @@ type ArtifactConfig struct {
 	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
 	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
 	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
-	GitHub   *github   `mapstructure:"github" validate:"required"`
 	Flux     *flux     `mapstructure:"flux" validate:"required"`
 	WgConf   []string  `mapstructure:"wg_conf"`
 }
@@ -64,12 +63,9 @@ type rclone struct {
 	Remote string `mapstructure:"remote" validate:"gte=1"`
 }
 
-type github struct {
-	Token string `mapstructure:"token" validate:"startswith=github_pat_"`
-}
-
 type flux struct {
-	AgeKey string `mapstructure:"age_key" validate:"startswith=AGE-SECRET-KEY-"`
+	GitHubToken string `mapstructure:"github_token" validate:"startswith=github_pat_"`
+	AgeKey      string `mapstructure:"age_key" validate:"startswith=AGE-SECRET-KEY-"`
 }
 
 type mesh struct {
