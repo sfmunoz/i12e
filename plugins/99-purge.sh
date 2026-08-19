@@ -5,6 +5,9 @@ ENTRIES=(
   "/etc/i12e/cert-manager"
   "/etc/i12e/csi-rclone"
   "/etc/i12e/reflector"
+  "/etc/i12e/postgres-rclone"
+  "/etc/i12e/wikijs"
+  "/etc/i12e/anki-sync-server"
   "/opt/libexec/i12e/plugins/02-namespaces.sh"
   "/opt/libexec/i12e/plugins/05-traefik-config.sh"
   "/opt/libexec/i12e/plugins/08-rclone-conf.sh"
@@ -12,6 +15,9 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/10-csi-rclone.sh"
   "/opt/libexec/i12e/plugins/20-reflector.sh"
   "/opt/libexec/i12e/plugins/30-cert-manager.sh"
+  "/opt/libexec/i12e/plugins/40-postgres-rclone.sh"
+  "/opt/libexec/i12e/plugins/50-wikijs.sh"
+  "/opt/libexec/i12e/plugins/60-anki-sync-server.sh"
 )
 for E in "${ENTRIES[@]}"; do
   [ -e "$E" ] || continue

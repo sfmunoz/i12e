@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"go.yaml.in/yaml/v3"
-
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/logit"
@@ -64,9 +62,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e", Mode: 0700},
 		{Name: "etc/i12e/flags", Mode: 0700},
 		{Name: "etc/i12e/k3s", Mode: 0700},
-		{Name: "etc/i12e/wikijs", Mode: 0700},
-		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
-		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
 		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
@@ -237,28 +232,6 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 		if err := a.addTemplate("k3s-override.conf", targetName, 0644, &data); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func (a *Artifact) etcI12eWikiJs() error {
-	wikiJsYaml, err := yaml.Marshal(a.cfg.WikiJs)
-	if err != nil {
-		return err
-	}
-	data := struct{ WikiJs *bytes.Buffer }{
-		WikiJs: bytes.NewBuffer(bytes.TrimRight(wikiJsYaml, "\n")),
-	}
-	return a.addTemplate("wikijs.yaml", "etc/i12e/wikijs/wikijs.yaml", 0600, &data)
-}
-
-func (a *Artifact) etcI12eAnkiSyncServer() error {
-	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, a.cfg.AnkiSyncServer)
-}
-
-func (a *Artifact) etcI12ePostgresRclone() error {
-	if err := a.addStatic("static/postgres-rclone.yaml", "etc/i12e/postgres-rclone/postgres-rclone.yaml", 0600); err != nil {
-		return err
 	}
 	return nil
 }
@@ -462,9 +435,6 @@ func (a *Artifact) run() error {
 		a.etcI12eIfaceTxt,
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
-		a.etcI12eWikiJs,
-		a.etcI12eAnkiSyncServer,
-		a.etcI12ePostgresRclone,
 		a.etcI12eFluxCfg,
 		a.etcI12eFluxSopsAgeYaml,
 		a.etcNftablesConf,
