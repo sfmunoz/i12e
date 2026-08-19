@@ -5,3 +5,4 @@ resources:
 - csi-rclone.yaml
 - postgres-rclone.yaml
 - wikijs.yaml
+- anki-sync-server.yaml
