@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"go.yaml.in/yaml/v3"
-
 	"github.com/sfmunoz/i12e/internal/cmdutil"
 	"github.com/sfmunoz/i12e/internal/config"
 	"github.com/sfmunoz/logit"
@@ -64,7 +62,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e", Mode: 0700},
 		{Name: "etc/i12e/flags", Mode: 0700},
 		{Name: "etc/i12e/k3s", Mode: 0700},
-		{Name: "etc/i12e/wikijs", Mode: 0700},
 		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
 		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
@@ -238,17 +235,6 @@ func (a *Artifact) etcI12eK3sOverrideConf() error {
 		}
 	}
 	return nil
-}
-
-func (a *Artifact) etcI12eWikiJs() error {
-	wikiJsYaml, err := yaml.Marshal(a.cfg.WikiJs)
-	if err != nil {
-		return err
-	}
-	data := struct{ WikiJs *bytes.Buffer }{
-		WikiJs: bytes.NewBuffer(bytes.TrimRight(wikiJsYaml, "\n")),
-	}
-	return a.addTemplate("wikijs.yaml", "etc/i12e/wikijs/wikijs.yaml", 0600, &data)
 }
 
 func (a *Artifact) etcI12eAnkiSyncServer() error {
@@ -454,7 +440,6 @@ func (a *Artifact) run() error {
 		a.etcI12eIfaceTxt,
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
-		a.etcI12eWikiJs,
 		a.etcI12eAnkiSyncServer,
 		a.etcI12eFluxCfg,
 		a.etcI12eFluxSopsAgeYaml,
