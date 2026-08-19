@@ -22,7 +22,6 @@ type ArtifactConfig struct {
 	Rclone   *rclone          `mapstructure:"rclone" validate:"required"`
 	GitHub   *github          `mapstructure:"github" validate:"required"`
 	Flux     *flux            `mapstructure:"flux" validate:"required"`
-	Ovh      *ovh             `mapstructure:"ovh" validate:"required"`
 	Certs    []map[string]any `mapstructure:"certs"`
 	WgConf   []string         `mapstructure:"wg_conf"`
 }
@@ -72,12 +71,6 @@ type github struct {
 
 type flux struct {
 	AgeKey string `mapstructure:"age_key" validate:"startswith=AGE-SECRET-KEY-"`
-}
-
-type ovh struct {
-	Ak string `mapstructure:"ak" validate:"len=16,hexadecimal"` // hexadecimal = [0-9a-fA-F] -> enough despite [A-Z] inclusion
-	As string `mapstructure:"as" validate:"md5"`                // md5 = 32 x [0-9a-f]
-	Ck string `mapstructure:"ck" validate:"md5"`                // md5 = 32 x [0-9a-f]
 }
 
 type mesh struct {
