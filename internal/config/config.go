@@ -15,17 +15,16 @@ import (
 //   https://github.com/go-playground/validator
 
 type ArtifactConfig struct {
-	Env            Env              `validate:"i12e_env"`
-	Artifact       *artifact        `mapstructure:"artifact" validate:"required"`
-	K3s            *k3s             `mapstructure:"k3s" validate:"required"`
-	Mesh           *mesh            `mapstructure:"mesh" validate:"required"`
-	Rclone         *rclone          `mapstructure:"rclone" validate:"required"`
-	GitHub         *github          `mapstructure:"github" validate:"required"`
-	Flux           *flux            `mapstructure:"flux" validate:"required"`
-	AnkiSyncServer *ankiSyncServer  `mapstructure:"anki_sync_server" validate:"required"`
-	Ovh            *ovh             `mapstructure:"ovh" validate:"required"`
-	Certs          []map[string]any `mapstructure:"certs"`
-	WgConf         []string         `mapstructure:"wg_conf"`
+	Env      Env              `validate:"i12e_env"`
+	Artifact *artifact        `mapstructure:"artifact" validate:"required"`
+	K3s      *k3s             `mapstructure:"k3s" validate:"required"`
+	Mesh     *mesh            `mapstructure:"mesh" validate:"required"`
+	Rclone   *rclone          `mapstructure:"rclone" validate:"required"`
+	GitHub   *github          `mapstructure:"github" validate:"required"`
+	Flux     *flux            `mapstructure:"flux" validate:"required"`
+	Ovh      *ovh             `mapstructure:"ovh" validate:"required"`
+	Certs    []map[string]any `mapstructure:"certs"`
+	WgConf   []string         `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
@@ -73,17 +72,6 @@ type github struct {
 
 type flux struct {
 	AgeKey string `mapstructure:"age_key" validate:"startswith=AGE-SECRET-KEY-"`
-}
-
-type AnkiSyncServerUser struct {
-	User string `mapstructure:"user" validate:"gte=1"`
-	Pass string `mapstructure:"pass" validate:"gte=1"`
-}
-
-type ankiSyncServer struct {
-	Version   string               `mapstructure:"version" validate:"gte=1"`
-	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
-	Hostname  string               `mapstructure:"hostname"`
 }
 
 type ovh struct {
