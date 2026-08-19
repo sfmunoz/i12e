@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.domain }}
+spec:
+  secretName: {{ .Values.domain }}
+  issuerRef:
+      name: {{ .Values.issuer }}
+      kind: Issuer
+  dnsNames:
+      - {{ .Values.domain }}
+      - '*.{{ .Values.domain }}'
+  secretTemplate:
+      annotations:
+          reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+          reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: i12e
+          reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+          reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: i12e

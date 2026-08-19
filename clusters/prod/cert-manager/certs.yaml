@@ -7,7 +7,7 @@ spec:
   interval: 17m12s
   chart:
     spec:
-      chart: ./misc/certs
+      chart: ./charts/prod/certs
       sourceRef:
         kind: GitRepository
         name: flux-system
