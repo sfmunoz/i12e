@@ -6,6 +6,7 @@ ENTRIES=(
   "/etc/i12e/csi-rclone"
   "/etc/i12e/reflector"
   "/etc/i12e/postgres-rclone"
+  "/etc/i12e/wikijs"
   "/opt/libexec/i12e/plugins/02-namespaces.sh"
   "/opt/libexec/i12e/plugins/05-traefik-config.sh"
   "/opt/libexec/i12e/plugins/08-rclone-conf.sh"
@@ -14,6 +15,7 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/20-reflector.sh"
   "/opt/libexec/i12e/plugins/30-cert-manager.sh"
   "/opt/libexec/i12e/plugins/40-postgres-rclone.sh"
+  "/opt/libexec/i12e/plugins/50-wikijs.sh"
 )
 for E in "${ENTRIES[@]}"; do
   [ -e "$E" ] || continue
