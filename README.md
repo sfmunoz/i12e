@@ -277,6 +277,11 @@ Inspect:
 
 ## Flux
 
+### Repository structure reference
+
+- https://fluxcd.io/flux/guides/repository-structure/#monorepo
+  - https://github.com/fluxcd/flux2-kustomize-helm-example
+
 ### Added `--components-extra=source-watcher`
 
 - Ref: https://github.com/fluxcd/source-watcher
