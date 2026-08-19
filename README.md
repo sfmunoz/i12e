@@ -277,6 +277,13 @@ Inspect:
 
 ## Flux
 
+### Added `--components-extra=source-watcher`
+
+- Ref: https://github.com/fluxcd/source-watcher
+- Plugin change: https://github.com/sfmunoz/i12e/commit/acb1f88e22aa6dcd40a8f412e836a19b85b9d254
+- Applied by **flux** on `go run main.go butane | ssh core@192.168.56.51 bash` execution:
+  - https://github.com/sfmunoz/i12e/commit/a87ccc7cc3c6d36d70f41a50cce5355abb0f319e
+
 ### Dev cluster bootstrap
 
 ```
