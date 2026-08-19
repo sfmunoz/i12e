@@ -22,7 +22,6 @@ type ArtifactConfig struct {
 	Rclone         *rclone          `mapstructure:"rclone" validate:"required"`
 	GitHub         *github          `mapstructure:"github" validate:"required"`
 	Flux           *flux            `mapstructure:"flux" validate:"required"`
-	WikiJs         map[string]any   `mapstructure:"wikijs" validate:"required"`
 	AnkiSyncServer *ankiSyncServer  `mapstructure:"anki_sync_server" validate:"required"`
 	Ovh            *ovh             `mapstructure:"ovh" validate:"required"`
 	Certs          []map[string]any `mapstructure:"certs"`
