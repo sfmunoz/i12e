@@ -66,7 +66,6 @@ func (a *Artifact) folders() error {
 		{Name: "etc/i12e/k3s", Mode: 0700},
 		{Name: "etc/i12e/wikijs", Mode: 0700},
 		{Name: "etc/i12e/anki-sync-server", Mode: 0700},
-		{Name: "etc/i12e/postgres-rclone", Mode: 0700},
 		{Name: "etc/i12e/flux", Mode: 0700},
 		{Name: "etc/systemd/system.conf.d", Mode: 0755},
 		{Name: "etc/wireguard", Mode: 0700}, // it's ok and harmless: it already exists like this
@@ -254,13 +253,6 @@ func (a *Artifact) etcI12eWikiJs() error {
 
 func (a *Artifact) etcI12eAnkiSyncServer() error {
 	return a.addTemplate("anki-sync-server.yaml", "etc/i12e/anki-sync-server/anki-sync-server.yaml", 0600, a.cfg.AnkiSyncServer)
-}
-
-func (a *Artifact) etcI12ePostgresRclone() error {
-	if err := a.addStatic("static/postgres-rclone.yaml", "etc/i12e/postgres-rclone/postgres-rclone.yaml", 0600); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (a *Artifact) etcI12eFluxCfg() error {
@@ -464,7 +456,6 @@ func (a *Artifact) run() error {
 		a.etcI12eK3sOverrideConf,
 		a.etcI12eWikiJs,
 		a.etcI12eAnkiSyncServer,
-		a.etcI12ePostgresRclone,
 		a.etcI12eFluxCfg,
 		a.etcI12eFluxSopsAgeYaml,
 		a.etcNftablesConf,
