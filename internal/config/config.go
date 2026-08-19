@@ -15,24 +15,19 @@ import (
 //   https://github.com/go-playground/validator
 
 type ArtifactConfig struct {
-	Env            Env              `validate:"i12e_env"`
-	Artifact       *artifact        `mapstructure:"artifact" validate:"required"`
-	K3s            *k3s             `mapstructure:"k3s" validate:"required"`
-	Mesh           *mesh            `mapstructure:"mesh" validate:"required"`
-	Rclone         *rclone          `mapstructure:"rclone" validate:"required"`
-	GitHub         *github          `mapstructure:"github" validate:"required"`
-	Flux           *flux            `mapstructure:"flux" validate:"required"`
-	WikiJs         map[string]any   `mapstructure:"wikijs" validate:"required"`
-	AnkiSyncServer *ankiSyncServer  `mapstructure:"anki_sync_server" validate:"required"`
-	Ovh            *ovh             `mapstructure:"ovh" validate:"required"`
-	Certs          []map[string]any `mapstructure:"certs"`
-	WgConf         []string         `mapstructure:"wg_conf"`
+	Env      Env       `validate:"i12e_env"`
+	Artifact *artifact `mapstructure:"artifact" validate:"required"`
+	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
+	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
+	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
+	GitHub   *github   `mapstructure:"github" validate:"required"`
+	Flux     *flux     `mapstructure:"flux" validate:"required"`
+	WgConf   []string  `mapstructure:"wg_conf"`
 }
 
 type ButaneConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Butane *butane `mapstructure:"butane" validate:"required"`
-	// I12e   *i12e   `mapstructure:"i12e" validate:"required"`
 	Rclone *rclone `mapstructure:"rclone" validate:"required"`
 }
 
@@ -42,10 +37,6 @@ type ServerConfig struct {
 	K3s    *k3s    `mapstructure:"k3s" validate:"required"`
 	Mesh   *mesh   `mapstructure:"mesh" validate:"required"`
 }
-
-// type i12e struct {
-// 	Version string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
-// }
 
 type artifact struct {
 	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
@@ -81,23 +72,6 @@ type flux struct {
 	AgeKey string `mapstructure:"age_key" validate:"startswith=AGE-SECRET-KEY-"`
 }
 
-type AnkiSyncServerUser struct {
-	User string `mapstructure:"user" validate:"gte=1"`
-	Pass string `mapstructure:"pass" validate:"gte=1"`
-}
-
-type ankiSyncServer struct {
-	Version   string               `mapstructure:"version" validate:"gte=1"`
-	SyncUsers []AnkiSyncServerUser `mapstructure:"sync_users" validate:"gte=1"`
-	Hostname  string               `mapstructure:"hostname"`
-}
-
-type ovh struct {
-	Ak string `mapstructure:"ak" validate:"len=16,hexadecimal"` // hexadecimal = [0-9a-fA-F] -> enough despite [A-Z] inclusion
-	As string `mapstructure:"as" validate:"md5"`                // md5 = 32 x [0-9a-f]
-	Ck string `mapstructure:"ck" validate:"md5"`                // md5 = 32 x [0-9a-f]
-}
-
 type mesh struct {
 	EndpointInterface     string        `mapstructure:"endpoint_interface"` // not required
 	EndpointPort          int           `mapstructure:"endpoint_port" validate:"gte=1024,lt=65535"`
@@ -106,17 +80,6 @@ type mesh struct {
 	WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname" validate:"gte=1"`
 	RemoteBase            string        `mapstructure:"remote_base" validate:"startsnotwith=:,contains=:,endsnotwith=:"`
 }
-
-// type pushover struct {
-// 	UserKey string `mapstructure:"user_key" validate:"gte=1"`
-// 	Token   string `mapstructure:"token" validate:"gte=1"`
-// }
-//
-// type kubeVip struct {
-// 	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
-// 	Interface string `mapstructure:"interface" validate:"gte=2"`
-// 	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
-// }
 
 func (cfg *ArtifactConfig) Validate() error {
 	v := validator.New(validator.WithRequiredStructEnabled())
