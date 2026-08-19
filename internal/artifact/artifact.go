@@ -242,7 +242,7 @@ func (a *Artifact) etcI12eFluxCfg() error {
 		GitHubToken string
 	}{
 		Cluster:     a.cfg.Env.String(),
-		GitHubToken: a.cfg.GitHub.Token,
+		GitHubToken: a.cfg.Flux.GitHubToken,
 	}
 	return a.addTemplate("flux.cfg", "etc/i12e/flux/flux.cfg", 0600, &data)
 }
