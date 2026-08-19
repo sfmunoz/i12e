@@ -32,7 +32,6 @@ type ArtifactConfig struct {
 type ButaneConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Butane *butane `mapstructure:"butane" validate:"required"`
-	// I12e   *i12e   `mapstructure:"i12e" validate:"required"`
 	Rclone *rclone `mapstructure:"rclone" validate:"required"`
 }
 
@@ -42,10 +41,6 @@ type ServerConfig struct {
 	K3s    *k3s    `mapstructure:"k3s" validate:"required"`
 	Mesh   *mesh   `mapstructure:"mesh" validate:"required"`
 }
-
-// type i12e struct {
-// 	Version string `mapstructure:"version" validate:"i12e_semver_v"` // "semver" doesn't accept the leading v
-// }
 
 type artifact struct {
 	PortKnocking  []int  `mapstructure:"port_knocking" validate:"len=4"` // valid: 4, see https://github.com/sfmunoz/i12e/issues/138
@@ -106,17 +101,6 @@ type mesh struct {
 	WireGuardPrivKeyFname string        `mapstructure:"wireguard_priv_key_fname" validate:"gte=1"`
 	RemoteBase            string        `mapstructure:"remote_base" validate:"startsnotwith=:,contains=:,endsnotwith=:"`
 }
-
-// type pushover struct {
-// 	UserKey string `mapstructure:"user_key" validate:"gte=1"`
-// 	Token   string `mapstructure:"token" validate:"gte=1"`
-// }
-//
-// type kubeVip struct {
-// 	Vip       string `mapstructure:"vip" validate:"ip4_addr"`
-// 	Interface string `mapstructure:"interface" validate:"gte=2"`
-// 	Kvversion string `mapstructure:"kvversion" validate:"required,i12e_semver_v"` // "semver" doesn't accept the leading v
-// }
 
 func (cfg *ArtifactConfig) Validate() error {
 	v := validator.New(validator.WithRequiredStructEnabled())
