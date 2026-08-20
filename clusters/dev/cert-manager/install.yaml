@@ -13,7 +13,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: cert-manager
-  namespace: flux-system
+  namespace: cert-manager
 spec:
   interval: 24h42m
   url: oci://quay.io/jetstack/charts/cert-manager
@@ -33,7 +33,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: cert-manager-webhook-ovh
-  namespace: flux-system
+  namespace: cert-manager
 spec:
   interval: 24h16m
   url: https://aureq.github.io/cert-manager-webhook-ovh

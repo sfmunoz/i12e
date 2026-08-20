@@ -11,7 +11,7 @@ spec:
   chartRef:
     kind: OCIRepository
     name: cert-manager
-    namespace: flux-system
+    namespace: cert-manager
   interval: 10m42s
   values:
     crds:
@@ -38,7 +38,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: cert-manager-webhook-ovh
-        namespace: flux-system
+        namespace: cert-manager
       interval: 1h8m
   releaseName: cert-manager-webhook-ovh
   values:
