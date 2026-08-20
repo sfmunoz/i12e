@@ -7,7 +7,7 @@ spec:
   interval: 17m12s
   chart:
     spec:
-      chart: ./charts/dev/certs
+      chart: ./apps/dev/cert-manager/chart
       sourceRef:
         kind: GitRepository
         name: flux-system
