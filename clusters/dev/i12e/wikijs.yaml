@@ -14,7 +14,7 @@ spec:
   chartRef:
     kind: OCIRepository
     name: wikijs
-    namespace: flux-system
+    namespace: i12e
   interval: 11m26s
   valuesFrom:
     - kind: Secret

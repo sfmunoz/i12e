@@ -4,7 +4,5 @@ resources:
 - gotk-components.yaml
 - gotk-sync.yaml
 - secrets-sync.yaml
-- postgres-rclone.yaml
-- wikijs.yaml
 patches:
 - path: git-repo-config.yaml

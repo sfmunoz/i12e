@@ -8,8 +8,24 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
+  name: postgres-rclone
+  namespace: i12e
+spec:
+  interval: 25h04m
+  url: oci://ghcr.io/sfmunoz/postgres-rclone
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+    operation: copy
+  ref:
+    tag: 0.1.0
+
+---
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
   name: wikijs
-  namespace: flux-system
+  namespace: i12e
 spec:
   interval: 25h22m
   url: oci://ghcr.io/sfmunoz/wikijs

@@ -14,5 +14,5 @@ spec:
   chartRef:
     kind: OCIRepository
     name: postgres-rclone
-    namespace: flux-system
+    namespace: i12e
   interval: 11m17s
