@@ -2,7 +2,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: anki-sync-server
-  namespace: i12e
+  namespace: anki
 spec:
   interval: 17m22s
   chart:
