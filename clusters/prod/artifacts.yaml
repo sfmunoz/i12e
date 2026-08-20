@@ -19,8 +19,3 @@ spec:
       copy:
         - from: "@monorepo/apps/prod/**"
           to: "@artifact/apps/"
-    - name: charts
-      originRevision: "@monorepo"
-      copy:
-        - from: "@monorepo/charts/prod/**"
-          to: "@artifact/charts/"
