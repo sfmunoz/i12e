@@ -7,7 +7,7 @@ spec:
   interval: 17m22s
   chart:
     spec:
-      chart: ./charts/dev/anki-sync-server
+      chart: ./apps/dev/anki/chart
       sourceRef:
         kind: GitRepository
         name: flux-system
