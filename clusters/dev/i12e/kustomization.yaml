@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
 - namespace.yaml
 - install.yaml
+- csi-rclone.yaml
 - postgres-rclone.yaml
 - wikijs.yaml
