@@ -7,5 +7,5 @@ spec:
   chartRef:
     kind: OCIRepository
     name: csi-rclone
-    namespace: flux-system
+    namespace: csi-rclone
   interval: 10m53s
