@@ -4,6 +4,7 @@ SHA256SUM="0c91d4bbbc2aa9c84b42608184534437ef92e5f2d6b862e99a11c0bb24ad0941"
 FLUX_BIN="/opt/bin/flux"
 FLUX_CFG="/etc/i12e/flux/flux.cfg"
 SOPS_AGE_YAML="/etc/i12e/flux/sops-age.yaml"
+NS="flux-system"
 [ "$KUBECONFIG" = "" ] && KUBECONFIG="/etc/rancher/k3s/k3s.yaml"
 export KUBECONFIG
 set -x -e -o pipefail
@@ -42,17 +43,25 @@ function flux_bootstrap {
     --components-extra=source-watcher
   return $?
 }
+function flux_create_namespace {
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1 && return 0
+  { set +x; } 2>/dev/null
+  echo "creating '${NS}' namespace (it doesn't exist)"
+  set -x
+  k3s kubectl create ns "${NS}" || return $?
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1 || return $?
+  return 0
+}
 function flux_create_secret_sops_age {
   [ -f "$SOPS_AGE_YAML" ] || return 1
   k3s kubectl apply --server-side=true -f "${SOPS_AGE_YAML}"
   return $?
 }
 flux_bin_install || exit $?
+flux check && exit 0
 flux check --pre || exit $?
-if flux check; then
-  flux_create_secret_sops_age
-  exit $?
-fi
+flux_create_namespace || exit $?
+flux_create_secret_sops_age || exit $?
 flux_cfg_read || exit $?
 flux_bootstrap || exit $?
 exit 0
