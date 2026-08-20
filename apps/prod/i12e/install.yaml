@@ -21,6 +21,20 @@ spec:
 
 ---
 
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postgres-rclone
+  namespace: i12e
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: postgres-rclone
+    namespace: i12e
+  interval: 11m17s
+
+---
+
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
@@ -34,3 +48,21 @@ spec:
     operation: copy
   ref:
     tag: 0.0.1
+
+---
+
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wikijs
+  namespace: i12e
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: wikijs
+    namespace: i12e
+  interval: 11m26s
+  valuesFrom:
+    - kind: Secret
+      name: wikijs-conf
+      valuesKey: values.yaml
