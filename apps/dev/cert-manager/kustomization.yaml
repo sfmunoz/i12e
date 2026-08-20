@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
 - namespace.yaml
 - install.yaml
-- cert-manager.yaml
 - cert-selfsigned.yaml
 - cert-standalone.yaml
 - rbac.yaml
