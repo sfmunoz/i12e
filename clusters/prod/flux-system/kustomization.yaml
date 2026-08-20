@@ -4,7 +4,6 @@ resources:
 - gotk-components.yaml
 - gotk-sync.yaml
 - secrets-sync.yaml
-- csi-rclone.yaml
 - postgres-rclone.yaml
 - wikijs.yaml
 patches:
