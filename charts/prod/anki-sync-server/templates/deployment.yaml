@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: anki-sync-server
-  namespace: i12e
 spec:
   replicas: 1
   selector:
