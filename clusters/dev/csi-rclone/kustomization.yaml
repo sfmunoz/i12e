@@ -4,3 +4,4 @@ resources:
 - namespace.yaml
 - install.yaml
 - csi-rclone.yaml
+- storage-classes.yaml
