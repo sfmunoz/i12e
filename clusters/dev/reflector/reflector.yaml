@@ -28,6 +28,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: reflector
-        namespace: flux-system
+        namespace: reflector
       interval: 1h5m
   releaseName: reflector
