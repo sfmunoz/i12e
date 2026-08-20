@@ -1,0 +1,21 @@
+#
+# Ref: https://github.com/fluxcd/flux2-kustomize-helm-example/blob/main/clusters/production/artifacts.yaml
+#
+
+---
+apiVersion: source.extensions.fluxcd.io/v1beta1
+kind: ArtifactGenerator
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  sources:
+    - alias: monorepo
+      kind: GitRepository
+      name: flux-system
+  artifacts:
+    - name: apps
+      originRevision: "@monorepo"
+      copy:
+        - from: "@monorepo/apps/prod/**"
+          to: "@artifact/apps/"
