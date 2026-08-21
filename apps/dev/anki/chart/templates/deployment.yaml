@@ -17,9 +17,10 @@ spec:
         image: "ghcr.io/sfmunoz/anki-sync-server:{{ .Chart.AppVersion }}"
         ports:
         - containerPort: 8080
-        env:
-        - name: SYNC_USER1
-          value: "{{ .Values.username }}:{{ .Values.password }}"
+        envFrom:
+        - secretRef:
+              name: "{{ .Values.secretName }}"
+              optional: false
         volumeMounts:
         - name: data
           mountPath: /anki_data/
