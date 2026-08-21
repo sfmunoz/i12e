@@ -4,8 +4,12 @@ metadata:
   name: anki-sync-server
   namespace: anki
 spec:
+  tls:
+  - secretName: "${SECRETNAME}"
+    hosts:
+    - "${HOSTNAME}"
   rules:
-  - host: anki.local
+  - host: "${HOSTNAME}"
     http:
       paths:
       - path: /
