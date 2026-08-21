@@ -19,11 +19,7 @@ function flux_bin_install {
 }
 function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
-  # set +x ... set -x: make sure GITHUB_TOKEN and AGE_KEY are not shown
-  { set +x; } 2>/dev/null
-  echo "+ source $FLUX_CFG" >&2
-  source "$FLUX_CFG" # read CLUSTER and GITHUB_TOKEN
-  set -x
+  source "$FLUX_CFG" 2>/dev/null #  GITHUB_TOKEN and AGE_KEY are not shown
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
   [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
