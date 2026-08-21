@@ -17,6 +17,12 @@ function flux_bin_install {
   echo "error: '${FLUX_BIN}' download failed" >&2
   return 1
 }
+function flux_create_namespace {
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1 && return 0
+  k3s kubectl create ns "${NS}" || return $?
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1
+  return $?
+}
 function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
   source "$FLUX_CFG" 2>/dev/null #  GITHUB_TOKEN and AGE_KEY are not shown
@@ -25,6 +31,19 @@ function flux_cfg_read {
   [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
   export CLUSTER GITHUB_TOKEN AGE_KEY
   return 0
+}
+function flux_create_secret_sops_age {
+  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1 && return 0
+  (
+    { set +x; } 2>/dev/null
+    echo -n "${AGE_KEY}"
+  ) |
+    k3s kubectl create secret generic "${SECRET_NAME}" \
+      --namespace="${NS}" \
+      --type=Opaque \
+      --from-file=age.agekey=/dev/stdin || return $?
+  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1
+  return $?
 }
 function flux_bootstrap {
   flux bootstrap github \
@@ -38,25 +57,6 @@ function flux_bootstrap {
     --author-name "flux-${CLUSTER}-bot" \
     --author-email "46285520+sfmunoz@users.noreply.github.com" \
     --components-extra=source-watcher
-  return $?
-}
-function flux_create_namespace {
-  k3s kubectl get ns "${NS}" >/dev/null 2>&1 && return 0
-  k3s kubectl create ns "${NS}" || return $?
-  k3s kubectl get ns "${NS}" >/dev/null 2>&1
-  return $?
-}
-function flux_create_secret_sops_age {
-  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1 && return 0
-  (
-    { set +x; } 2>/dev/null
-    echo -n "${AGE_KEY}"
-  ) |
-    k3s kubectl create secret generic "${SECRET_NAME}" \
-      --namespace="${NS}" \
-      --type=Opaque \
-      --from-file=age.agekey=/dev/stdin || return $?
-  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1
   return $?
 }
 flux_bin_install || exit $?
