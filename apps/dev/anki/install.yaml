@@ -1,0 +1,18 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: anki
+  namespace: anki
+spec:
+  interval: 11m05s
+  sourceRef:
+    kind: ExternalArtifact
+    name: apps
+  path: ./apps/anki/service
+  prune: true
+  wait: true
+  #postBuild:
+  #  substituteFrom:
+  #    - kind: Secret
+  #      name: ...
+  #      optional: false
