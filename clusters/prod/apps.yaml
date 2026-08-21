@@ -14,7 +14,7 @@ spec:
     namespace: flux-system
   - name: flux-secrets
     namespace: flux-system
-  interval: 1h4m8s
+  interval: 9m16s
   retryInterval: 2m
   timeout: 5m
   sourceRef:
