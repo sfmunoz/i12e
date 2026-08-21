@@ -25,7 +25,7 @@ function flux_create_namespace {
 }
 function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
-  source "$FLUX_CFG" 2>/dev/null #  GITHUB_TOKEN and AGE_KEY are not shown
+  source "$FLUX_CFG" 2>/dev/null || return 1 #  GITHUB_TOKEN and AGE_KEY are not shown
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
   [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
