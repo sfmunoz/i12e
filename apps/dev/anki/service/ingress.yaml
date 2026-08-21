@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: anki-sync-server
+  namespace: anki
 spec:
   rules:
   - host: anki.local

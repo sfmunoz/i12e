@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: anki-sync-server
+  namespace: anki
 spec:
   selector:
     app: anki-sync-server
