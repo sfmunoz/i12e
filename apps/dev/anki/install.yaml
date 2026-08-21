@@ -12,8 +12,8 @@ spec:
   path: ./apps/anki/service
   prune: true
   wait: true
-  #postBuild:
-  #  substituteFrom:
-  #    - kind: Secret
-  #      name: ...
-  #      optional: false
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: anki-service-conf
+        optional: false
