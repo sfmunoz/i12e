@@ -1,19 +1,19 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
-kind: HelmRelease
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
 metadata:
   name: certs
   namespace: cert-manager
 spec:
-  interval: 17m12s
-  timeout: 15m0s
-  chart:
-    spec:
-      chart: ./apps/dev/cert-manager/chart
-      sourceRef:
-        kind: GitRepository
-        name: flux-system
-        namespace: flux-system
-  valuesFrom:
-    - kind: Secret
-      name: certs-config
-      valuesKey: values.yaml
+  interval: 10m38s
+  sourceRef:
+    kind: ExternalArtifact
+    name: apps
+    namespace: flux-system
+  path: ./apps/cert-manager/certs
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: certs-config
+        optional: false
