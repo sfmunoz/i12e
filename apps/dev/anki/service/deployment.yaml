@@ -20,7 +20,7 @@ spec:
         - containerPort: 8080
         envFrom:
         - secretRef:
-            name: anki-sync-server-conf
+            name: sync-users
             optional: false
         volumeMounts:
         - name: data

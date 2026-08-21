@@ -15,5 +15,5 @@ spec:
   postBuild:
     substituteFrom:
       - kind: Secret
-        name: anki-service-conf
+        name: ingress-conf
         optional: false
