@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: "${DOMAIN}"
   issuerRef:
-      name: "{$ISSUER}"
+      name: "${ISSUER}"
       kind: Issuer
   dnsNames:
       - "${DOMAIN}"
