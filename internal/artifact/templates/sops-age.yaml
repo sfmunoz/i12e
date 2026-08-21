@@ -1,8 +1,0 @@
-apiVersion: v1
-data:
-  age.agekey: "{{ .AgeKey }}"
-kind: Secret
-metadata:
-  name: sops-age
-  namespace: flux-system
-type: Opaque

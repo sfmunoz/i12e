@@ -3,8 +3,8 @@ export FLUX_VERSION="2.9.4" # exported: it's used by https://fluxcd.io/install.s
 SHA256SUM="0c91d4bbbc2aa9c84b42608184534437ef92e5f2d6b862e99a11c0bb24ad0941"
 FLUX_BIN="/opt/bin/flux"
 FLUX_CFG="/etc/i12e/flux/flux.cfg"
-SOPS_AGE_YAML="/etc/i12e/flux/sops-age.yaml"
 NS="flux-system"
+SECRET_NAME="sops-age"
 [ "$KUBECONFIG" = "" ] && KUBECONFIG="/etc/rancher/k3s/k3s.yaml"
 export KUBECONFIG
 set -x -e -o pipefail
@@ -17,17 +17,33 @@ function flux_bin_install {
   echo "error: '${FLUX_BIN}' download failed" >&2
   return 1
 }
+function flux_create_namespace {
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1 && return 0
+  k3s kubectl create ns "${NS}" || return $?
+  k3s kubectl get ns "${NS}" >/dev/null 2>&1
+  return $?
+}
 function flux_cfg_read {
   [ -f "$FLUX_CFG" ] || return 1
-  # set +x ... set -x: make sure GITHUB_TOKEN is not shown
-  { set +x; } 2>/dev/null
-  echo "+ source $FLUX_CFG" >&2
-  source "$FLUX_CFG" # read CLUSTER and GITHUB_TOKEN
-  set -x
+  source "$FLUX_CFG" 2>/dev/null || return 1 #  GITHUB_TOKEN and AGE_KEY are not shown
   [ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || return 1
   [ ${#GITHUB_TOKEN} -gt 0 ] || return 1 # length: GITHUB_TOKEN is not shown
-  export CLUSTER GITHUB_TOKEN
+  [ ${#AGE_KEY} -gt 0 ] || return 1      # length: AGE_KEY is not shown
+  export CLUSTER GITHUB_TOKEN AGE_KEY
   return 0
+}
+function flux_create_secret_sops_age {
+  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1 && return 0
+  (
+    { set +x; } 2>/dev/null
+    echo -n "${AGE_KEY}"
+  ) |
+    k3s kubectl create secret generic "${SECRET_NAME}" \
+      --namespace="${NS}" \
+      --type=Opaque \
+      --from-file=age.agekey=/dev/stdin || return $?
+  k3s kubectl get secret -n "${NS}" "${SECRET_NAME}" >/dev/null 2>&1
+  return $?
 }
 function flux_bootstrap {
   flux bootstrap github \
@@ -43,25 +59,11 @@ function flux_bootstrap {
     --components-extra=source-watcher
   return $?
 }
-function flux_create_namespace {
-  k3s kubectl get ns "${NS}" >/dev/null 2>&1 && return 0
-  { set +x; } 2>/dev/null
-  echo "creating '${NS}' namespace (it doesn't exist)"
-  set -x
-  k3s kubectl create ns "${NS}" || return $?
-  k3s kubectl get ns "${NS}" >/dev/null 2>&1 || return $?
-  return 0
-}
-function flux_create_secret_sops_age {
-  [ -f "$SOPS_AGE_YAML" ] || return 1
-  k3s kubectl apply --server-side=true -f "${SOPS_AGE_YAML}"
-  return $?
-}
 flux_bin_install || exit $?
 flux check && exit 0
 flux check --pre || exit $?
 flux_create_namespace || exit $?
-flux_create_secret_sops_age || exit $?
 flux_cfg_read || exit $?
+flux_create_secret_sops_age || exit $?
 flux_bootstrap || exit $?
 exit 0

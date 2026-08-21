@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
-	"encoding/base64"
 	"fmt"
 	"os"
 	"os/exec"
@@ -240,20 +239,13 @@ func (a *Artifact) etcI12eFluxCfg() error {
 	data := struct {
 		Cluster     string
 		GitHubToken string
+		AgeKey      string
 	}{
 		Cluster:     a.cfg.Env.String(),
 		GitHubToken: a.cfg.Flux.GitHubToken,
+		AgeKey:      a.cfg.Flux.AgeKey,
 	}
 	return a.addTemplate("flux.cfg", "etc/i12e/flux/flux.cfg", 0600, &data)
-}
-
-func (a *Artifact) etcI12eFluxSopsAgeYaml() error {
-	data := struct {
-		AgeKey string
-	}{
-		AgeKey: base64.StdEncoding.EncodeToString([]byte(a.cfg.Flux.AgeKey)),
-	}
-	return a.addTemplate("sops-age.yaml", "etc/i12e/flux/sops-age.yaml", 0600, &data)
 }
 
 func (a *Artifact) etcNftablesConf() error {
@@ -436,7 +428,6 @@ func (a *Artifact) run() error {
 		a.etcI12eK3sConfigYaml,
 		a.etcI12eK3sOverrideConf,
 		a.etcI12eFluxCfg,
-		a.etcI12eFluxSopsAgeYaml,
 		a.etcNftablesConf,
 		a.etcSystemdSystemConfDI12eConf,
 		a.etcSystemdSystemNftablesService,
