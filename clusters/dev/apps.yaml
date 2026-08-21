@@ -10,6 +10,8 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
+  - name: infra
+    namespace: flux-system
   - name: flux-secrets
     namespace: flux-system
   interval: 1h4m8s
