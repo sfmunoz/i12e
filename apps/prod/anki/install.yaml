@@ -12,7 +12,3 @@ spec:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
-  valuesFrom:
-    - kind: Secret
-      name: anki-sync-server-conf
-      valuesKey: values.yaml
