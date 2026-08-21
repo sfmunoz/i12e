@@ -14,13 +14,13 @@ spec:
     spec:
       containers:
       - name: anki-sync-server
-        image: "ghcr.io/sfmunoz/anki-sync-server:{{ .Chart.AppVersion }}"
+        image: "ghcr.io/sfmunoz/anki-sync-server:25.09.2-2"
         ports:
         - containerPort: 8080
         envFrom:
         - secretRef:
-              name: "{{ .Values.secretName }}"
-              optional: false
+            name: anki-sync-server-conf
+            optional: false
         volumeMounts:
         - name: data
           mountPath: /anki_data/
