@@ -8,6 +8,7 @@ spec:
   sourceRef:
     kind: ExternalArtifact
     name: apps
+    namespace: flux-system
   path: ./apps/anki/service
   prune: true
   wait: true
