@@ -24,3 +24,20 @@ spec:
       copy:
         - from: "@monorepo/apps/dev/**"
           to: "@artifact/apps/"
+---
+apiVersion: source.extensions.fluxcd.io/v1beta1
+kind: ArtifactGenerator
+metadata:
+  name: flux-system
+  namespace: flux-secrets
+spec:
+  sources:
+    - alias: secretsrepo
+      kind: GitRepository
+      name: flux-secrets
+  artifacts:
+    - name: secrets
+      originRevision: "@secretsrepo"
+      copy:
+        - from: "@secretsrepo/clusters/dev/**"
+          to: "@artifact/secrets/"
