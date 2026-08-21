@@ -5,6 +5,7 @@ metadata:
   namespace: cert-manager
 spec:
   interval: 17m12s
+  timeout: 15m0s
   chart:
     spec:
       chart: ./apps/dev/cert-manager/chart
