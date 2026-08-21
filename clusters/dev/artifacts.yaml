@@ -28,8 +28,8 @@ spec:
 apiVersion: source.extensions.fluxcd.io/v1beta1
 kind: ArtifactGenerator
 metadata:
-  name: flux-system
-  namespace: flux-secrets
+  name: flux-secrets
+  namespace: flux-system
 spec:
   sources:
     - alias: secretsrepo
