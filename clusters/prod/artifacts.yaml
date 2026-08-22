@@ -13,6 +13,9 @@ spec:
     - alias: monorepo
       kind: GitRepository
       name: flux-system
+    - alias: secretsrepo
+      kind: GitRepository
+      name: secrets
   artifacts:
     - name: infra
       originRevision: "@monorepo"
@@ -24,18 +27,6 @@ spec:
       copy:
         - from: "@monorepo/apps/prod/**"
           to: "@artifact/apps/"
----
-apiVersion: source.extensions.fluxcd.io/v1beta1
-kind: ArtifactGenerator
-metadata:
-  name: secrets
-  namespace: flux-system
-spec:
-  sources:
-    - alias: secretsrepo
-      kind: GitRepository
-      name: secrets
-  artifacts:
     - name: secrets
       originRevision: "@secretsrepo"
       copy:
