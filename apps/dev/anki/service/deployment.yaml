@@ -27,6 +27,5 @@ spec:
           mountPath: /anki_data/
       volumes:
       - name: data
-        hostPath:
-          path: /opt/anki-sync-server
-          type: DirectoryOrCreate
+        persistentVolumeClaim:
+          claimName: anki
