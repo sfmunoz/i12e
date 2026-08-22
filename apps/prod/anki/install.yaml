@@ -4,6 +4,11 @@ metadata:
   name: anki
   namespace: anki
 spec:
+  dependsOn:
+  - name: infra
+    namespace: flux-system
+  - name: secrets
+    namespace: flux-system
   interval: 11m05s
   sourceRef:
     kind: ExternalArtifact
