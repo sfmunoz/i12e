@@ -64,5 +64,5 @@ spec:
   interval: 11m26s
   valuesFrom:
     - kind: Secret
-      name: wikijs-conf
+      name: wikijs-values-yaml
       valuesKey: values.yaml
