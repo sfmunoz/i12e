@@ -74,7 +74,7 @@ spec:
   dependsOn:
   - name: cert-manager
     namespace: cert-manager
-  interval: 1h18m
+  interval: 11m57s
   timeout: 5m
   chart:
     spec:
