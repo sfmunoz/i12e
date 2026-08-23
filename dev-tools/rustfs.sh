@@ -11,12 +11,9 @@
 VERSION="1.0.0-beta.11"
 SHA256SUM="ae77d173c520d523b7fd48fea93e8f8c4ad0c496b16cb47f14660677621424d5"
 
-set -e -o pipefail
-cd "$(dirname "$0")"
-
-set -x
-mkdir -p .rustfs/data
-cd .rustfs
+set -x -e -o pipefail
+mkdir -p "${HOME}/.i12e/rustfs/data"
+cd "${HOME}/.i12e/rustfs"
 { set +x; } 2>/dev/null
 
 if [ ! -f rustfs ]; then
