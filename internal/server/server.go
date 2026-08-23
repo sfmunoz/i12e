@@ -12,51 +12,66 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	cfg *config.ServerConfig
+	cfg                               *config.ServerConfig
+	steps, bInit, bStep, jInit, jStep int64
 }
 
 func newServer(cfg *config.ServerConfig) *Server {
-	return &Server{cfg}
+	steps := int64(100)
+	bInit := 16 * time.Second
+	jInit := 4 * time.Second
+	return &Server{
+		cfg:   cfg,
+		steps: steps,
+		bInit: int64(bInit),
+		bStep: int64(cfg.Server.SlumberBase-bInit) / steps,
+		jInit: int64(jInit),
+		jStep: int64(cfg.Server.SlumberJitter-jInit) / steps,
+	}
 }
 
-func (s *Server) runOne() {
+func (s *Server) slumber(i int64) time.Duration {
+	return time.Duration(s.bInit + i*s.bStep + rand.Int64N(s.jInit+i*s.jStep))
+}
+
+func (s *Server) runOne(i int64) time.Duration {
 	if err := rclonePull(); err != nil {
 		log.Error("rclonePull() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
 	if err := artifactPull(); err != nil {
 		log.Error("artifactPull() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
 	if err := artifactTune(); err != nil {
 		log.Error("artifactTune() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
 	if err := mesh.Run(s.cfg); err != nil {
 		log.Error("mesh.Run() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
 	if err := k3sInstall(s.cfg); err != nil {
 		log.Error("k3sInstall() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
 	if err := pluginsRun(); err != nil {
 		log.Error("pluginsRun() failed", "err", err)
-		return
+		return s.slumber(0)
 	}
+	if i < 5 {
+		return s.slumber(0)
+	}
+	return s.slumber(i)
 }
 
 func (s *Server) run() error {
-	i := 0
+	var i int64 = 0
 	for {
-		s.runOne()
-		slumber := s.cfg.Server.SlumberBase + time.Duration(rand.Int64N(int64(s.cfg.Server.SlumberJitter)))
-		if i < 4 {
-			i += 1
-			slumber = 16*time.Second + time.Duration(rand.Int64N(int64(4*time.Second)))
-		}
+		slumber := s.runOne(i)
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
+		i = min(i+1, s.steps)
 	}
 }
 
