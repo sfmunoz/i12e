@@ -58,20 +58,19 @@ func (s *Server) runOne() error {
 	return nil
 }
 
-func (s *Server) slumber(i int64) time.Duration {
-	i = min(i, s.steps)
-	return time.Duration(s.bInit + i*s.bStep + rand.Int64N(s.jInit+i*s.jStep))
+func (s *Server) slumber(i int64, err error) time.Duration {
+	x := min(i, s.steps)
+	if err != nil {
+		x = 0
+	}
+	return time.Duration(s.bInit + x*s.bStep + rand.Int64N(s.jInit+x*s.jStep))
 }
 
 func (s *Server) run() error {
 	var i int64 = 0
 	for {
 		err := s.runOne()
-		j := i
-		if err != nil {
-			j = 0
-		}
-		slumber := s.slumber(j)
+		slumber := s.slumber(i, err)
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 		i = min(i+1, s.steps)
