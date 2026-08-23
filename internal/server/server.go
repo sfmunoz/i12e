@@ -61,10 +61,10 @@ func (s *Server) run() error {
 	var i int64 = 0
 	for {
 		s.runOne()
-		i = min(i+1, s.steps)
-		slumber := time.Duration(i*s.bStep + rand.Int64N(i*s.jStep))
+		slumber := time.Duration(s.bInit + i*s.bStep + rand.Int64N(s.jInit+i*s.jStep))
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
+		i = min(i+1, s.steps)
 	}
 }
 
