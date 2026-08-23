@@ -20,6 +20,7 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/50-wikijs.sh"
   "/opt/libexec/i12e/plugins/60-anki-sync-server.sh"
   "/opt/libexec/i12e/plugin-run.sh"
+  "/opt/libexec/i12e/plugins/99-purge.sh"
 )
 for E in "${ENTRIES[@]}"; do
   [ -e "$E" ] || continue
