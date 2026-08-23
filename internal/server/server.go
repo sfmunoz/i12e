@@ -59,6 +59,9 @@ func (s *Server) runOne(i int64) time.Duration {
 		log.Error("pluginsRun() failed", "err", err)
 		return s.slumber(0)
 	}
+	if i < 5 {
+		return s.slumber(0)
+	}
 	return s.slumber(i)
 }
 
