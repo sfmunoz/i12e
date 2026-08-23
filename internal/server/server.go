@@ -30,47 +30,42 @@ func newServer(cfg *config.ServerConfig) *Server {
 	}
 }
 
-func (s *Server) runOne() error {
+func (s *Server) slumber(i int64) time.Duration {
+	return time.Duration(s.bInit + i*s.bStep + rand.Int64N(s.jInit+i*s.jStep))
+}
+
+func (s *Server) runOne(i int64) time.Duration {
 	if err := rclonePull(); err != nil {
 		log.Error("rclonePull() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
 	if err := artifactPull(); err != nil {
 		log.Error("artifactPull() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
 	if err := artifactTune(); err != nil {
 		log.Error("artifactTune() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
 	if err := mesh.Run(s.cfg); err != nil {
 		log.Error("mesh.Run() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
 	if err := k3sInstall(s.cfg); err != nil {
 		log.Error("k3sInstall() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
 	if err := pluginsRun(); err != nil {
 		log.Error("pluginsRun() failed", "err", err)
-		return err
+		return s.slumber(0)
 	}
-	return nil
-}
-
-func (s *Server) slumber(i int64, err error) time.Duration {
-	x := min(i, s.steps)
-	if err != nil {
-		x = 0
-	}
-	return time.Duration(s.bInit + x*s.bStep + rand.Int64N(s.jInit+x*s.jStep))
+	return s.slumber(i)
 }
 
 func (s *Server) run() error {
 	var i int64 = 0
 	for {
-		err := s.runOne()
-		slumber := s.slumber(i, err)
+		slumber := s.runOne(i)
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 		i = min(i+1, s.steps)
