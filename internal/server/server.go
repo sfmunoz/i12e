@@ -30,31 +30,32 @@ func newServer(cfg *config.ServerConfig) *Server {
 	}
 }
 
-func (s *Server) runOne() {
+func (s *Server) runOne() error {
 	if err := rclonePull(); err != nil {
 		log.Error("rclonePull() failed", "err", err)
-		return
+		return err
 	}
 	if err := artifactPull(); err != nil {
 		log.Error("artifactPull() failed", "err", err)
-		return
+		return err
 	}
 	if err := artifactTune(); err != nil {
 		log.Error("artifactTune() failed", "err", err)
-		return
+		return err
 	}
 	if err := mesh.Run(s.cfg); err != nil {
 		log.Error("mesh.Run() failed", "err", err)
-		return
+		return err
 	}
 	if err := k3sInstall(s.cfg); err != nil {
 		log.Error("k3sInstall() failed", "err", err)
-		return
+		return err
 	}
 	if err := pluginsRun(); err != nil {
 		log.Error("pluginsRun() failed", "err", err)
-		return
+		return err
 	}
+	return nil
 }
 
 func (s *Server) slumber(i int64) time.Duration {
@@ -65,8 +66,12 @@ func (s *Server) slumber(i int64) time.Duration {
 func (s *Server) run() error {
 	var i int64 = 0
 	for {
-		s.runOne()
-		slumber := s.slumber(i)
+		err := s.runOne()
+		j := i
+		if err != nil {
+			j = 0
+		}
+		slumber := s.slumber(j)
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 		i = min(i+1, s.steps)
