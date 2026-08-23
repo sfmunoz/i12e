@@ -16,6 +16,9 @@ spec:
       containers:
       - name: trilium
         image: "triliumnext/trilium:v0.104.0"
+        env:
+        - name: TRILIUM_PORT
+          value: "8080"   # default set by K8S: something like 'tcp://10.43.167.120:8080'
         ports:
         - containerPort: 8080
         volumeMounts:
