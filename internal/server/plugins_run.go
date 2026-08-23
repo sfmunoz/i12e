@@ -21,10 +21,18 @@ func pluginsRun() error {
 	}
 	sort.Strings(matches)
 	for _, plugin := range matches {
-		log.Info("pluginsRun(): running plugin", "plugin", plugin)
+		if _, err := os.Stat(plugin); err != nil {
+			if os.IsNotExist(err) {
+				log.Warn("plugin vanished: it surely was purged", "plugin", plugin)
+				continue
+			}
+			log.Error("os.Stat() failed", "err", err, "plugin", plugin)
+			return err
+		}
+		log.Info("running", "plugin", plugin)
 		cmd := exec.Command("/bin/bash", plugin)
 		if err := cmdutil.RunCmd(cmd); err != nil {
-			log.Error("plugin failed", "err", err, "plugin", plugin)
+			log.Error("cmdutil.RunCmd() failed", "err", err, "plugin", plugin)
 			return err
 		}
 	}
