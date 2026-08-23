@@ -50,11 +50,12 @@ func (s *Server) run() error {
 	i := 0
 	for {
 		s.runOne()
-		slumber := s.cfg.Server.SlumberBase + time.Duration(rand.Int64N(int64(s.cfg.Server.SlumberJitter)))
+		sbase, sjitter := s.cfg.Server.SlumberBase, s.cfg.Server.SlumberJitter
 		if i < 4 {
 			i += 1
-			slumber = 16*time.Second + time.Duration(rand.Int64N(int64(4*time.Second)))
+			sbase, sjitter = 16*time.Second, 4*time.Second
 		}
+		slumber := sbase + time.Duration(rand.Int64N(int64(sjitter)))
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
