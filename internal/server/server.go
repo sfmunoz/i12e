@@ -12,11 +12,22 @@ import (
 var log = logit.Logit().WithLevel(logit.LevelInfo)
 
 type Server struct {
-	cfg *config.ServerConfig
+	cfg                               *config.ServerConfig
+	steps, bInit, bStep, jInit, jStep int64
 }
 
 func newServer(cfg *config.ServerConfig) *Server {
-	return &Server{cfg}
+	steps := int64(100)
+	bInit := 16 * time.Second
+	jInit := 4 * time.Second
+	return &Server{
+		cfg:   cfg,
+		steps: steps,
+		bInit: int64(bInit),
+		bStep: int64(cfg.Server.SlumberBase-bInit) / steps,
+		jInit: int64(jInit),
+		jStep: int64(cfg.Server.SlumberJitter-jInit) / steps,
+	}
 }
 
 func (s *Server) runOne() {
@@ -47,15 +58,11 @@ func (s *Server) runOne() {
 }
 
 func (s *Server) run() error {
-	i := 0
+	var i int64 = 0
 	for {
 		s.runOne()
-		sbase, sjitter := s.cfg.Server.SlumberBase, s.cfg.Server.SlumberJitter
-		if i < 4 {
-			i += 1
-			sbase, sjitter = 16*time.Second, 4*time.Second
-		}
-		slumber := sbase + time.Duration(rand.Int64N(int64(sjitter)))
+		i = min(i+1, s.steps)
+		slumber := time.Duration(i*s.bStep + rand.Int64N(i*s.jStep))
 		log.Info("i12e sleeping...", "slumber", slumber)
 		time.Sleep(slumber)
 	}
