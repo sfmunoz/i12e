@@ -5,3 +5,4 @@ resources:
 - cert-manager.yaml
 - csi-rclone.yaml
 - i12e.yaml
+- trilium.yaml
