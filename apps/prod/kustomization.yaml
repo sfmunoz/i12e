@@ -7,3 +7,4 @@ resources:
 - forgejo.yaml
 - i12e.yaml
 - trilium.yaml
+- wikijs.yaml
