@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
 - anki.yaml
 - cert-manager.yaml
+- csi-rclone.yaml
