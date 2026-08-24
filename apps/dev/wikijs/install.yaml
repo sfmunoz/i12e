@@ -9,7 +9,7 @@ apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
   name: wikijs
-  namespace: i12e
+  namespace: wikijs
 spec:
   interval: 25h22m
   url: oci://ghcr.io/sfmunoz/wikijs
@@ -25,12 +25,12 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: wikijs
-  namespace: i12e
+  namespace: wikijs
 spec:
   chartRef:
     kind: OCIRepository
     name: wikijs
-    namespace: i12e
+    namespace: wikijs
   interval: 11m26s
   valuesFrom:
     - kind: Secret
