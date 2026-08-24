@@ -1,0 +1,24 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: trilium
+  namespace: trilium
+spec:
+  dependsOn:
+  - name: infra
+    namespace: flux-system
+  - name: secrets
+    namespace: flux-system
+  interval: 11m44s
+  sourceRef:
+    kind: ExternalArtifact
+    name: apps
+    namespace: flux-system
+  path: ./apps/trilium
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: ingress-conf
+        optional: false

@@ -5,4 +5,4 @@ resources:
 - cert-standalone.yaml
 - rbac.yaml
 - issuers.yaml
-- certs.yaml
+- cert-list.yaml
