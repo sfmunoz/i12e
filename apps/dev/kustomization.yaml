@@ -4,3 +4,4 @@ resources:
 - anki.yaml
 - cert-manager.yaml
 - csi-rclone.yaml
+- i12e.yaml
