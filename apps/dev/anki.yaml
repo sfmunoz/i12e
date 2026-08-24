@@ -14,7 +14,7 @@ spec:
     kind: ExternalArtifact
     name: apps
     namespace: flux-system
-  path: ./apps/anki/service
+  path: ./apps/anki
   prune: true
   wait: true
   postBuild:
