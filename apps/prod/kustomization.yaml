@@ -4,5 +4,6 @@ resources:
 - anki.yaml
 - cert-manager.yaml
 - csi-rclone.yaml
+- forgejo.yaml
 - i12e.yaml
 - trilium.yaml
