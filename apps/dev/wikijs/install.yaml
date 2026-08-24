@@ -8,11 +8,11 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: postgres-rclone
+  name: wikijs
   namespace: i12e
 spec:
-  interval: 25h04m
-  url: oci://ghcr.io/sfmunoz/postgres-rclone
+  interval: 25h22m
+  url: oci://ghcr.io/sfmunoz/wikijs
   layerSelector:
     mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
     operation: copy
@@ -24,11 +24,15 @@ spec:
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: postgres-rclone
+  name: wikijs
   namespace: i12e
 spec:
   chartRef:
     kind: OCIRepository
-    name: postgres-rclone
+    name: wikijs
     namespace: i12e
-  interval: 11m17s
+  interval: 11m26s
+  valuesFrom:
+    - kind: Secret
+      name: wikijs-values-yaml
+      valuesKey: values.yaml
