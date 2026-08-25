@@ -50,6 +50,16 @@ spec:
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
+      - name: backup
+        image: "triliumnext/trilium:v0.104.0"
+        command: ["/bin/sh","-x","-c","exec tail -f /dev/null"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: /home/node/trilium-data/
+          readOnly: true
       volumes:
       - name: tools
         emptyDir: {}
