@@ -38,6 +38,9 @@ spec:
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
       containers:
       - name: main
         image: "triliumnext/trilium:v0.104.0"
@@ -62,9 +65,18 @@ spec:
         - name: data
           mountPath: /home/node/trilium-data/
           readOnly: true
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
       volumes:
       - name: tools
         emptyDir: {}
       - name: data
         persistentVolumeClaim:
           claimName: trilium
+      - name: restic-conf
+        secret:
+          secretName: restic-conf
+          items:
+          - key: password
+            path: password.txt
