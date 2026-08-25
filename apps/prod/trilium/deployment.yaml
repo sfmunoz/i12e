@@ -13,6 +13,22 @@ spec:
       labels:
         app: trilium
     spec:
+      #terminationGracePeriodSeconds: 20
+      initContainers:
+      - name: rclone
+        image: "rclone/rclone:sha-6805da6"
+        command: ["/bin/sh","-x","-c","cp /usr/local/bin/rclone /tools/rclone"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: false
+      - name: restic
+        image: "restic/restic:0.19.1"
+        command: ["/bin/sh","-x","-c","cp /usr/bin/restic /tools/restic"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: false
       containers:
       - name: trilium
         image: "triliumnext/trilium:v0.104.0"
@@ -22,9 +38,14 @@ spec:
         ports:
         - containerPort: 8080
         volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
       volumes:
+      - name: tools
+        emptyDir: {}
       - name: data
         persistentVolumeClaim:
           claimName: trilium
