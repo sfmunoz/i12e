@@ -21,14 +21,21 @@ spec:
         volumeMounts:
         - name: tools
           mountPath: /tools
-          readOnly: false
       - name: restic
         image: "restic/restic:0.19.1"
         command: ["/bin/sh","-x","-c","cp /usr/bin/restic /tools/restic"]
         volumeMounts:
         - name: tools
           mountPath: /tools
-          readOnly: false
+      - name: restore
+        image: "triliumnext/trilium:v0.104.0"
+        command: ["/bin/sh","-x","-c","date >> /home/node/trilium-data/restore.log"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: /home/node/trilium-data/
       containers:
       - name: trilium
         image: "triliumnext/trilium:v0.104.0"
