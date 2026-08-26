@@ -43,6 +43,8 @@ spec:
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
+        - name: backup
+          mountPath: /backup
         - name: restic-conf
           mountPath: /restic-conf
           readOnly: true
@@ -78,6 +80,8 @@ spec:
         - name: data
           mountPath: /home/node/trilium-data/
           readOnly: true
+        - name: backup
+          mountPath: /backup
         - name: restic-conf
           mountPath: /restic-conf
           readOnly: true
