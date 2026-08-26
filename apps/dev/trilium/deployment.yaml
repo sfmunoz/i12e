@@ -72,7 +72,19 @@ spec:
           value: "/tmp/repo"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","-x","-c","exec tail -f /dev/null"]
+        command: ["/bin/sh","-c"]
+        args:
+        - |
+          function callback {
+            echo "$(date) exiting..."
+            exit 0
+          }
+          trap callback TERM
+          while true
+          do
+            echo "$(date) running..."
+            sleep 1
+          done
         volumeMounts:
         - name: tools
           mountPath: /tools
