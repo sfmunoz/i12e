@@ -46,6 +46,9 @@ spec:
         - name: restic-conf
           mountPath: /restic-conf
           readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       containers:
       - name: main
         image: "triliumnext/trilium:v0.104.0"
@@ -78,6 +81,9 @@ spec:
         - name: restic-conf
           mountPath: /restic-conf
           readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       volumes:
       - name: tools
         emptyDir: {}
@@ -90,3 +96,9 @@ spec:
           items:
           - key: password
             path: password.txt
+      - name: rclone-conf
+        secret:
+          secretName: rclone-conf
+          items:
+          - key: configData
+            path: rclone.conf
