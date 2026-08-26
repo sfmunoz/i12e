@@ -10,3 +10,29 @@ spec:
   resources:
     requests:
       storage: 128Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trilium-data
+  namespace: trilium
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 256Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: trilium-backup
+  namespace: trilium
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 256Mi
