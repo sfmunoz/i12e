@@ -79,12 +79,11 @@ spec:
             echo "$(date) exiting..."
             exit 0
           }
+          set -x
           trap callback TERM
-          while true
-          do
-            echo "$(date) running..."
-            sleep 1
-          done
+          tail -f /dev/null &
+          child="$!"
+          wait "$child"
         volumeMounts:
         - name: tools
           mountPath: /tools
