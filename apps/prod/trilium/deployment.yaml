@@ -5,6 +5,8 @@ metadata:
   namespace: trilium
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: trilium
@@ -21,16 +23,26 @@ spec:
         volumeMounts:
         - name: tools
           mountPath: /tools
-          readOnly: false
       - name: restic
         image: "restic/restic:0.19.1"
         command: ["/bin/sh","-x","-c","cp /usr/bin/restic /tools/restic"]
         volumeMounts:
         - name: tools
           mountPath: /tools
-          readOnly: false
+      - name: restore
+        image: "triliumnext/trilium:v0.104.0"
+        command: ["/bin/sh","-x","-c","date >> /home/node/trilium-data/restore.log"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: /home/node/trilium-data/
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
       containers:
-      - name: trilium
+      - name: main
         image: "triliumnext/trilium:v0.104.0"
         env:
         - name: TRILIUM_PORT
@@ -43,9 +55,28 @@ spec:
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
+      - name: backup
+        image: "triliumnext/trilium:v0.104.0"
+        command: ["/bin/sh","-x","-c","exec tail -f /dev/null"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: /home/node/trilium-data/
+          readOnly: true
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
       volumes:
       - name: tools
         emptyDir: {}
       - name: data
         persistentVolumeClaim:
           claimName: trilium
+      - name: restic-conf
+        secret:
+          secretName: restic-conf
+          items:
+          - key: password
+            path: password.txt
