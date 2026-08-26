@@ -89,7 +89,10 @@ spec:
         emptyDir: {}
       - name: data
         persistentVolumeClaim:
-          claimName: trilium
+          claimName: trilium-data
+      - name: backup
+        persistentVolumeClaim:
+          claimName: trilium-backup
       - name: restic-conf
         secret:
           secretName: restic-conf
