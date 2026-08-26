@@ -33,7 +33,7 @@ spec:
         image: "triliumnext/trilium:v0.104.0"
         env:
         - name: RESTIC_REPOSITORY
-          value: "/tmp/repo"
+          value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
         command: ["/bin/sh","-x","-c","date >> /home/node/trilium-data/restore.log"]
@@ -69,7 +69,7 @@ spec:
         image: "triliumnext/trilium:v0.104.0"
         env:
         - name: RESTIC_REPOSITORY
-          value: "/tmp/repo"
+          value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
         command: ["/bin/sh","-c"]
