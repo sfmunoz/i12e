@@ -46,8 +46,12 @@ data:
   backup.sh: |
     #!/bin/sh
     function callback {
-      echo "$(date) exiting..."
-      exit 0
+      date
+      { set +x; } 2> /dev/null
+      echo "Exit requested. Waiting 3s to run backup..."
+      set -x
+      /bin/sh /scripts/backup-one.sh
+      exit $?
     }
     set -x -e -o pipefail
     ln -s /tools/restic /usr/local/bin/restic
