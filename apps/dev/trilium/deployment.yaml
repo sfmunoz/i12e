@@ -36,29 +36,11 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","-c"]
-        args:
-        - |
-          set -x -e -o pipefail
-          date
-          ln -s /tools/restic /usr/local/bin/restic
-          ln -s /tools/rclone /usr/local/bin/rclone
-          date
-          rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
-          date
-          if [ -f "/backup/i12e.lock" ]
-          then
-            tail -f /dev/null &
-            wait $!
-            exit 1
-          fi
-          restic snapshots
-          date
-          rm -rfv /home/node/trilium-data/*
-          date
-          restic restore -v -v --tag trilium -t / latest
-          date
+        command: ["/bin/sh","-c","/scripts/restore.sh"]
         volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
         - name: tools
           mountPath: /tools
           readOnly: true
@@ -93,36 +75,11 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","-c"]
-        args:
-        - |
-          function backup_loop {
-            while true
-            do
-              set -x -e -o pipefail
-              date
-              sleep $((270 + RANDOM % 60))
-              date
-              [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
-              date
-              restic backup -v -v --tag trilium /home/node/trilium-data
-              date
-              rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
-              date
-              { set +x; } 2> /dev/null
-            done
-          }
-          function callback {
-            echo "$(date) exiting..."
-            exit 0
-          }
-          set -x -e -o pipefail
-          ln -s /tools/restic /usr/local/bin/restic
-          ln -s /tools/rclone /usr/local/bin/rclone
-          trap callback TERM
-          backup_loop &
-          wait $!
+        command: ["/bin/sh","-c","/scripts/backup.sh"]
         volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
         - name: tools
           mountPath: /tools
           readOnly: true
@@ -138,6 +95,9 @@ spec:
           mountPath: /root/.config/rclone
           readOnly: true
       volumes:
+      - name: scripts
+        configMap:
+          name: scripts
       - name: tools
         emptyDir: {}
       - name: data
