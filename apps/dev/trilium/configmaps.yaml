@@ -17,7 +17,7 @@ data:
     then
       { set +x; } 2> /dev/null
       echo "backup locked: follow these steps:"
-      echo "- 1. /bin/sh /scripts/backup-one.sh
+      echo "- 1. /bin/sh /scripts/backup-one.sh"
       echo "- 2. rm -f /backup/i12e.lock"
       echo "- 3. kill 'tail -f /dev/null' process to start over"
       set -x
