@@ -15,7 +15,7 @@ spec:
       labels:
         app: trilium
     spec:
-      #terminationGracePeriodSeconds: 20
+      terminationGracePeriodSeconds: 300
       initContainers:
       - name: rclone
         image: "rclone/rclone:sha-6805da6"
