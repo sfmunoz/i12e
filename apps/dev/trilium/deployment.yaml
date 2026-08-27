@@ -46,6 +46,8 @@ spec:
           date
           rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
           date
+          restic snapshots
+          date
           rm -rfv /home/node/trilium-data/*
           date
           restic restore -v -v --tag trilium -t / latest
