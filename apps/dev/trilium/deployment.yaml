@@ -85,7 +85,7 @@ spec:
           function backup_one {
             set -x
             date
-            [ -f "${RESTIC_REPOSITORY}/config" ] || restic init
+            [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
             restic backup --tag trilium /home/node/trilium-data
             rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
             date
