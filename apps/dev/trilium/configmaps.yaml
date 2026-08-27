@@ -4,6 +4,18 @@ metadata:
   name: scripts
   namespace: trilium
 data:
+  restore-lock.sh: |
+    #!/bin/sh
+    echo "backup locked: follow these steps:"
+    echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
+    echo "- 2. setup '/home/node/trilium-data' with proper contents (may be empty)"
+    echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
+    echo "- 4. /bin/sh /scripts/backup-one.sh"
+    echo "- 5. pkill tail -> kill 'tail -f /dev/null' process to start over"
+    set -x
+    tail -f /dev/null &
+    wait $!
+    exit 1
   restore.sh: |
     #!/bin/sh
     set -x -e -o pipefail
@@ -13,20 +25,8 @@ data:
     date
     rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
     date
-    if [ -f "/backup/i12e.lock" ]
-    then
-      { set +x; } 2> /dev/null
-      echo "backup locked: follow these steps:"
-      echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
-      echo "- 2. setup '/home/node/trilium-data' with proper contents (may be empty)"
-      echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
-      echo "- 4. /bin/sh /scripts/backup-one.sh"
-      echo "- 5. pkill tail -> kill 'tail -f /dev/null' process to start over"
-      set -x
-      tail -f /dev/null &
-      wait $!
-      exit 1
-    fi
+    [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
+    date
     restic snapshots
     date
     rm -rfv /home/node/trilium-data/*
