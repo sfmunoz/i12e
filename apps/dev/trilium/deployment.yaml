@@ -75,6 +75,8 @@ spec:
         command: ["/bin/sh","-c"]
         args:
         - |
+          ln -s /tools/restic /usr/local/bin/restic
+          ln -s /tools/rclone /usr/local/bin/rclone
           function callback {
             echo "$(date) exiting..."
             exit 0
