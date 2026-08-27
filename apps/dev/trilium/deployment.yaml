@@ -91,8 +91,7 @@ spec:
           set -x
           trap callback TERM
           tail -f /dev/null &
-          child="$!"
-          wait "$child"
+          wait $!
         volumeMounts:
         - name: tools
           mountPath: /tools
