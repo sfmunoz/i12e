@@ -39,11 +39,17 @@ spec:
         command: ["/bin/sh","-c"]
         args:
         - |
+          set -x -e -o pipefail
+          date
           ln -s /tools/restic /usr/local/bin/restic
           ln -s /tools/rclone /usr/local/bin/rclone
-          sleep 180 &
-          wait $!
-          exit 0
+          date
+          rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+          date
+          rm -rfv /home/node/trilium-data/*
+          date
+          restic restore -t trilium latest
+          date
         volumeMounts:
         - name: tools
           mountPath: /tools
@@ -82,21 +88,19 @@ spec:
         command: ["/bin/sh","-c"]
         args:
         - |
-          function backup_one {
-            set -x
-            date
-            [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
-            restic backup --tag trilium /home/node/trilium-data
-            rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
-            date
-            { set +x; } 2> /dev/null
-          }
           function backup_loop {
             while true
             do
-              backup_one
-              set -x
-              sleep $((20 + RANDOM % 20))
+              set -x -e -o pipefail
+              date
+              sleep $((270 + RANDOM % 60))
+              date
+              [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
+              date
+              restic backup --tag trilium /home/node/trilium-data
+              date
+              rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+              date
               { set +x; } 2> /dev/null
             done
           }
@@ -104,7 +108,7 @@ spec:
             echo "$(date) exiting..."
             exit 0
           }
-          set -x
+          set -x -e -o pipefail
           ln -s /tools/restic /usr/local/bin/restic
           ln -s /tools/rclone /usr/local/bin/rclone
           trap callback TERM
