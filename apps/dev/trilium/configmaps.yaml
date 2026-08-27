@@ -15,6 +15,12 @@ data:
     date
     if [ -f "/backup/i12e.lock" ]
     then
+      { set +x; } 2> /dev/null
+      echo "backup locked: follow these steps:"
+      echo "- 1. /bin/sh /scripts/backup-one.sh
+      echo "- 2. rm -f /backup/i12e.lock"
+      echo "- 3. kill 'tail -f /dev/null' process to start over"
+      set -x
       tail -f /dev/null &
       wait $!
       exit 1
@@ -25,24 +31,18 @@ data:
     date
     restic restore -v -v --tag trilium -t / latest
     date
+  backup-one.sh: |
+    #!/bin/sh
+    set -x -e -o pipefail
+    date
+    [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
+    date
+    restic backup -v -v --tag trilium /home/node/trilium-data
+    date
+    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    date
   backup.sh: |
     #!/bin/sh
-    function backup_loop {
-      while true
-      do
-        set -x -e -o pipefail
-        date
-        sleep $((270 + RANDOM % 60))
-        date
-        [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
-        date
-        restic backup -v -v --tag trilium /home/node/trilium-data
-        date
-        rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
-        date
-        { set +x; } 2> /dev/null
-      done
-    }
     function callback {
       echo "$(date) exiting..."
       exit 0
@@ -51,5 +51,10 @@ data:
     ln -s /tools/restic /usr/local/bin/restic
     ln -s /tools/rclone /usr/local/bin/rclone
     trap callback TERM
-    backup_loop &
+    while true
+    do
+      date
+      sleep $((270 + RANDOM % 60))
+      /bin/sh /scripts/backup-one.sh
+    done &
     wait $!
