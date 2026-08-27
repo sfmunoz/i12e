@@ -36,7 +36,14 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","-x","-c","date >> /home/node/trilium-data/restore.log"]
+        command: ["/bin/sh","-x"]
+        args:
+        - |
+          ln -s /tools/restic /usr/local/bin/restic
+          ln -s /tools/rclone /usr/local/bin/rclone
+          sleep 180 &
+          wait $!
+          exit 0
         volumeMounts:
         - name: tools
           mountPath: /tools
