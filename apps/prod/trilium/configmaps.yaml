@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scripts
+  namespace: trilium
+data:
+  restore-lock.sh: |
+    #!/bin/sh
+    echo "backup locked: follow these steps:"
+    echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
+    echo "- 2. setup '/home/node/trilium-data' with proper contents (may be empty)"
+    echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
+    echo "- 4. /bin/sh /scripts/backup-one.sh"
+    echo "- 5. pkill tail -> kill 'tail -f /dev/null' process to start over"
+    set -x
+    tail -f /dev/null &
+    wait $!
+    exit 1
+  restore.sh: |
+    #!/bin/sh
+    set -x -e -o pipefail
+    date
+    ln -s /tools/restic /usr/local/bin/restic
+    ln -s /tools/rclone /usr/local/bin/rclone
+    date
+    rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+    date
+    [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
+    date
+    restic snapshots
+    date
+    rm -rfv /home/node/trilium-data/*
+    date
+    restic restore -v -v --tag trilium -t / latest
+    date
+  backup-one.sh: |
+    #!/bin/sh
+    set -x -e -o pipefail
+    date
+    [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
+    date
+    restic backup -v -v --tag trilium /home/node/trilium-data
+    date
+    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    date
+  backup.sh: |
+    #!/bin/sh
+    function callback {
+      date
+      { set +x; } 2> /dev/null
+      echo "Exit requested. Waiting 3s to run backup..."
+      set -x
+      /bin/sh /scripts/backup-one.sh
+      exit $?
+    }
+    set -x -e -o pipefail
+    ln -s /tools/restic /usr/local/bin/restic
+    ln -s /tools/rclone /usr/local/bin/rclone
+    trap callback TERM
+    while true
+    do
+      date
+      sleep $((3300 + RANDOM % 600))
+      /bin/sh /scripts/backup-one.sh
+    done &
+    wait $!

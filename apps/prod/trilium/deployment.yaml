@@ -15,7 +15,7 @@ spec:
       labels:
         app: trilium
     spec:
-      #terminationGracePeriodSeconds: 20
+      terminationGracePeriodSeconds: 300
       initContainers:
       - name: rclone
         image: "rclone/rclone:sha-6805da6"
@@ -31,15 +31,28 @@ spec:
           mountPath: /tools
       - name: restore
         image: "triliumnext/trilium:v0.104.0"
-        command: ["/bin/sh","-x","-c","date >> /home/node/trilium-data/restore.log"]
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/restore.sh"]
         volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
         - name: tools
           mountPath: /tools
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
+        - name: backup
+          mountPath: /backup
         - name: restic-conf
           mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
           readOnly: true
       containers:
       - name: main
@@ -57,26 +70,51 @@ spec:
           mountPath: /home/node/trilium-data/
       - name: backup
         image: "triliumnext/trilium:v0.104.0"
-        command: ["/bin/sh","-x","-c","exec tail -f /dev/null"]
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/backup.sh"]
         volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
         - name: tools
           mountPath: /tools
           readOnly: true
         - name: data
           mountPath: /home/node/trilium-data/
           readOnly: true
+        - name: backup
+          mountPath: /backup
         - name: restic-conf
           mountPath: /restic-conf
           readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       volumes:
+      - name: scripts
+        configMap:
+          name: scripts
       - name: tools
         emptyDir: {}
       - name: data
         persistentVolumeClaim:
-          claimName: trilium
+          claimName: trilium-data
+      - name: backup
+        persistentVolumeClaim:
+          claimName: trilium-backup
       - name: restic-conf
         secret:
           secretName: restic-conf
           items:
           - key: password
             path: password.txt
+      - name: rclone-conf
+        secret:
+          secretName: rclone-conf
+          items:
+          - key: configData
+            path: rclone.conf
