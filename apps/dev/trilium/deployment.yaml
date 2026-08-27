@@ -82,15 +82,33 @@ spec:
         command: ["/bin/sh","-c"]
         args:
         - |
-          ln -s /tools/restic /usr/local/bin/restic
-          ln -s /tools/rclone /usr/local/bin/rclone
+          function backup_one {
+            set -x
+            date
+            [ -f "${RESTIC_REPOSITORY}/config" ] || restic init
+            restic backup --tag trilium /home/node/trilium-data
+            rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+            date
+            { set +x; } 2> /dev/null
+          }
+          function backup_loop {
+            while true
+            do
+              backup_one
+              set -x
+              sleep $((20 + RANDOM % 20))
+              { set +x; } 2> /dev/null
+            done
+          }
           function callback {
             echo "$(date) exiting..."
             exit 0
           }
           set -x
+          ln -s /tools/restic /usr/local/bin/restic
+          ln -s /tools/rclone /usr/local/bin/rclone
           trap callback TERM
-          tail -f /dev/null &
+          backup_loop &
           wait $!
         volumeMounts:
         - name: tools
