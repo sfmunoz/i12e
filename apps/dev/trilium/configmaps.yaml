@@ -56,7 +56,7 @@ data:
     while true
     do
       date
-      sleep $((270 + RANDOM % 60))
+      sleep $((3300 + RANDOM % 600))
       /bin/sh /scripts/backup-one.sh
     done &
     wait $!
