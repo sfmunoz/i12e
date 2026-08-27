@@ -36,7 +36,7 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","-x"]
+        command: ["/bin/sh","-c"]
         args:
         - |
           ln -s /tools/restic /usr/local/bin/restic
