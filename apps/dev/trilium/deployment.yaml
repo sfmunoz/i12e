@@ -48,7 +48,7 @@ spec:
           date
           rm -rfv /home/node/trilium-data/*
           date
-          restic restore -t trilium latest
+          restic restore -v -v --tag trilium -t / latest
           date
         volumeMounts:
         - name: tools
@@ -97,7 +97,7 @@ spec:
               date
               [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
               date
-              restic backup --tag trilium /home/node/trilium-data
+              restic backup -v -v --tag trilium /home/node/trilium-data
               date
               rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
               date
