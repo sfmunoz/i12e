@@ -35,7 +35,7 @@ data:
     date
     [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
     date
-    restic snapshots
+    restic snapshots -g tag
     date
     restic check
     date
