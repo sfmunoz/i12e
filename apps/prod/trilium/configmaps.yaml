@@ -67,7 +67,6 @@ data:
         break
       done
       /bin/sh /scripts/backup-one.sh
-      /bin/sh /scripts/backup-forget.sh
       exit $?
     }
     set -x -e -o pipefail
@@ -79,5 +78,6 @@ data:
       date
       sleep $((3300 + RANDOM % 600))
       /bin/sh /scripts/backup-one.sh
+      /bin/sh /scripts/backup-forget.sh
     done &
     wait $!
