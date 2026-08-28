@@ -16,7 +16,7 @@ data:
     tail -f /dev/null &
     wait $!
     exit 1
-  restore.sh: |
+  restore-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     date
