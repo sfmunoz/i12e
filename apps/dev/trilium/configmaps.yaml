@@ -35,9 +35,9 @@ data:
     date
     [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
     date
-    restic snapshots -g tag
-    date
     restic check
+    date
+    restic snapshots -g tag
     date
     restic backup -v -v --tag boot /home/node/trilium-data
     date
