@@ -37,7 +37,7 @@ data:
     date
     rm -rfv /home/node/trilium-data/*
     date
-    restic restore -v -v --tag trilium -t / latest
+    restic restore -v -v --tag main -t / latest
     date
   backup-one.sh: |
     #!/bin/sh
@@ -45,7 +45,7 @@ data:
     date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
-    restic backup -v -v --tag trilium /home/node/trilium-data
+    restic backup -v -v --tag main /home/node/trilium-data
     date
     rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
     date
