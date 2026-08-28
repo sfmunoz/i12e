@@ -66,7 +66,7 @@ data:
     done
     /bin/sh /scripts/backup-one.sh
     exit $?
-  backup.sh: |
+  backup-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     ln -s /tools/restic /usr/local/bin/restic
