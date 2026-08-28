@@ -31,7 +31,7 @@ data:
     date
     restic check
     date
-    restic backup -v -v --tag tboot /home/node/trilium-data
+    restic backup -v -v --tag boot /home/node/trilium-data
     date
     rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
     date
