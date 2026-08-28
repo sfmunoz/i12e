@@ -36,7 +36,7 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","/scripts/restore.sh"]
+        command: ["/bin/sh","/scripts/restore-main.sh"]
         volumeMounts:
         - name: scripts
           mountPath: /scripts
@@ -75,7 +75,7 @@ spec:
           value: "/backup"
         - name: RESTIC_PASSWORD_FILE
           value: "/restic-conf/password.txt"
-        command: ["/bin/sh","/scripts/backup.sh"]
+        command: ["/bin/sh","/scripts/backup-main.sh"]
         volumeMounts:
         - name: scripts
           mountPath: /scripts

@@ -4,6 +4,14 @@ metadata:
   name: scripts
   namespace: trilium
 data:
+  rclone-pull.sh: |
+    #!/bin/sh
+    set -x
+    exec rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+  rclone-push.sh: |
+    #!/bin/sh
+    set -x
+    exec rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
   restore-lock.sh: |
     #!/bin/sh
     echo "backup locked: follow these steps:"
@@ -16,24 +24,28 @@ data:
     tail -f /dev/null &
     wait $!
     exit 1
-  restore.sh: |
+  restore-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     date
     ln -s /tools/restic /usr/local/bin/restic
     ln -s /tools/rclone /usr/local/bin/rclone
     date
-    rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+    /bin/sh /scripts/rclone-pull.sh
     date
     [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
     date
-    restic snapshots
+    restic snapshots -g tag
     date
     restic check
     date
+    restic backup -v -v --tag boot /home/node/trilium-data
+    date
+    /bin/sh /scripts/rclone-push.sh
+    date
     rm -rfv /home/node/trilium-data/*
     date
-    restic restore -v -v --tag trilium -t / latest
+    restic restore -v -v --tag main -t / latest
     date
   backup-one.sh: |
     #!/bin/sh
@@ -41,38 +53,37 @@ data:
     date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
-    restic backup -v -v --tag trilium /home/node/trilium-data
+    restic backup -v -v --tag main /home/node/trilium-data
     date
-    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    /bin/sh /scripts/rclone-push.sh
     date
   backup-forget.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
     date
-    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    /bin/sh /scripts/rclone-push.sh
     date
-  backup.sh: |
+  backup-at-exit.sh: |
     #!/bin/sh
-    function callback {
-      date
-      { set +x; } 2> /dev/null
-      echo "Exit requested..."
-      set -x
-      for i in `seq 1 10`
-      do
-        sleep 1
-        [ -f "/home/node/trilium-data/document.db-wal" ] && continue
-        [ -f "/home/node/trilium-data/document.db-shm" ] && continue
-        break
-      done
-      /bin/sh /scripts/backup-one.sh
-      exit $?
-    }
+    echo "Exit requested..."
+    set -x -e -o pipefail
+    date
+    for i in `seq 1 15`
+    do
+      sleep 1
+      [ -f "/home/node/trilium-data/document.db-wal" ] && continue
+      [ -f "/home/node/trilium-data/document.db-shm" ] && continue
+      break
+    done
+    /bin/sh /scripts/backup-one.sh
+    exit $?
+  backup-main.sh: |
+    #!/bin/sh
     set -x -e -o pipefail
     ln -s /tools/restic /usr/local/bin/restic
     ln -s /tools/rclone /usr/local/bin/rclone
-    trap callback TERM
+    trap "exec /bin/sh /scripts/backup-at-exit.sh" TERM
     while true
     do
       date
