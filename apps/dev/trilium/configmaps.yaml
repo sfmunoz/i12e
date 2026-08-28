@@ -52,27 +52,26 @@ data:
     date
     rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
     date
+  backup-at-exit.sh: |
+    #!/bin/sh
+    echo "Exit requested..."
+    set -x -e -o pipefail
+    date
+    for i in `seq 1 15`
+    do
+      sleep 1
+      [ -f "/home/node/trilium-data/document.db-wal" ] && continue
+      [ -f "/home/node/trilium-data/document.db-shm" ] && continue
+      break
+    done
+    /bin/sh /scripts/backup-one.sh
+    exit $?
   backup.sh: |
     #!/bin/sh
-    function callback {
-      date
-      { set +x; } 2> /dev/null
-      echo "Exit requested..."
-      set -x
-      for i in `seq 1 10`
-      do
-        sleep 1
-        [ -f "/home/node/trilium-data/document.db-wal" ] && continue
-        [ -f "/home/node/trilium-data/document.db-shm" ] && continue
-        break
-      done
-      /bin/sh /scripts/backup-one.sh
-      exit $?
-    }
     set -x -e -o pipefail
     ln -s /tools/restic /usr/local/bin/restic
     ln -s /tools/rclone /usr/local/bin/rclone
-    trap callback TERM
+    trap "exec /bin/sh /scripts/backup-at-exit.sh" TERM
     while true
     do
       date
