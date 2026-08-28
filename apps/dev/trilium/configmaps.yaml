@@ -29,6 +29,8 @@ data:
     date
     restic snapshots
     date
+    restic check
+    date
     rm -rfv /home/node/trilium-data/*
     date
     restic restore -v -v --tag trilium -t / latest
