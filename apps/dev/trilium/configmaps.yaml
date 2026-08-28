@@ -46,7 +46,7 @@ data:
   backup-forget.sh: |
     #!/bin/sh
     set -x -e -o pipefail
-    restic forget -v -v -g tag -H 48 -d 7 -w 4 -m 6 --prune
+    restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
     date
     rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
     date
