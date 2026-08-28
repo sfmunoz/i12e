@@ -2,6 +2,22 @@
 
 set -e -o pipefail
 
+APP="$1"
+
+case "$APP" in
+trilium) ;;
+*)
+  echo
+  echo "usage:"
+  echo
+  echo "  \$ $(basename "$0") trilium [restic arguments...]"
+  echo
+  exit 1
+  ;;
+esac
+
+shift
+
 if [ "$I12E_SECRETS" = "" ]; then
   cd "$(dirname "$0")"
   I12E_SECRETS=../../i12e-secrets
@@ -16,8 +32,8 @@ chmod 600 "${RCLONE_CONFIG}"
 sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/kube-system/rclone-conf.yaml" |
   yq -r .stringData.configData >"$RCLONE_CONFIG"
 
-export RESTIC_PASSWORD="$(sops decrypt ${I12E_SECRETS}/clusters/${I12E_ENV}/trilium/restic-conf.yaml | yq -r .stringData.password)"
-export RESTIC_REPOSITORY="rclone:rem:trilium"
+export RESTIC_PASSWORD="$(sops decrypt ${I12E_SECRETS}/clusters/${I12E_ENV}/${APP}/restic-conf.yaml | yq -r .stringData.password)"
+export RESTIC_REPOSITORY="rclone:rem:${APP}"
 export RESTIC_CACHE_DIR=/dev/null
 
 exec restic "$@"
