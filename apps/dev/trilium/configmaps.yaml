@@ -8,6 +8,10 @@ data:
     #!/bin/sh
     set -x
     exec rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+  rclone-push.sh: |
+    #!/bin/sh
+    set -x
+    exec rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
   restore-lock.sh: |
     #!/bin/sh
     echo "backup locked: follow these steps:"
@@ -58,7 +62,7 @@ data:
     set -x -e -o pipefail
     restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
     date
-    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    /bin/sh /scripts/rclone-push.sh
     date
   backup-at-exit.sh: |
     #!/bin/sh
