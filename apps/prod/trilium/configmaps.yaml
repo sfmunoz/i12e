@@ -29,6 +29,8 @@ data:
     date
     restic snapshots
     date
+    restic check
+    date
     rm -rfv /home/node/trilium-data/*
     date
     restic restore -v -v --tag trilium -t / latest
@@ -43,6 +45,13 @@ data:
     date
     rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
     date
+  backup-forget.sh: |
+    #!/bin/sh
+    set -x -e -o pipefail
+    restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
+    date
+    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    date
   backup.sh: |
     #!/bin/sh
     function callback {
@@ -51,6 +60,7 @@ data:
       echo "Exit requested. Waiting 3s to run backup..."
       set -x
       /bin/sh /scripts/backup-one.sh
+      /bin/sh /scripts/backup-forget.sh
       exit $?
     }
     set -x -e -o pipefail
