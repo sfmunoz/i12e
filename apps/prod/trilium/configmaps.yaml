@@ -57,8 +57,15 @@ data:
     function callback {
       date
       { set +x; } 2> /dev/null
-      echo "Exit requested. Waiting 3s to run backup..."
+      echo "Exit requested..."
       set -x
+      for i in `seq 1 10`
+      do
+        sleep 1
+        [ -f "/home/node/trilium-data/document.db-wal" ] && continue
+        [ -f "/home/node/trilium-data/document.db-shm" ] && continue
+        break
+      done
       /bin/sh /scripts/backup-one.sh
       /bin/sh /scripts/backup-forget.sh
       exit $?
