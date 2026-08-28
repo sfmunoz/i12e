@@ -69,6 +69,7 @@ data:
     echo "Exit requested..."
     set -x -e -o pipefail
     date
+    [ -f "/backup-blocked" ] && exit 0
     for i in `seq 1 15`
     do
       sleep 1
@@ -88,6 +89,7 @@ data:
     do
       date
       sleep $((3300 + RANDOM % 600))
+      [ -f "/backup-blocked" ] && continue
       /bin/sh /scripts/backup-one.sh
       /bin/sh /scripts/backup-forget.sh
     done &
