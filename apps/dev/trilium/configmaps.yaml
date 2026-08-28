@@ -4,6 +4,10 @@ metadata:
   name: scripts
   namespace: trilium
 data:
+  rclone-pull.sh: |
+    #!/bin/sh
+    set -x
+    exec rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
   restore-lock.sh: |
     #!/bin/sh
     echo "backup locked: follow these steps:"
@@ -23,7 +27,7 @@ data:
     ln -s /tools/restic /usr/local/bin/restic
     ln -s /tools/rclone /usr/local/bin/rclone
     date
-    rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+    /bin/sh /scripts/rclone-pull.sh
     date
     [ -f "/backup/i12e.lock" ] && exec /bin/sh /scripts/restore-lock.sh
     date
@@ -33,7 +37,7 @@ data:
     date
     restic backup -v -v --tag boot /home/node/trilium-data
     date
-    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    /bin/sh /scripts/rclone-pull.sh
     date
     rm -rfv /home/node/trilium-data/*
     date
@@ -47,7 +51,7 @@ data:
     date
     restic backup -v -v --tag main /home/node/trilium-data
     date
-    rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    /bin/sh /scripts/rclone-pull.sh
     date
   backup-forget.sh: |
     #!/bin/sh
