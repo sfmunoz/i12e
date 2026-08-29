@@ -1,3 +1,8 @@
+#
+# Mandatory for kind=Kustomization
+# spec.postBuild.substitute.DATA_FOLDER
+#
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
