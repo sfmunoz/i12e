@@ -57,6 +57,10 @@ spec:
       containers:
       - name: main
         image: "${DOCKER_IMAGE}"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "kill -SIGINT 1"]
         envFrom:
         - secretRef:
             name: sync-users
