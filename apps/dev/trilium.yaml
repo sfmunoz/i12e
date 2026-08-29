@@ -18,6 +18,8 @@ spec:
   prune: true
   wait: true
   postBuild:
+    substitute:
+      DOCKER_IMAGE: triliumnext/trilium:v0.104.0
     substituteFrom:
       - kind: Secret
         name: ingress-conf

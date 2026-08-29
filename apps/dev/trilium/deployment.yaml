@@ -30,7 +30,7 @@ spec:
         - name: tools
           mountPath: /tools
       - name: restore
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: RESTIC_REPOSITORY
           value: "/backup"
@@ -56,7 +56,7 @@ spec:
           readOnly: true
       containers:
       - name: main
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: TRILIUM_PORT
           value: "8080"   # default set by K8S: something like 'tcp://10.43.167.120:8080'
@@ -69,7 +69,7 @@ spec:
         - name: data
           mountPath: /home/node/trilium-data/
       - name: backup
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: RESTIC_REPOSITORY
           value: "/backup"
