@@ -39,13 +39,13 @@ data:
     date
     restic snapshots -g tag
     date
-    restic backup -v -v --tag boot /home/node/trilium-data
+    restic backup -vv --tag boot /home/node/trilium-data
     date
     /bin/sh /scripts/rclone-push.sh
     date
     rm -rfv /home/node/trilium-data/*
     date
-    restic restore -v -v --tag main -t / latest
+    restic restore -vv --tag main -t / latest
     date
   backup-one.sh: |
     #!/bin/sh
@@ -53,14 +53,14 @@ data:
     date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
-    restic backup -v -v --tag main /home/node/trilium-data
+    restic backup -vv --tag main /home/node/trilium-data
     date
     /bin/sh /scripts/rclone-push.sh
     date
   backup-forget.sh: |
     #!/bin/sh
     set -x -e -o pipefail
-    restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
+    restic forget -vv -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
     date
     /bin/sh /scripts/rclone-push.sh
     date
