@@ -47,13 +47,13 @@ data:
     date
     restic restore -vv --tag main -t / latest
     date
-    [ -f "${DATA_FOLDER}/.bhook/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/post-restore-main.sh"
+    [ -f "${DATA_FOLDER}/.bhooks/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-restore-main.sh"
     date
   backup-one.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     date
-    [ -f "${DATA_FOLDER}/.bhook/pre-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/pre-backup-one.sh"
+    [ -f "${DATA_FOLDER}/.bhooks/pre-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/pre-backup-one.sh"
     date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
@@ -61,7 +61,7 @@ data:
     date
     /bin/sh /scripts/rclone-push.sh
     date
-    [ -f "${DATA_FOLDER}/.bhook/post-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/post-backup-one.sh"
+    [ -f "${DATA_FOLDER}/.bhooks/post-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-backup-one.sh"
     date
   backup-forget.sh: |
     #!/bin/sh
@@ -77,11 +77,11 @@ data:
     date
     [ -f "/backup-blocked" ] && exit 0
     date
-    [ -f "${DATA_FOLDER}/.bhook/pre-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/pre-backup-at-exit.sh"
+    [ -f "${DATA_FOLDER}/.bhooks/pre-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/pre-backup-at-exit.sh"
     date
     /bin/sh /scripts/backup-one.sh
     date
-    [ -f "${DATA_FOLDER}/.bhook/post-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/post-backup-at-exit.sh"
+    [ -f "${DATA_FOLDER}/.bhooks/post-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-backup-at-exit.sh"
     date
   backup-main.sh: |
     #!/bin/sh
