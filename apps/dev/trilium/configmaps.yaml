@@ -16,7 +16,7 @@ data:
     #!/bin/sh
     echo "backup locked: follow these steps:"
     echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
-    echo "- 2. setup '/home/node/trilium-data' with proper contents (may be empty)"
+    echo "- 2. setup '${DATA_FOLDER}' with proper contents (may be empty)"
     echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
     echo "- 4. /bin/sh /scripts/backup-one.sh"
     echo "- 5. pkill tail -> kill 'tail -f /dev/null' process to start over"
@@ -39,11 +39,11 @@ data:
     date
     restic snapshots -g tag
     date
-    restic backup -vv --tag boot /home/node/trilium-data
+    restic backup -vv --tag boot "${DATA_FOLDER}"
     date
     /bin/sh /scripts/rclone-push.sh
     date
-    rm -rfv /home/node/trilium-data/*
+    rm -rfv "${DATA_FOLDER}/"*
     date
     restic restore -vv --tag main -t / latest
     date
@@ -53,7 +53,7 @@ data:
     date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
-    restic backup -vv --tag main /home/node/trilium-data
+    restic backup -vv --tag main "${DATA_FOLDER}"
     date
     /bin/sh /scripts/rclone-push.sh
     date
@@ -73,8 +73,8 @@ data:
     for i in `seq 1 15`
     do
       sleep 1
-      [ -f "/home/node/trilium-data/document.db-wal" ] && continue
-      [ -f "/home/node/trilium-data/document.db-shm" ] && continue
+      [ -f "${DATA_FOLDER}/document.db-wal" ] && continue
+      [ -f "${DATA_FOLDER}/document.db-shm" ] && continue
       break
     done
     /bin/sh /scripts/backup-one.sh

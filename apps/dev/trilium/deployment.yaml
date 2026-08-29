@@ -45,7 +45,7 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
         - name: backup
           mountPath: /backup
         - name: restic-conf
@@ -67,7 +67,7 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
       - name: backup
         image: "${DOCKER_IMAGE}"
         env:
@@ -84,7 +84,7 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
           readOnly: true
         - name: backup
           mountPath: /backup
