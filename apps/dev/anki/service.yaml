@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: anki-sync-server
-  namespace: anki
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   selector:
-    app: anki-sync-server
+    app: ${APPNAME}
   ports:
   - port: 8080
     targetPort: 8080

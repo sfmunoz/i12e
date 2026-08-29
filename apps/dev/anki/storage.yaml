@@ -1,12 +1,25 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: anki
-  namespace: anki
+  name: ${APPNAME}-data
+  namespace: ${NAMESPACE}
 spec:
   accessModes:
     - ReadWriteOncePod
   storageClassName: local-path
   resources:
     requests:
-      storage: 128Mi
+      storage: 256Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ${APPNAME}-backup
+  namespace: ${NAMESPACE}
+spec:
+  accessModes:
+    - ReadWriteOncePod
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 256Mi
