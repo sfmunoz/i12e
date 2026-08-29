@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: trilium
-  namespace: trilium
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: trilium
+      app: ${APPNAME}
   template:
     metadata:
       labels:
-        app: trilium
+        app: ${APPNAME}
     spec:
       terminationGracePeriodSeconds: 300
       initContainers:
@@ -30,7 +30,7 @@ spec:
         - name: tools
           mountPath: /tools
       - name: restore
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: RESTIC_REPOSITORY
           value: "/backup"
@@ -45,7 +45,7 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
         - name: backup
           mountPath: /backup
         - name: restic-conf
@@ -56,7 +56,7 @@ spec:
           readOnly: true
       containers:
       - name: main
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: TRILIUM_PORT
           value: "8080"   # default set by K8S: something like 'tcp://10.43.167.120:8080'
@@ -67,9 +67,9 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
       - name: backup
-        image: "triliumnext/trilium:v0.104.0"
+        image: "${DOCKER_IMAGE}"
         env:
         - name: RESTIC_REPOSITORY
           value: "/backup"
@@ -84,7 +84,7 @@ spec:
           mountPath: /tools
           readOnly: true
         - name: data
-          mountPath: /home/node/trilium-data/
+          mountPath: "${DATA_FOLDER}"
           readOnly: true
         - name: backup
           mountPath: /backup
@@ -97,15 +97,15 @@ spec:
       volumes:
       - name: scripts
         configMap:
-          name: scripts
+          name: "${APPNAME}-scripts"
       - name: tools
         emptyDir: {}
       - name: data
         persistentVolumeClaim:
-          claimName: trilium-data
+          claimName: ${APPNAME}-data
       - name: backup
         persistentVolumeClaim:
-          claimName: trilium-backup
+          claimName: ${APPNAME}-backup
       - name: restic-conf
         secret:
           secretName: restic-conf

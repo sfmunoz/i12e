@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: trilium
-  namespace: trilium
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   tls:
   - secretName: "${SECRETNAME}"
@@ -16,6 +16,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: trilium
+            name: ${APPNAME}
             port:
               number: 8080

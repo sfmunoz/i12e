@@ -18,6 +18,11 @@ spec:
   prune: true
   wait: true
   postBuild:
+    substitute:
+      DOCKER_IMAGE: triliumnext/trilium:v0.104.0
+      APPNAME: trilium
+      NAMESPACE: trilium
+      DATA_FOLDER: /home/node/trilium-data
     substituteFrom:
       - kind: Secret
         name: ingress-conf

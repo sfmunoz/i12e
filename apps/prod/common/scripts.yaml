@@ -1,22 +1,30 @@
+#
+# Mandatory for kind=Kustomization
+#
+#  - spec.postBuild.substitute.APPNAME
+#  - spec.postBuild.substitute.NAMESPACE
+#  - spec.postBuild.substitute.DATA_FOLDER
+#
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: scripts
-  namespace: trilium
+  name: "${APPNAME}-scripts"
+  namespace: ${NAMESPACE}
 data:
   rclone-pull.sh: |
     #!/bin/sh
     set -x
-    exec rclone sync -v --transfers 1 --stats 10s rem:trilium /backup
+    exec rclone sync -v --transfers 1 --stats 10s "rem:${NAMESPACE}/${APPNAME}" /backup
   rclone-push.sh: |
     #!/bin/sh
     set -x
-    exec rclone sync -v --transfers 1 --stats 10s /backup rem:trilium
+    exec rclone sync -v --transfers 1 --stats 10s /backup "rem:${NAMESPACE}/${APPNAME}"
   restore-lock.sh: |
     #!/bin/sh
-    echo "backup locked: follow these steps:"
-    echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
-    echo "- 2. setup '/home/node/trilium-data' with proper contents (may be empty)"
+    echo "backup locked: follow these steps (example, may require some tuning):"
+    echo "- 1. kubectl exec -it -c restore -n ${NAMESPACE} deploy/${APPNAME} -- sh"
+    echo "- 2. setup '${DATA_FOLDER}' with proper contents (may be empty)"
     echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
     echo "- 4. /bin/sh /scripts/backup-one.sh"
     echo "- 5. pkill tail -> kill 'tail -f /dev/null' process to start over"
@@ -39,28 +47,36 @@ data:
     date
     restic snapshots -g tag
     date
-    restic backup -v -v --tag boot /home/node/trilium-data
+    restic backup -vv --tag boot "${DATA_FOLDER}"
     date
     /bin/sh /scripts/rclone-push.sh
     date
-    rm -rfv /home/node/trilium-data/*
+    find "${DATA_FOLDER}" -mindepth 1 -print -delete
     date
-    restic restore -v -v --tag main -t / latest
+    find "${DATA_FOLDER}" -print
+    date
+    restic restore -vv --tag main -t / --verify latest
+    date
+    [ -f "${DATA_FOLDER}/.bhooks/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-restore-main.sh"
     date
   backup-one.sh: |
     #!/bin/sh
     set -x -e -o pipefail
     date
+    [ -f "${DATA_FOLDER}/.bhooks/pre-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/pre-backup-one.sh"
+    date
     [ -f "$${RESTIC_REPOSITORY}/config" ] || restic init
     date
-    restic backup -v -v --tag main /home/node/trilium-data
+    restic backup -vv --tag main "${DATA_FOLDER}"
     date
     /bin/sh /scripts/rclone-push.sh
+    date
+    [ -f "${DATA_FOLDER}/.bhooks/post-backup-one.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-backup-one.sh"
     date
   backup-forget.sh: |
     #!/bin/sh
     set -x -e -o pipefail
-    restic forget -v -v -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
+    restic forget -vv -g tag -l 24 -H 48 -d 7 -w 4 -m 6 --prune
     date
     /bin/sh /scripts/rclone-push.sh
     date
@@ -70,15 +86,13 @@ data:
     set -x -e -o pipefail
     date
     [ -f "/backup-blocked" ] && exit 0
-    for i in `seq 1 15`
-    do
-      sleep 1
-      [ -f "/home/node/trilium-data/document.db-wal" ] && continue
-      [ -f "/home/node/trilium-data/document.db-shm" ] && continue
-      break
-    done
+    date
+    [ -f "${DATA_FOLDER}/.bhooks/pre-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/pre-backup-at-exit.sh"
+    date
     /bin/sh /scripts/backup-one.sh
-    exit $?
+    date
+    [ -f "${DATA_FOLDER}/.bhooks/post-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-backup-at-exit.sh"
+    date
   backup-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
