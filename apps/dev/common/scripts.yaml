@@ -53,6 +53,8 @@ data:
     date
     find "${DATA_FOLDER}" -mindepth 1 -print -delete
     date
+    find "${DATA_FOLDER}" -print
+    date
     restic restore -vv --tag main -t / --verify latest
     date
     [ -f "${DATA_FOLDER}/.bhooks/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-restore-main.sh"
