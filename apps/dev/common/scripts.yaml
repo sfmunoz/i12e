@@ -76,17 +76,13 @@ data:
     set -x -e -o pipefail
     date
     [ -f "/backup-blocked" ] && exit 0
+    date
     [ -f "${DATA_FOLDER}/.bhook/pre-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/pre-backup-at-exit.sh"
-    for i in `seq 1 15`
-    do
-      sleep 1
-      [ -f "${DATA_FOLDER}/document.db-wal" ] && continue
-      [ -f "${DATA_FOLDER}/document.db-shm" ] && continue
-      break
-    done
+    date
     /bin/sh /scripts/backup-one.sh
+    date
     [ -f "${DATA_FOLDER}/.bhook/post-backup-at-exit.sh" ] && /bin/sh "${DATA_FOLDER}/.bhook/post-backup-at-exit.sh"
-    exit $?
+    date
   backup-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
