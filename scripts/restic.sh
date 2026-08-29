@@ -38,4 +38,5 @@ export RESTIC_PASSWORD="$(sops decrypt ${I12E_SECRETS}/clusters/${I12E_ENV}/${AP
 export RESTIC_REPOSITORY="rclone:rem:${NAMESPACE}/${APP}"
 export RESTIC_CACHE_DIR=/dev/null
 
+set -x
 exec restic "$@"
