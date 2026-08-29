@@ -5,7 +5,9 @@ set -e -o pipefail
 APP="$1"
 
 case "$APP" in
-trilium) ;;
+trilium)
+  NAMESPACE="trilium"
+  ;;
 *)
   echo
   echo "usage:"
@@ -33,7 +35,7 @@ sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/kube-system/rclone-conf.yaml"
   yq -r .stringData.configData >"$RCLONE_CONFIG"
 
 export RESTIC_PASSWORD="$(sops decrypt ${I12E_SECRETS}/clusters/${I12E_ENV}/${APP}/restic-conf.yaml | yq -r .stringData.password)"
-export RESTIC_REPOSITORY="rclone:rem:${APP}"
+export RESTIC_REPOSITORY="rclone:rem:${NAMESPACE}/${APP}"
 export RESTIC_CACHE_DIR=/dev/null
 
 exec restic "$@"
