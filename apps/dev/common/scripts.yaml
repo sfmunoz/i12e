@@ -53,7 +53,7 @@ data:
     date
     rm -rfv "${DATA_FOLDER}/"*
     date
-    restic restore -vv --tag main -t / latest
+    restic restore -vv --tag main -t / --verify latest
     date
     [ -f "${DATA_FOLDER}/.bhooks/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-restore-main.sh"
     date
