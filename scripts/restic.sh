@@ -5,14 +5,14 @@ set -e -o pipefail
 APP="$1"
 
 case "$APP" in
-trilium)
-  NAMESPACE="trilium"
+anki | trilium)
+  NAMESPACE="${APP}"
   ;;
 *)
   echo
   echo "usage:"
   echo
-  echo "  \$ $(basename "$0") trilium [restic arguments...]"
+  echo "  \$ $(basename "$0") anki/trilium [restic arguments...]"
   echo
   exit 1
   ;;
