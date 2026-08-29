@@ -1,13 +1,15 @@
 #
 # Mandatory for kind=Kustomization
-# spec.postBuild.substitute.DATA_FOLDER
+#
+#  - spec.postBuild.substitute.NAMESPACE
+#  - spec.postBuild.substitute.DATA_FOLDER
 #
 
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: scripts
-  namespace: trilium
+  namespace: ${NAMESPACE}
 data:
   rclone-pull.sh: |
     #!/bin/sh
@@ -20,7 +22,7 @@ data:
   restore-lock.sh: |
     #!/bin/sh
     echo "backup locked: follow these steps:"
-    echo "- 1. kubectl exec -it -c restore -n trilium deploy/trilium -- sh"
+    echo "- 1. kubectl exec -it -c restore -n ${NAMESPACE} deploy/trilium -- sh"
     echo "- 2. setup '${DATA_FOLDER}' with proper contents (may be empty)"
     echo "- 3. rm -f /backup/i12e.lock (before using 'backup-one.sh' or it will lock again)"
     echo "- 4. /bin/sh /scripts/backup-one.sh"

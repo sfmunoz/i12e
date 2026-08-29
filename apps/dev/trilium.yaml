@@ -20,6 +20,7 @@ spec:
   postBuild:
     substitute:
       DOCKER_IMAGE: triliumnext/trilium:v0.104.0
+      NAMESPACE: trilium
       DATA_FOLDER: /home/node/trilium-data
     substituteFrom:
       - kind: Secret

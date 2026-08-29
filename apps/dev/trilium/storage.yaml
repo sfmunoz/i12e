@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: trilium-data
-  namespace: trilium
+  namespace: ${NAMESPACE}
 spec:
   accessModes:
     - ReadWriteOncePod
@@ -15,7 +15,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: trilium-backup
-  namespace: trilium
+  namespace: ${NAMESPACE}
 spec:
   accessModes:
     - ReadWriteOncePod
