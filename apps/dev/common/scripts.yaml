@@ -51,7 +51,7 @@ data:
     date
     /bin/sh /scripts/rclone-push.sh
     date
-    rm -rfv "${DATA_FOLDER}/"*
+    find "${DATA_FOLDER}" -mindepth 1 -print -delete
     date
     restic restore -vv --tag main -t / --verify latest
     date
