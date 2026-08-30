@@ -102,7 +102,13 @@ data:
     while true
     do
       date
-      sleep $((3300 + RANDOM % 600))
+      if [ -f "${DATA_FOLDER}/.bhooks/backup-throttle.sh" ]
+      then
+        /bin/sh "${DATA_FOLDER}/.bhooks/backup-throttle.sh"
+      else
+        sleep $((3300 + RANDOM % 600))
+      fi
+      date
       [ -f "/backup-blocked" ] && continue
       /bin/sh /scripts/backup-one.sh
       /bin/sh /scripts/backup-forget.sh
