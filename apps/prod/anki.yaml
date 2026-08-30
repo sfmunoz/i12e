@@ -18,6 +18,11 @@ spec:
   prune: true
   wait: true
   postBuild:
+    substitute:
+      DOCKER_IMAGE: ghcr.io/sfmunoz/anki-sync-server:25.09.2-2
+      APPNAME: anki
+      NAMESPACE: anki
+      DATA_FOLDER: /anki_data
     substituteFrom:
       - kind: Secret
         name: ingress-conf

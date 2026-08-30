@@ -1,33 +1,122 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: anki-sync-server
-  namespace: anki
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: anki-sync-server
+      app: ${APPNAME}
   template:
     metadata:
       labels:
-        app: anki-sync-server
+        app: ${APPNAME}
     spec:
+      terminationGracePeriodSeconds: 300
+      initContainers:
+      - name: rclone
+        image: "rclone/rclone:sha-6805da6"
+        command: ["/bin/sh","-x","-c","cp /usr/local/bin/rclone /tools/rclone"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+      - name: restic
+        image: "restic/restic:0.19.1"
+        command: ["/bin/sh","-x","-c","cp /usr/bin/restic /tools/restic"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+      - name: restore
+        image: "${DOCKER_IMAGE}"
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/restore-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       containers:
-      - name: anki-sync-server
-        image: "ghcr.io/sfmunoz/anki-sync-server:25.09.2-2"
-        ports:
-        - containerPort: 8080
+      - name: main
+        image: "${DOCKER_IMAGE}"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "kill -SIGINT 1"]
         envFrom:
         - secretRef:
             name: sync-users
             optional: false
+        ports:
+        - containerPort: 8080
         volumeMounts:
         - name: data
-          mountPath: /anki_data/
+          mountPath: "${DATA_FOLDER}"
+      - name: backup
+        image: "${DOCKER_IMAGE}"
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/backup-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+          readOnly: true
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       volumes:
+      - name: scripts
+        configMap:
+          name: "${APPNAME}-scripts"
+      - name: tools
+        emptyDir: {}
       - name: data
         persistentVolumeClaim:
-          claimName: anki
+          claimName: ${APPNAME}-data
+      - name: backup
+        persistentVolumeClaim:
+          claimName: ${APPNAME}-backup
+      - name: restic-conf
+        secret:
+          secretName: restic-conf
+          items:
+          - key: password
+            path: password.txt
+      - name: rclone-conf
+        secret:
+          secretName: rclone-conf
+          items:
+          - key: configData
+            path: rclone.conf

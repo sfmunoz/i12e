@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: anki-sync-server
-  namespace: anki
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   tls:
   - secretName: "${SECRETNAME}"
@@ -16,6 +16,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: anki-sync-server
+            name: ${APPNAME}
             port:
               number: 8080
