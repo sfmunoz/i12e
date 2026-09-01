@@ -116,31 +116,30 @@ data:
     wait $!
   sqlite3-wait.sh: |
     #!/bin/sh
-    TARGET_DIR="$1"
+    TARGET_DIR="$${1}"
     TOT=15
     set -e -o pipefail
-    if [ "$TARGET_DIR" = "" ]
+    if [ "$${TARGET_DIR}" = "" ]
     then
       echo "<sqlite3-wait.sh> $(date): error: TARGET_DIR undefined"
       exit 1
     fi
-    for i in $(seq 1 ${TOT})
+    for i in $(seq 1 $${TOT})
     do
-      PENDING_FILES="$(find "$TARGET_DIR" -type f \( -name "*-wal" -o -name "*-shm" \) -size +0c)"
-      if [ -z "$PENDING_FILES" ]
+      PENDING_FILES="$(find "$${TARGET_DIR}" -type f \( -name "*-wal" -o -name "*-shm" \) -size +0c)"
+      if [ -z "$${PENDING_FILES}" ]
       then
-        echo "<sqlite3-wait.sh> $(date): (${i}/${TOT}) all SQLite files released"
+        echo "<sqlite3-wait.sh> $(date): ($${i}/$${TOT}) all SQLite files released"
         exit 0
       fi
-      if [ $i -eq $TOT ]
+      if [ $${i} -eq $${TOT} ]
       then
-        echo "<sqlite3-wait.sh> $(date): (${i}/${TOT}) giving up waiting even though database seems to be opened"
-        echo "$PENDING_FILES"
-        echo "---"
-        exit 0
+        echo "<sqlite3-wait.sh> $(date): ($${i}/$${TOT}) giving up waiting even though database seems to be opened"
+      else
+        echo "<sqlite3-wait.sh> $(date): ($${i}/$${TOT}) waiting for active SQLite auxiliary files to close"
       fi
-      echo "<sqlite3-wait.sh> $(date): (${i}/${TOT}) waiting for active SQLite auxiliary files to close"
       echo "$PENDING_FILES"
       echo "---"
+      [ $${i} -eq $${TOT} ] && exit 0
       sleep 1
     done
