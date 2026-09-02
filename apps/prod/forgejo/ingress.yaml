@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: forgejo
-  namespace: forgejo
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   tls:
   - secretName: "${SECRETNAME}"
@@ -16,6 +16,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: forgejo
+            name: ${APPNAME}
             port:
               number: 3000

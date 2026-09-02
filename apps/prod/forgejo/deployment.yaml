@@ -1,23 +1,62 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: forgejo
-  namespace: forgejo
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: forgejo
+      app: ${APPNAME}
   template:
     metadata:
       labels:
-        app: forgejo
+        app: ${APPNAME}
     spec:
+      terminationGracePeriodSeconds: 300
+      initContainers:
+      - name: rclone
+        image: "rclone/rclone:sha-6805da6"
+        command: ["/bin/sh","-x","-c","cp /usr/local/bin/rclone /tools/rclone"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+      - name: restic
+        image: "restic/restic:0.19.1"
+        command: ["/bin/sh","-x","-c","cp /usr/bin/restic /tools/restic"]
+        volumeMounts:
+        - name: tools
+          mountPath: /tools
+      - name: restore
+        image: "${DOCKER_IMAGE}"
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/restore-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       containers:
-      - name: forgejo
-        image: "codeberg.org/forgejo/forgejo:16.0.3"
+      - name: main
+        image: "${DOCKER_IMAGE}"
         env:
         - name: TZ
           value: UTC
@@ -26,8 +65,54 @@ spec:
         - containerPort: 3000
         volumeMounts:
         - name: data
-          mountPath: /data
+          mountPath: "${DATA_FOLDER}"
+      - name: backup
+        image: "${DOCKER_IMAGE}"
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/backup-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: tools
+          mountPath: /tools
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+          readOnly: true
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
       volumes:
+      - name: scripts
+        configMap:
+          name: "${APPNAME}-scripts"
+      - name: tools
+        emptyDir: {}
       - name: data
         persistentVolumeClaim:
-          claimName: forgejo
+          claimName: ${APPNAME}-data
+      - name: backup
+        persistentVolumeClaim:
+          claimName: ${APPNAME}-backup
+      - name: restic-conf
+        secret:
+          secretName: restic-conf
+          items:
+          - key: password
+            path: password.txt
+      - name: rclone-conf
+        secret:
+          secretName: rclone-conf
+          items:
+          - key: configData
+            path: rclone.conf
