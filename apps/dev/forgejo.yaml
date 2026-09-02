@@ -18,6 +18,11 @@ spec:
   prune: true
   wait: true
   postBuild:
+    substitute:
+      DOCKER_IMAGE: codeberg.org/forgejo/forgejo:16.0.3
+      APPNAME: forgejo
+      NAMESPACE: forgejo
+      DATA_FOLDER: /data
     substituteFrom:
       - kind: Secret
         name: ingress-conf
