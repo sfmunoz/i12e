@@ -55,10 +55,6 @@ func (s *Server) runOne(i int64) time.Duration {
 		log.Error("meshCfg() failed", "err", err)
 		return s.slumber(0)
 	}
-	if err := k3sInstall(s.cfg); err != nil {
-		log.Error("k3sInstall() failed", "err", err)
-		return s.slumber(0)
-	}
 	if err := pluginsRun(); err != nil {
 		log.Error("pluginsRun() failed", "err", err)
 		return s.slumber(0)
