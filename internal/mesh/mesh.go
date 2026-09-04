@@ -226,6 +226,31 @@ func (m *Mesh) etcHostsUpdate(nodeList []*node.NodeRemote) error {
 	return os.WriteFile("/etc/hosts", []byte(buf), 0644)
 }
 
+func (m *Mesh) etcI12eK3sMeshCfg(nodeLocal *node.NodeLocal) error {
+	fname := "/etc/i12e/k3s/mesh.cfg"
+	_, err := os.Stat(fname)
+	if err == nil {
+		return nil
+	}
+	if !os.IsNotExist(err) {
+		log.Error("etcI12eK3sMeshCfg(): os.Stat() failed", "err", err, "fname", fname)
+		return err
+	}
+	iface := m.cfg.Mesh.WireGuardInterface
+	if _, err := net.InterfaceByName(iface); err != nil {
+		log.Notice("etcI12eK3sMeshCfg(): network interface doesn't exist yet", "iface", iface)
+		return nil
+	}
+	ip := nodeLocal.GetMeshIP().String()
+	log.Info("etcI12eK3sMeshCfg(): creating config", "fname", fname, "iface", iface, "ip", ip)
+	buf := fmt.Sprintf("IFACE=\"%s\"\nIP=\"%s\"\n", iface, ip)
+	if err := os.WriteFile(fname, []byte(buf), 0600); err != nil {
+		log.Error("etcI12eK3sMeshCfg(): os.WriteFile() write failed", "err", err, "fname", fname, "buf", buf)
+		return err
+	}
+	return nil
+}
+
 func (m *Mesh) run() error {
 	nodeLocal, err := node.NewNodeLocal(m.cfg, false)
 	if err != nil {
@@ -270,6 +295,9 @@ func (m *Mesh) run() error {
 		return err
 	}
 	if err := m.etcHostsUpdate(nodeList); err != nil {
+		return err
+	}
+	if err := m.etcI12eK3sMeshCfg(nodeLocal); err != nil {
 		return err
 	}
 	return nil

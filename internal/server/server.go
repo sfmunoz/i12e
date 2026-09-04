@@ -51,10 +51,6 @@ func (s *Server) runOne(i int64) time.Duration {
 		log.Error("mesh.Run() failed", "err", err)
 		return s.slumber(0)
 	}
-	if err := meshCfg(s.cfg); err != nil {
-		log.Error("meshCfg() failed", "err", err)
-		return s.slumber(0)
-	}
 	if err := pluginsRun(); err != nil {
 		log.Error("pluginsRun() failed", "err", err)
 		return s.slumber(0)
