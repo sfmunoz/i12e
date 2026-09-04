@@ -21,6 +21,7 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/60-anki-sync-server.sh"
   "/opt/libexec/i12e/plugin-run.sh"
   "/opt/libexec/i12e/plugins/99-purge.sh"
+  "/opt/libexec/i12e/k3s-install.sh"
 )
 for E in "${ENTRIES[@]}"; do
   [ -e "$E" ] || continue

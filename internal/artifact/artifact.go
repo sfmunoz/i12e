@@ -319,13 +319,6 @@ func (a *Artifact) optLibexecI12eArtifactTuneSh() error {
 	return nil
 }
 
-func (a *Artifact) optLibexecI12eK3sInstallSh() error {
-	if err := a.addStatic("static/k3s-install.sh", "opt/libexec/i12e/k3s-install.sh", 0755); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (a *Artifact) optLibexecI12ePlugins() error {
 	const pluginsDir = "plugins"
 	entries, err := os.ReadDir(pluginsDir)
@@ -427,7 +420,6 @@ func (a *Artifact) run() error {
 		a.etcWireguard,
 		a.optBinE,
 		a.optLibexecI12eArtifactTuneSh,
-		a.optLibexecI12eK3sInstallSh,
 		a.optLibexecI12ePlugins,
 		a.etcI12eFlagsArtifactPulled,
 	}
