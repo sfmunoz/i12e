@@ -14,6 +14,7 @@ ENTRIES=(
   "/opt/libexec/i12e/plugins/08-rclone-conf.sh"
   "/opt/libexec/i12e/plugins/09-k3s-client-ca.sh"
   "/opt/libexec/i12e/plugins/10-csi-rclone.sh"
+  "/opt/libexec/i12e/plugins/10-k3s-install.sh"
   "/opt/libexec/i12e/plugins/20-reflector.sh"
   "/opt/libexec/i12e/plugins/30-cert-manager.sh"
   "/opt/libexec/i12e/plugins/40-postgres-rclone.sh"
