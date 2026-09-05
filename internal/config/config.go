@@ -46,6 +46,7 @@ type butane struct {
 	Version           string   `validate:"gte=1"`
 	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
 	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
+	Merge             string   `mapstructure:"merge"`
 }
 
 type server struct {

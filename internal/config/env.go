@@ -37,17 +37,6 @@ func (e Env) String() string {
 	return string(e)
 }
 
-func (e Env) ButaneEncYaml() string {
-	return e.fname("butane.enc.yaml")
-}
-
-func (e Env) fname(bname string) string {
-	if e == EnvNone {
-		return fmt.Sprintf("/etc/i12e/%s", bname)
-	}
-	return fmt.Sprintf("config/%s/%s", e.String(), bname)
-}
-
 func (e Env) SopsCmd(arg ...string) *exec.Cmd {
 	cmd := exec.Command("./scripts/sops.sh", arg...)
 	if e == EnvProd {
