@@ -21,7 +21,7 @@ rclone-conf)
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/kube-system/rclone-conf.yaml" | yq -r .stringData.configData
   exit $?
   ;;
-restic)
+restic-conf)
   APP="$2"
   case "$APP" in
   anki | forgejo | trilium)

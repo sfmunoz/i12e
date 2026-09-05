@@ -24,7 +24,7 @@ DNAME="$(dirname "$0")"
 SOPS="${DNAME}/sops.sh"
 RCLONE="${DNAME}/rclone.sh"
 
-export RESTIC_PASSWORD="$("${SOPS}" restic "${APP}")"
+export RESTIC_PASSWORD="$("${SOPS}" restic-conf "${APP}")"
 export RESTIC_REPOSITORY="rclone:rem:${NAMESPACE}/${APP}"
 export RESTIC_CACHE_DIR=/dev/null
 
