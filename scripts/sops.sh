@@ -17,7 +17,7 @@ export I12E_ENV
 BLOCK="$1"
 
 case "$BLOCK" in
-rclone)
+rclone-conf)
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/kube-system/rclone-conf.yaml" | yq -r .stringData.configData
   exit $?
   ;;

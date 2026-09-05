@@ -10,7 +10,7 @@ TDIR="${XDG_RUNTIME_DIR}"
 
 RCLONE_CONFIG="$(mktemp -p "$TDIR" rclone-$(id -u).XXXXXXXXXX.conf)"
 chmod 600 "${RCLONE_CONFIG}"
-$SOPS rclone >"$RCLONE_CONFIG"
+"$SOPS" rclone-conf >"$RCLONE_CONFIG"
 
 exec 3<"$RCLONE_CONFIG"
 rm -f "$RCLONE_CONFIG"
