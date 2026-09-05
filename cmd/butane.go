@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/butane"
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -35,9 +34,9 @@ Examples:
 			if cfg.Env != config.EnvDev && cfg.Env != config.EnvProd {
 				return fmt.Errorf("wrong env '%s': it must be '%s' or '%s'", cfg.Env, config.EnvDev, config.EnvProd)
 			}
-			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.Env.I12eEncYaml()))
+			bufOut, bufErr, err := cmdutil.RunSimple(cfg.Env.SopsCmd("i12e-conf"))
 			if err != nil {
-				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+				return fmt.Errorf("'config.SopsCmd(i12e-conf)' failed: err=%s; buf_err=%s", err, bufErr)
 			}
 			v := viperNew()
 			v.BindPFlag("butane.version", cmd.Flags().Lookup("version"))

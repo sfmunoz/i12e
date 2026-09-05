@@ -41,10 +41,6 @@ func (e Env) ButaneEncYaml() string {
 	return e.fname("butane.enc.yaml")
 }
 
-func (e Env) I12eEncYaml() string {
-	return e.fname("i12e.enc.yaml")
-}
-
 func (e Env) fname(bname string) string {
 	if e == EnvNone {
 		return fmt.Sprintf("/etc/i12e/%s", bname)
