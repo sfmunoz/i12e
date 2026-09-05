@@ -21,15 +21,11 @@ esac
 shift
 
 DNAME="$(dirname "$0")"
+SOPS="${DNAME}/sops.sh"
+RCLONE="${DNAME}/rclone.sh"
 
-[ "$I12E_SECRETS" = "" ] && I12E_SECRETS="${DNAME}/../../i12e-secrets"
-
-[ "$I12E_ENV" = "" ] && I12E_ENV="dev"
-
-export I12E_ENV
-
-export RESTIC_PASSWORD="$(sops decrypt ${I12E_SECRETS}/clusters/${I12E_ENV}/${APP}/restic-conf.yaml | yq -r .stringData.password)"
+export RESTIC_PASSWORD="$("${SOPS}" restic "${APP}")"
 export RESTIC_REPOSITORY="rclone:rem:${NAMESPACE}/${APP}"
 export RESTIC_CACHE_DIR=/dev/null
 
-exec restic --option rclone.program="${DNAME}/rclone.sh" "$@"
+exec restic --option rclone.program="${RCLONE}" "$@"
