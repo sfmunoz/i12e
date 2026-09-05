@@ -7,6 +7,8 @@ DNAME="$(dirname "$0")"
 [ "$I12E_SECRETS" = "" ] && I12E_SECRETS="${DNAME}/../../i12e-secrets"
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
+export I12E_ENV
+
 TDIR="${XDG_RUNTIME_DIR}"
 
 [ "$TDIR" = "" ] && TDIR="/dev/shm"
