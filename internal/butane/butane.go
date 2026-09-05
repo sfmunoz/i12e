@@ -79,7 +79,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	rcloneConf, err := rcloneConfig(b.cfg.Rclone.Remote)
+	rcloneConf, err := cmdutil.RcloneConfig(b.cfg.Env)
 	if err != nil {
 		return nil, err
 	}
