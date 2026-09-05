@@ -40,10 +40,11 @@ i12e-conf)
   ) | awk 'BEGIN { print "flux:" } { print " " $0 }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" | yq -y '{ "butane": .stringData }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/artifact.yaml" |
-    yq -y '{ "artifact": .stringData |
+    yq -y '.stringData |
       to_entries |
       map(if .key == "port_knocking" then .value |= (split(",") | map(tonumber)) else . end) |
-      from_entries }'
+      from_entries |
+      { "artifact": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/mesh.yaml" | yq -y '{ "mesh": .stringData }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/wireguard.yaml" | yq -y '{ "wg_conf": .stringData.configData }'
   exit $?
