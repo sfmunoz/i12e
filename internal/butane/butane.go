@@ -79,15 +79,10 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command("./scripts/sops.sh", "rclone-conf")
-	if b.cfg.Env == config.EnvProd {
-		cmd.Env = append(os.Environ(), "I12E_ENV=prod")
-	} else {
-		cmd.Env = os.Environ()
-	}
+	cmd := b.cfg.Env.SopsCmd("rclone-conf")
 	rcloneConf, be, err := cmdutil.RunSimple(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("'./scripts/sops.sh rclone-conf' failed: err=%s; buf_err=%s", err, be)
+		return nil, fmt.Errorf("'config.SopsCmd(rclone-conf)' failed: err=%s; buf_err=%s", err, be)
 	}
 	releaseSubpath := "latest/download"
 	if b.cfg.Butane.Version != "latest" {

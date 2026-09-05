@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 )
 
 type Env string
@@ -52,4 +54,14 @@ func (e Env) fname(bname string) string {
 		return fmt.Sprintf("/etc/i12e/%s", bname)
 	}
 	return fmt.Sprintf("config/%s/%s", e.String(), bname)
+}
+
+func (e Env) SopsCmd(arg ...string) *exec.Cmd {
+	cmd := exec.Command("./scripts/sops.sh", arg...)
+	if e == EnvProd {
+		cmd.Env = append(os.Environ(), "I12E_ENV=prod")
+	} else {
+		cmd.Env = os.Environ()
+	}
+	return cmd
 }
