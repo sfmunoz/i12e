@@ -79,8 +79,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := b.cfg.Env.SopsCmd("rclone-conf")
-	rcloneConf, be, err := cmdutil.RunSimple(cmd)
+	rcloneConf, be, err := cmdutil.RunSimple(b.cfg.Env.SopsCmd("rclone-conf"))
 	if err != nil {
 		return nil, fmt.Errorf("'config.SopsCmd(rclone-conf)' failed: err=%s; buf_err=%s", err, be)
 	}
