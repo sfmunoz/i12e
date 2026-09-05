@@ -2,11 +2,9 @@
 
 set -e -o pipefail
 
-if [ "$I12E_SECRETS" = "" ]; then
-  cd "$(dirname "$0")"
-  I12E_SECRETS=../../i12e-secrets
-fi
+DNAME="$(dirname "$0")"
 
+[ "$I12E_SECRETS" = "" ] && I12E_SECRETS="${DNAME}/../../i12e-secrets"
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
 TDIR="${XDG_RUNTIME_DIR}"
