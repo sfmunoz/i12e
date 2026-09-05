@@ -9,7 +9,11 @@ fi
 
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
-export RCLONE_CONFIG="$(mktemp -p /dev/shm rclone-$(id -u).XXXXXXXXXX.conf)"
+TDIR="${XDG_RUNTIME_DIR}"
+
+[ "$TDIR" = "" ] && TDIR="/dev/shm"
+
+export RCLONE_CONFIG="$(mktemp -p "$TDIR" rclone-$(id -u).XXXXXXXXXX.conf)"
 trap "rm -vf '${RCLONE_CONFIG}'" EXIT
 chmod 600 "${RCLONE_CONFIG}"
 
