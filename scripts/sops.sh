@@ -33,6 +33,17 @@ restic-conf)
     ;;
   esac
   ;;
+i12e-conf)
+  (
+    sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/flux-system.yaml" | yq -y '{ "github_token": .stringData.password }'
+    sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml" | yq -y '{ "age_key": .stringData."age.agekey" }'
+  ) | awk 'BEGIN { print "flux:" } { print " " $0 }'
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" | yq -y '{ "butane": .stringData }'
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/artifact.yaml" | yq -y '{ "artifact": .stringData }'
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/mesh.yaml" | yq -y '{ "mesh": .stringData }'
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/wireguard.yaml" | yq -y '{ "wg_conf": .stringData.configData }'
+  exit $?
+  ;;
 *)
   error_and_exit "unknown '${BLOCK}' block"
   ;;
