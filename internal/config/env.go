@@ -41,10 +41,6 @@ func (e Env) ButaneEncYaml() string {
 	return e.fname("butane.enc.yaml")
 }
 
-func (e Env) I12eYaml() string {
-	return e.fname("i12e.yaml")
-}
-
 func (e Env) I12eEncYaml() string {
 	return e.fname("i12e.enc.yaml")
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/artifact"
@@ -32,20 +31,12 @@ func artifactCmd() *cobra.Command {
 			if cfg.Env != config.EnvDev && cfg.Env != config.EnvProd {
 				return fmt.Errorf("wrong env '%s': it must be '%s' or '%s'", cfg.Env, config.EnvDev, config.EnvProd)
 			}
-			fp, err := os.Open(cfg.Env.I12eYaml())
-			if err != nil {
-				return err
-			}
-			defer fp.Close()
 			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.Env.I12eEncYaml()))
 			if err != nil {
 				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
 			}
 			v := viperNew()
-			if err := v.ReadConfig(fp); err != nil {
-				return err
-			}
-			if err := v.MergeConfig(bufOut); err != nil {
+			if err := v.ReadConfig(bufOut); err != nil {
 				return err
 			}
 			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {
