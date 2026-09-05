@@ -11,12 +11,14 @@ TDIR="${XDG_RUNTIME_DIR}"
 
 [ "$TDIR" = "" ] && TDIR="/dev/shm"
 
-export RCLONE_CONFIG="$(mktemp -p "$TDIR" rclone-$(id -u).XXXXXXXXXX.conf)"
-trap "rm -vf '${RCLONE_CONFIG}'" EXIT
+RCLONE_CONFIG="$(mktemp -p "$TDIR" rclone-$(id -u).XXXXXXXXXX.conf)"
 chmod 600 "${RCLONE_CONFIG}"
-
 sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/kube-system/rclone-conf.yaml" |
   yq -r .stringData.configData >"$RCLONE_CONFIG"
 
-set -x
+exec 3<"$RCLONE_CONFIG"
+rm -f "$RCLONE_CONFIG"
+
+export RCLONE_CONFIG="/dev/fd/3"
+
 exec rclone "$@"
