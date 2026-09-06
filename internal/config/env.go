@@ -38,7 +38,11 @@ func (e Env) String() string {
 }
 
 func (e Env) SopsCmd(arg ...string) *exec.Cmd {
-	cmd := exec.Command("./scripts/sops.sh", arg...)
+	return e.innerCmd("./scripts/sops.sh", arg...)
+}
+
+func (e Env) innerCmd(name string, arg ...string) *exec.Cmd {
+	cmd := exec.Command(name, arg...)
 	if e == EnvProd {
 		cmd.Env = append(os.Environ(), "I12E_ENV=prod")
 	} else {
