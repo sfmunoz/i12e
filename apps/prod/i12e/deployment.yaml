@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: i12e
+  namespace: i12e
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: i12e
+  template:
+    metadata:
+      labels:
+        app: i12e
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: main
+        image: "rclone/rclone:sha-6805da6"
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            set -x
+            tail -f /dev/null &
+            wait $!
+            exit 0
+        volumeMounts:
+        - name: rem-multi
+          mountPath: /rem-multi
+          readOnly: false
+        - name: rem-fs
+          mountPath: /rem-fs
+          readOnly: false
+      volumes:
+      - name: rem-multi
+        persistentVolumeClaim:
+          claimName: rem-multi
+      - name: rem-fs
+        persistentVolumeClaim:
+          claimName: rem-fs
