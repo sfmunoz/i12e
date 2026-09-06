@@ -30,5 +30,5 @@ spec:
   chartRef:
     kind: OCIRepository
     name: postgres-rclone
-    namespace: i12e
+    namespace: db
   interval: 11m17s
