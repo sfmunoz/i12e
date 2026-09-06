@@ -3,7 +3,6 @@ package butane
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -35,20 +34,11 @@ func (b *Butane) butaneCmd() *exec.Cmd {
 }
 
 func (b *Butane) ignitionConfigMergeSource() (*bytes.Buffer, error) {
-	fname := b.cfg.Env.ButaneEncYaml()
-	_, err := os.Stat(fname)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	bo1, be1, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", fname))
-	if err != nil {
-		return nil, fmt.Errorf("'sops decrypt %s' failed: err=%s; buf_err=%s", fname, err, be1)
+	if len(b.cfg.Butane.Merge) < 1 {
+		return nil, nil
 	}
 	cmd := b.butaneCmd()
-	cmd.Stdin = bo1
+	cmd.Stdin = bytes.NewBufferString(b.cfg.Butane.Merge)
 	bo2, be2, err := cmdutil.RunSimple(cmd)
 	if err != nil {
 		return nil, fmt.Errorf("'butane' failed: err=%s; buf_err=%s", err, be2)
@@ -79,9 +69,9 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
-	rcloneConf, err := rcloneConfig(b.cfg.Rclone.Remote)
+	rcloneConf, be, err := cmdutil.RunSimple(b.cfg.Env.SopsCmd("rclone-conf"))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("'SopsCmd(rclone-conf)' failed: err=%s; buf_err=%s", err, be)
 	}
 	releaseSubpath := "latest/download"
 	if b.cfg.Butane.Version != "latest" {

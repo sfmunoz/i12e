@@ -368,22 +368,22 @@ func (a *Artifact) etcI12eFlagsArtifactPulled() error {
 }
 
 func (a *Artifact) rclonePush() error {
-	remFile := fmt.Sprintf("%s:artifact.tar.gz", a.cfg.Rclone.Remote)
+	remFile := "rem:artifact.tar.gz"
 	log.Info("rclonePush()", "remFile", remFile)
 	// --------
 	sha256_1 := fmt.Sprintf("%x", sha256.Sum256(a.obuf.Bytes())) // keep it before buffer read
 	// --------
-	cmd1 := exec.Command("rclone", "rcat", remFile)
+	cmd1 := a.cfg.Env.RcloneCmd("rcat", remFile)
 	cmd1.Stdin = a.obuf
 	bo1, be1, err1 := cmdutil.RunSimple(cmd1)
 	if err1 != nil {
-		return fmt.Errorf("'rclone rcat' failed': %s (stdout=%s, stderr=%s)", err1, bo1.String(), be1.String())
+		return fmt.Errorf("'RcloneCmd(rcat,%s)' failed: %s (stdout=%s, stderr=%s)", remFile, err1, bo1.String(), be1.String())
 	}
 	// --------
-	cmd2 := exec.Command("rclone", "cat", remFile)
+	cmd2 := a.cfg.Env.RcloneCmd("cat", remFile)
 	bo2, be2, err2 := cmdutil.RunSimple(cmd2)
 	if err2 != nil {
-		return fmt.Errorf("'rclone cat' failed': %s (stdout=%s, stderr=%s)", err2, bo2.String(), be2.String())
+		return fmt.Errorf("'RcloneCmd(cat,%s)' failed: %s (stdout=%s, stderr=%s)", remFile, err2, bo2.String(), be2.String())
 	}
 	// --------
 	sha256_2 := fmt.Sprintf("%x", sha256.Sum256(bo2.Bytes()))

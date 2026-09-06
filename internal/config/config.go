@@ -19,7 +19,6 @@ type ArtifactConfig struct {
 	Artifact *artifact `mapstructure:"artifact" validate:"required"`
 	K3s      *k3s      `mapstructure:"k3s" validate:"required"`
 	Mesh     *mesh     `mapstructure:"mesh" validate:"required"`
-	Rclone   *rclone   `mapstructure:"rclone" validate:"required"`
 	Flux     *flux     `mapstructure:"flux" validate:"required"`
 	WgConf   []string  `mapstructure:"wg_conf"`
 }
@@ -27,7 +26,6 @@ type ArtifactConfig struct {
 type ButaneConfig struct {
 	Env    Env     `validate:"i12e_env"`
 	Butane *butane `mapstructure:"butane" validate:"required"`
-	Rclone *rclone `mapstructure:"rclone" validate:"required"`
 }
 
 type ServerConfig struct {
@@ -48,6 +46,7 @@ type butane struct {
 	Version           string   `validate:"gte=1"`
 	Mode              Mode     `mapstructure:"mode" validate:"i12e_butane_mode"`
 	Output            Output   `mapstructure:"output" validate:"i12e_butane_output"`
+	Merge             string   `mapstructure:"merge"`
 }
 
 type server struct {
@@ -57,10 +56,6 @@ type server struct {
 
 type k3s struct {
 	TlsSan string `mapstructure:"tls_san" validate:"gte=1"`
-}
-
-type rclone struct {
-	Remote string `mapstructure:"remote" validate:"gte=1"`
 }
 
 type flux struct {

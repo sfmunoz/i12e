@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/sfmunoz/i12e/internal/butane"
 	"github.com/sfmunoz/i12e/internal/cmdutil"
@@ -36,23 +34,15 @@ Examples:
 			if cfg.Env != config.EnvDev && cfg.Env != config.EnvProd {
 				return fmt.Errorf("wrong env '%s': it must be '%s' or '%s'", cfg.Env, config.EnvDev, config.EnvProd)
 			}
-			fp, err := os.Open(cfg.Env.I12eYaml())
+			bufOut, bufErr, err := cmdutil.RunSimple(cfg.Env.SopsCmd("i12e-conf"))
 			if err != nil {
-				return err
-			}
-			defer fp.Close()
-			bufOut, bufErr, err := cmdutil.RunSimple(exec.Command("sops", "decrypt", cfg.Env.I12eEncYaml()))
-			if err != nil {
-				return fmt.Errorf("'sops decrypt' failed: err=%s; buf_err=%s", err, bufErr)
+				return fmt.Errorf("'SopsCmd(i12e-conf)' failed: err=%s; buf_err=%s", err, bufErr)
 			}
 			v := viperNew()
 			v.BindPFlag("butane.version", cmd.Flags().Lookup("version"))
 			v.BindPFlag("butane.mode", cmd.Flags().Lookup("mode"))
 			v.BindPFlag("butane.output", cmd.Flags().Lookup("output"))
-			if err := v.ReadConfig(fp); err != nil {
-				return err
-			}
-			if err := v.MergeConfig(bufOut); err != nil {
+			if err := v.ReadConfig(bufOut); err != nil {
 				return err
 			}
 			if err := v.Unmarshal(cfg, PrefixDecodeHook()); err != nil {

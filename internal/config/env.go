@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 )
 
 type Env string
@@ -35,21 +37,20 @@ func (e Env) String() string {
 	return string(e)
 }
 
-func (e Env) ButaneEncYaml() string {
-	return e.fname("butane.enc.yaml")
+func (e Env) SopsCmd(arg ...string) *exec.Cmd {
+	return e.innerCmd("./scripts/sops.sh", arg...)
 }
 
-func (e Env) I12eYaml() string {
-	return e.fname("i12e.yaml")
+func (e Env) RcloneCmd(arg ...string) *exec.Cmd {
+	return e.innerCmd("./scripts/rclone.sh", arg...)
 }
 
-func (e Env) I12eEncYaml() string {
-	return e.fname("i12e.enc.yaml")
-}
-
-func (e Env) fname(bname string) string {
-	if e == EnvNone {
-		return fmt.Sprintf("/etc/i12e/%s", bname)
+func (e Env) innerCmd(name string, arg ...string) *exec.Cmd {
+	cmd := exec.Command(name, arg...)
+	if e == EnvProd {
+		cmd.Env = append(os.Environ(), "I12E_ENV=prod")
+	} else {
+		cmd.Env = os.Environ()
 	}
-	return fmt.Sprintf("config/%s/%s", e.String(), bname)
+	return cmd
 }
