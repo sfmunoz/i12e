@@ -294,7 +294,7 @@ Inspect:
 ```
 $ export GITHUB_TOKEN="github_pat_..."
 
-$ ./misc/flux-bootstrap.sh dev
+$ ./scripts/flux-bootstrap.sh dev
 + flux bootstrap github --token-auth --owner=sfmunoz --repository=i12e --path=clusters/dev --branch=main --private=false --personal=true --author-name flux-dev-bot --author-email 46285520+sfmunoz@users.noreply.github.com
 ► connecting to github.com
 ► cloning branch "main" from Git repository "https://github.com/sfmunoz/i12e.git"
@@ -333,7 +333,7 @@ $ ./misc/flux-bootstrap.sh dev
 ```
 $ export GITHUB_TOKEN="github_pat_..."
 
-$ ./misc/flux-bootstrap.sh prod
+$ ./scripts/flux-bootstrap.sh prod
 + flux bootstrap github --token-auth --owner=sfmunoz --repository=i12e --path=clusters/prod --branch=main --private=false --personal=true --author-name flux-prod-bot --author-email 46285520+sfmunoz@users.noreply.github.com
 ► connecting to github.com
 ► cloning branch "main" from Git repository "https://github.com/sfmunoz/i12e.git"
