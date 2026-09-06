@@ -37,7 +37,7 @@ i12e-conf)
   (
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/flux-system.yaml" | yq -y '{ "github_token": .stringData.password }'
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml" | yq -y '{ "age_key": .stringData."age.agekey" }'
-  ) | awk 'BEGIN { print "flux:" } { print " " $0 }'
+  ) | yq -y '{ "flux": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" |
     yq -y '.stringData |
       to_entries |
