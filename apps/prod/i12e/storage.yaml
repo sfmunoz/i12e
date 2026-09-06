@@ -23,3 +23,16 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: rem-fs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rem-ro
+  namespace: i12e
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: rem-ro
