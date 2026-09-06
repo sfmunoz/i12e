@@ -1,0 +1,34 @@
+#
+# https://fluxcd.io/flux/components/helm/
+#   https://fluxcd.io/flux/components/helm/helmreleases/
+# https://fluxcd.io/flux/guides/helmreleases/
+# https://fluxcd.io/flux/use-cases/helm/
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: postgres-rclone
+  namespace: db
+spec:
+  interval: 25h04m
+  url: oci://ghcr.io/sfmunoz/postgres-rclone
+  layerSelector:
+    mediaType: "application/vnd.cncf.helm.chart.content.v1.tar+gzip"
+    operation: copy
+  ref:
+    tag: 0.1.0
+
+---
+
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postgres-rclone
+  namespace: db
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: postgres-rclone
+    namespace: db
+  interval: 11m17s
