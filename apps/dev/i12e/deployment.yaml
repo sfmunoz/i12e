@@ -31,6 +31,9 @@ spec:
         - name: rem-fs
           mountPath: /rem-fs
           readOnly: false
+        - name: rem-ro
+          mountPath: /rem-ro
+          readOnly: true
       volumes:
       - name: rem-multi
         persistentVolumeClaim:
@@ -38,3 +41,6 @@ spec:
       - name: rem-fs
         persistentVolumeClaim:
           claimName: rem-fs
+      - name: rem-ro
+        persistentVolumeClaim:
+          claimName: rem-ro
