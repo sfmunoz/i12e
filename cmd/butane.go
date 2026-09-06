@@ -36,7 +36,7 @@ Examples:
 			}
 			bufOut, bufErr, err := cmdutil.RunSimple(cfg.Env.SopsCmd("i12e-conf"))
 			if err != nil {
-				return fmt.Errorf("'config.SopsCmd(i12e-conf)' failed: err=%s; buf_err=%s", err, bufErr)
+				return fmt.Errorf("'SopsCmd(i12e-conf)' failed: err=%s; buf_err=%s", err, bufErr)
 			}
 			v := viperNew()
 			v.BindPFlag("butane.version", cmd.Flags().Lookup("version"))

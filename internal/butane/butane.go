@@ -71,7 +71,7 @@ func (b *Butane) butaneRender() (*bytes.Buffer, error) {
 	}
 	rcloneConf, be, err := cmdutil.RunSimple(b.cfg.Env.SopsCmd("rclone-conf"))
 	if err != nil {
-		return nil, fmt.Errorf("'config.SopsCmd(rclone-conf)' failed: err=%s; buf_err=%s", err, be)
+		return nil, fmt.Errorf("'SopsCmd(rclone-conf)' failed: err=%s; buf_err=%s", err, be)
 	}
 	releaseSubpath := "latest/download"
 	if b.cfg.Butane.Version != "latest" {
