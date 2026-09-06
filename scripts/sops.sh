@@ -46,7 +46,7 @@ i12e-conf)
       to_entries |
       map(if .key == "ssh_authorized_keys" then .value |= (split("\n") | map(select(.!=""))) else . end) |
       from_entries |
-      { "artifact": . }'
+      { "butane": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/artifact.yaml" |
     yq -y '.stringData |
       to_entries |
