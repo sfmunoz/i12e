@@ -36,9 +36,9 @@ restic-conf)
 i12e-conf)
   (
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/flux-system.yaml" |
-      yq -y '{ "github_token": .stringData.password }'
+      yq -y '.stringData | { "github_token": .password }'
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml" |
-      yq -y '{ "age_key": .stringData."age.agekey" }'
+      yq -y '.stringData | { "age_key": ."age.agekey" }'
   ) |
     yq -y '{ "flux": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" |
@@ -54,9 +54,9 @@ i12e-conf)
       from_entries |
       { "artifact": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/mesh.yaml" |
-    yq -y '{ "mesh": .stringData }'
+    yq -y '.stringData | { "mesh": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/wireguard.yaml" |
-    yq -y '{ "wg_conf": .stringData.configData }'
+    yq -y '.stringData | { "wg_conf": .configData }'
   exit $?
   ;;
 *)
