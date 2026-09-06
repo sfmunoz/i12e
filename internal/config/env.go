@@ -41,6 +41,10 @@ func (e Env) SopsCmd(arg ...string) *exec.Cmd {
 	return e.innerCmd("./scripts/sops.sh", arg...)
 }
 
+func (e Env) RcloneCmd(arg ...string) *exec.Cmd {
+	return e.innerCmd("./scripts/rclone.sh", arg...)
+}
+
 func (e Env) innerCmd(name string, arg ...string) *exec.Cmd {
 	cmd := exec.Command(name, arg...)
 	if e == EnvProd {
