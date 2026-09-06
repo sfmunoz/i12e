@@ -38,7 +38,12 @@ i12e-conf)
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/flux-system.yaml" | yq -y '{ "github_token": .stringData.password }'
     sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml" | yq -y '{ "age_key": .stringData."age.agekey" }'
   ) | awk 'BEGIN { print "flux:" } { print " " $0 }'
-  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" | yq -y '{ "butane": .stringData }'
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/butane.yaml" |
+    yq -y '.stringData |
+      to_entries |
+      map(if .key == "ssh_authorized_keys" then .value |= (split("\n") | map(select(.!=""))) else . end) |
+      from_entries |
+      { "artifact": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/artifact.yaml" |
     yq -y '.stringData |
       to_entries |
