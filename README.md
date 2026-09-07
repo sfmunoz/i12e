@@ -240,31 +240,6 @@ kubectl apply -f misc/traefik-config.yaml
 - `--entrypoints.web.http.redirections.entryPoint.scheme=https`
 - `--entrypoints.web.http.redirections.entryPoint.permanent=true`
 
-## TLS
-
-Temporary procedure since it will be integrated in the project:
-
-- **(1)** `kubectl create secret tls -n i12e example.com --key=privkey.pem --cert=fullchain.pem`
-  - **privkey.pem**: the private key (**Let's Encrypt** filename)
-  - **fullchain.pem**: the full certificate chain (**Let's Encrypt** filename, **cert.pem** is not enough)
-- **(2)** `kubectl edit ingresses.networking.k8s.io -n i12e wikijs` → add **spec.tls** block referring to the created secret:
-```yaml
-(...)
-spec:
-  tls:
-  - secretName: example.com
-    hosts:
-    - www.example.com
-  rules:
-  - host: www.example.com
-(...)
-```
-
-Inspect:
-
-- `kubectl describe ingresses.networking.k8s.io -n i12e wikijs` → verify "TLS: example.com terminates www.example.com"
-- `kubectl logs -n kube-system deployments/traefik -f` → check for errors
-
 ## Deleted references
 
 - [os: helm chart deleted](https://github.com/sfmunoz/i12e/commit/0b7c418e016362d8a9817821fdd178612940f38c) → https://github.com/sfmunoz/i12e/issues/296
