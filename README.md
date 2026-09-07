@@ -21,32 +21,35 @@ Simple outline:
 
 ## Architecture
 
-**Notice**: be aware that this is an over-simplified architecture. Details will be provided as they are defined
+Simplified architecture diagram:
 
 ```mermaid
 flowchart LR
-    github_repo["github.com/sfmunoz/i12e<br/>(repository)"]
-    github_rel["github.com/sfmunoz/i12e<br/>(releases)"]
-    rclone_conf["~/.config/rclone/rclone.conf<br/>(encrypted)"]
-    local(["local"])
-    fs[("fileserver<br/>s3, gcs, ...")] 
-    host(["host (target)"])
-    github_repo -->|"(1) git clone/pull"| local
-    rclone_conf -->|"(2) config pull"| local
-    local -->|"(3) config push<br/>(rclone)"| fs
-    local -->|"(4) ignition push (ssh)<br/>i12e + rclone.conf"| host
-    github_rel -->|"(5) i12e-flatcar.raw pull"| host
+    i12e_repo["github.com<br/>/sfmunoz/i12e<br/>(repo)"]
+    i12e_secrets_repo["github.com<br/>/sfmunoz/i12e-secrets<br/>(repo)"]
+    i12e_rel["github.com/sfmunoz/i12e<br/>(releases)"]
+    local(["local (devel)"])
+    fs[("fileserver<br/>rclone: s3, gcs, rustfs, ...")] 
+    host["host (target)\nos=flatcar\n--------\ni12e\n↓\nk3s\n↓\nflux"]
+    i12e_repo -->|"(1) git clone/pull"| local
+    i12e_secrets_repo -->|"(2) git clone/pull"| local
+    local -->|"(3) config push (rclone)<br/>$ go run main.go artifact"| fs
+    local -->|"(4) ignition push (ssh)<br/>$ go run main.go butane | \<br/>ssh core@192.168.56.51 bash"| host
+    i12e_rel -->|"(5) i12e-flatcar.raw pull"| host
     fs -->|"(6) config pull"| host
+    i12e_repo -->|"(7a) flux reconcile"| host
+    i12e_secrets_repo -->|"(7b) flux reconcile"| host
 ```
 
 Details:
 
 - **(1)** Code is pulled from **github.com/sfmunoz/i12e**
-- **(2)** Rclone config is read from **~/.config/rclone/rclone.conf** (encrypted)
-- **(3)** Configuration is pushed to rclone-compatible storage
-- **(4)** Ignition configuration is pushed to target host (**rclone.conf** included)
-- **(5)** **i12e-flatcar.raw** is pulled from github
+- **(2)** Secrets are pulled from **github.com/sfmunoz/i12e-secrets**
+- **(3)** Configuration is pushed to rclone-compatible storage using `go run main.go artifact`
+- **(4)** Ignition configuration is injected to target host using `go run main.go butane | ssh core@192.168.56.51 bash` (**rclone.conf** is included)
+- **(5)** **i12e-flatcar.raw** is pulled from github releases
 - **(6)** Target host pulls whatever is required from rclone-compatible storage
+- **(7a)+(7b)** **flux** is in charge of git-based reconciliation
 
 ## I12E Artifact
 
