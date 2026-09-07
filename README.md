@@ -15,9 +15,11 @@ Simple outline:
   - Flatcar OS
   - k3s for k8s
 - Volatile: always pulls recent data from stable storage
-- rclone is the tool to push-to/pull-from storage
 - Nomad: easily move from one cloud provider to another
-- backup-centric: it's the pillar of the system
+- **rclone** is the tool to push-to/pull-from storage
+- backup-centric:
+  - it's the pillar of the system
+  - **restic** is the tool to manage it
 
 ## Architecture
 
