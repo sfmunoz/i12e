@@ -4,6 +4,11 @@
 # "--entrypoints.web.http.redirections.entryPoint.to=websecure" doesn't work
 # because redir to :8443 is done (internal port) instead of :443 (public port)
 #
+# http://localhost:8080/dashboard/ → "--api.insecure=true"
+#
+#   $ kubectl get deployments.apps -n kube-system traefik -o yaml         → verify
+#   $ kubectl port-forward -n kube-system deployments/traefik 8080:8080   → forward traffic
+#
 
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
