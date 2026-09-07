@@ -48,68 +48,6 @@ Details:
 - **(5)** **i12e-flatcar.raw** is pulled from github
 - **(6)** Target host pulls whatever is required from rclone-compatible storage
 
-## Requirements
-
-### butane
-
-- https://coreos.github.io/butane/
-- https://github.com/coreos/butane
-
-```
-$ brew install butane
-```
-
-### age
-
-- https://age-encryption.org/
-- https://github.com/FiloSottile/age
-
-```
-# apt install age
-```
-
-### sops
-
-- https://getsops.io/
-- https://github.com/getsops/sops
-
-```
-$ brew install sops
-```
-
-### helm
-
-- https://helm.sh/
-- https://github.com/helm/helm
-
-```
-$ brew install helm
-```
-
-### helm-secrets
-
-[https://github.com/jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets)
-
-```
-$ helm plugin list
-NAME    VERSION TYPE    APIVERSION      PROVENANCE      SOURCE
-(... nothing ...)
-
-$ helm plugin install --verify=false https://github.com/jkroepke/helm-secrets
-WARNING: Skipping plugin signature verification
-Installed plugin: secrets
-
-$ helm plugin list
-NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
-secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
-```
-
-Update (last version):
-
-```
-$ helm plugin update secrets
-```
-
 ## I12E Artifact
 
 Help:
@@ -320,6 +258,68 @@ $ ./scripts/flux-bootstrap.sh prod
 ✔ notification-controller: deployment ready
 ✔ source-controller: deployment ready
 ✔ all components are healthy
+```
+
+## Tools
+
+### butane
+
+- https://coreos.github.io/butane/
+- https://github.com/coreos/butane
+
+```
+$ brew install butane
+```
+
+### age
+
+- https://age-encryption.org/
+- https://github.com/FiloSottile/age
+
+```
+# apt install age
+```
+
+### sops
+
+- https://getsops.io/
+- https://github.com/getsops/sops
+
+```
+$ brew install sops
+```
+
+### helm
+
+- https://helm.sh/
+- https://github.com/helm/helm
+
+```
+$ brew install helm
+```
+
+### helm-secrets
+
+[https://github.com/jkroepke/helm-secrets](https://github.com/jkroepke/helm-secrets)
+
+```
+$ helm plugin list
+NAME    VERSION TYPE    APIVERSION      PROVENANCE      SOURCE
+(... nothing ...)
+
+$ helm plugin install --verify=false https://github.com/jkroepke/helm-secrets
+WARNING: Skipping plugin signature verification
+Installed plugin: secrets
+
+$ helm plugin list
+NAME    VERSION         TYPE            APIVERSION      PROVENANCE      SOURCE
+secrets 4.8.0-dev       getter/v1       legacy          unknown         unknown
+```
+
+Update (last version):
+
+```
+$ helm plugin update secrets
 ```
 
 ## Deleted references
