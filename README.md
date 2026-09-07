@@ -29,10 +29,10 @@ Simplified architecture diagram:
 flowchart LR
     i12e_repo["github.com<br/>/sfmunoz/i12e<br/>(repo)"]
     i12e_secrets_repo["github.com<br/>/sfmunoz/i12e-secrets<br/>(repo)"]
-    i12e_rel["github.com/sfmunoz/i12e<br/>(releases)"]
+    i12e_rel["github.com<br/>/sfmunoz/i12e<br/>(releases)"]
     local("host (local)\ndevel")
     fs[("fileserver<br/>rclone: s3, gcs, rustfs, ...")] 
-    host("host (target)\nos=flatcar\n--------\ni12e\n↓\nk3s\n↓\nflux")
+    host("host (target)\nos=flatcar\n--------\ni12e\n↓\nmesh\n(network)\n↓\nk3s\n(k8s)\n↓\nflux\n(GitOps)")
     i12e_repo -->|"(1) git clone/pull"| local
     i12e_secrets_repo -->|"(2) git clone/pull"| local
     local -->|"(3) config push (rclone)<br/>$ go run main.go artifact"| fs
