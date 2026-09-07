@@ -218,28 +218,6 @@ Staged OS reset, you can reboot now
 Running as unit: run-rb96ef8572bb2485e9ba0e96db33005c0.service; invocation ID: 314d5d8b3f144e8a923ff6ba0ba8b353
 ```
 
-## Traefik config
-
-[Traefik](https://traefik.io/traefik) configuration:
-
-```
-kubectl apply -f misc/traefik-config.yaml
-```
-
-### Dashboard
-
-`--api.insecure=true` option opens insecure access:
-
-- `kubectl get deployments.apps -n kube-system traefik -o yaml` → verify
-- `kubectl port-forward -n kube-system deployments/traefik 8080:8080` → forward traffic
-- http://localhost:8080/dashboard/ → access dashboard
-
-### HTTP → HTTPS permanent redirection
-
-- `--entrypoints.web.http.redirections.entryPoint.to=:443`
-- `--entrypoints.web.http.redirections.entryPoint.scheme=https`
-- `--entrypoints.web.http.redirections.entryPoint.permanent=true`
-
 ## Flux
 
 ### Repository structure reference
