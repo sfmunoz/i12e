@@ -2,25 +2,6 @@
 
 **i12e** is an **infrastructure** [numeronym](https://en.wikipedia.org/wiki/Numeronym)
 
-## Guidelines
-
-Simple outline:
-
-- [KISS](https://en.wikipedia.org/wiki/KISS_principle)
-- Flexible
-- Full control
-- Cluster API inspired but...
-  - Opinionated
-  - Smaller
-  - Flatcar OS
-  - k3s for k8s
-- Volatile: always pulls recent data from stable storage
-- Nomad: easily move from one cloud provider to another
-- **rclone** is the tool to push-to/pull-from storage
-- backup-centric:
-  - it's the pillar of the system
-  - **restic** is the tool to manage it
-
 ## Architecture
 
 Simplified architecture diagram:
@@ -52,6 +33,25 @@ Details:
 - **(5)** **i12e-flatcar.raw** is pulled from github releases
 - **(6)** Target host pulls whatever is required from rclone-compatible storage
 - **(7a)+(7b)** **flux** is in charge of git-based reconciliation
+
+## Guidelines
+
+Simple outline:
+
+- [KISS](https://en.wikipedia.org/wiki/KISS_principle)
+- Flexible
+- Full control
+- Cluster API inspired but...
+  - Opinionated
+  - Smaller
+  - Flatcar OS
+  - k3s for k8s
+- Volatile: always pulls recent data from stable storage
+- Nomad: easily move from one cloud provider to another
+- **rclone** is the tool to push-to/pull-from storage
+- backup-centric:
+  - it's the pillar of the system
+  - **restic** is the tool to manage it
 
 ## I12E Artifact
 
