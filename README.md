@@ -169,7 +169,9 @@ $ go run main.go artifact
 ```
 
 ## I12E Butane
+
 Help:
+
 ```
 $ go run main.go butane -h
 Run butane to generate ignition code
@@ -185,19 +187,22 @@ Usage:
   i12e butane [flags]
 
 Flags:
-  -h, --help            help for butane
-  -m, --mode string     Set target mode: ["main" "server" "agent"] (default "main")
-  -o, --output string   Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
-
-Global Flags:
-  -p, --prod   Environment: 'prod' if set (default: 'dev')
+  -h, --help             help for butane
+  -m, --mode string      Set target mode: ["main" "server" "agent"] (default "main")
+  -o, --output string    Set output format: ["bash_b64" "bash_raw" "ignition" "debug"] (default "bash_b64")
+  -p, --prod             Environment: 'prod' if set (default: 'dev')
+  -v, --version string   Set version to deploy (default "latest")
 ```
+
 Generation:
+
 ```
 $ go run main.go butane
 base64 -d <<< "H4sIA...(quite long base64 encoded gzipped script)...oIAAA=" | gunzip | bash
 ```
+
 Injection over ssh:
+
 ```
 $ go run main.go butane | ssh core@192.168.56.51 bash
 + sudo rm -fv /oem/config.ign
