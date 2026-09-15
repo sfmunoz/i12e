@@ -59,6 +59,10 @@ i12e-conf)
     yq -y '.stringData | { "wg_conf": .configData }'
   exit $?
   ;;
+talos-secrets)
+  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/secrets.yaml"
+  exit $?
+  ;;
 *)
   error_and_exit "unknown '${BLOCK}' block"
   ;;
