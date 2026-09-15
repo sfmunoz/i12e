@@ -4,6 +4,8 @@ set -e -o pipefail
 
 cd "$(dirname "$0")"
 
+SOPS="./sops.sh"
+
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
 [ "$IP2" = "" ] && IP2="192.168.56.58"
@@ -16,7 +18,6 @@ export CLUSTER_NAME
 
 export KUBECONFIG="./${CLUSTER_NAME}/kubeconfig"
 export TALOSCONFIG="./${CLUSTER_NAME}/talosconfig"
-SECRETS_YAML="./${CLUSTER_NAME}/secrets.yaml"
 
 function gen_config {
   CFG_NAME="$1"
@@ -39,7 +40,7 @@ function gen_config {
   talosctl gen config $CLUSTER_NAME https://${IP_PUB[1]}:6443 \
     --with-secrets <(
       { set +x; } 2>/dev/null
-      sops decrypt "${SECRETS_YAML}"
+      "${SOPS}" talos-secrets
     ) \
     --install-disk /dev/sda \
     --output - \
@@ -73,18 +74,9 @@ function gen_config {
 CMD="$1"
 
 case "$CMD" in
-secrets)
-  set -x
-  mkdir -p "$(
-    { set +x; } 2>/dev/null
-    dirname "${SECRETS_YAML}"
-  )"
-  rm -f "${SECRETS_YAML}"
-  talosctl gen secrets -o - |
-    sops encrypt --filename-override secrets.yaml --output "${SECRETS_YAML}"
-  ;;
 mesh)
   set -x -e -o pipefail
+  mkdir -p "${CLUSTER_NAME}"
   cd "${CLUSTER_NAME}"
   #../talos-mesh.py ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
   # generate wg-quick files and host config to get into the mesh from the host
@@ -144,7 +136,6 @@ __EOF
   echo
   echo "Usage (order matters):"
   echo
-  echo "  \$ ${BNAME} secrets                        -- secrets gen"
   echo "  \$ ${BNAME} mesh                           -- mesh gen"
   echo "  \$ ${BNAME} talosconfig                    -- talosconfig gen"
   echo "  \$ ${BNAME} install-1                      -- control-plane node"
