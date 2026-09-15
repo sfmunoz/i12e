@@ -63,6 +63,10 @@ talos-secrets)
   sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/secrets.yaml"
   exit $?
   ;;
+talos-mesh)
+  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/mesh.yaml"
+  exit $?
+  ;;
 *)
   error_and_exit "unknown '${BLOCK}' block"
   ;;
