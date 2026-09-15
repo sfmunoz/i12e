@@ -5,6 +5,7 @@ set -e -o pipefail
 DNAME="$(dirname "$0")"
 SOPS="${DNAME}/sops.sh"
 TALOS_MESH_PY="${DNAME}/talos-mesh.py"
+[ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
@@ -48,7 +49,7 @@ function gen_config {
     --config-patch <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat patches/common.yaml
+      cat "${DNAME}/../talos/${I12E_ENV}/common.yaml"
       case "$CFG_NAME" in
       node1 | node2 | node3)
         echo "---"
@@ -62,12 +63,12 @@ function gen_config {
     --config-patch-control-plane <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat patches/control-plane.yaml
+      cat "${DNAME}/../talos/${I12E_ENV}/control-plane.yaml"
     ) \
     --config-patch-worker <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat patches/worker.yaml
+      cat "${DNAME}/../talos/${I12E_ENV}/worker.yaml"
     )
 }
 
@@ -80,7 +81,7 @@ mesh)
   cd "${CLUSTER_NAME}"
   # "${TALOS_MESH_PY}" ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
   # generate wg-quick files and host config to get into the mesh from the host
-  "${TALOS_MESH_PY}" -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
+  "../${TALOS_MESH_PY}" -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
   cd ..
   ;;
 talosconfig)
