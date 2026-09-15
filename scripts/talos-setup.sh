@@ -2,9 +2,8 @@
 
 set -e -o pipefail
 
-cd "$(dirname "$0")"
-
-SOPS="./sops.sh"
+DNAME="$(dirname "$0")"
+SOPS="${DNAME}/sops.sh"
 
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
