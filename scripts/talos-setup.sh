@@ -4,6 +4,7 @@ set -e -o pipefail
 
 DNAME="$(dirname "$0")"
 SOPS="${DNAME}/sops.sh"
+TALOS_MESH_PY="${DNAME}/talos-mesh.py"
 
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
@@ -77,9 +78,9 @@ mesh)
   set -x -e -o pipefail
   mkdir -p "${CLUSTER_NAME}"
   cd "${CLUSTER_NAME}"
-  #../talos-mesh.py ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
+  # "${TALOS_MESH_PY}" ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
   # generate wg-quick files and host config to get into the mesh from the host
-  ../talos-mesh.py -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
+  "${TALOS_MESH_PY}" -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
   cd ..
   ;;
 talosconfig)
