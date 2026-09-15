@@ -86,9 +86,9 @@ secrets)
 mesh)
   set -x -e -o pipefail
   cd "${CLUSTER_NAME}"
-  #../mesh.py ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
+  #../talos-mesh.py ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
   # generate wg-quick files and host config to get into the mesh from the host
-  ../mesh.py -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
+  ../talos-mesh.py -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
   cd ..
   ;;
 talosconfig)
