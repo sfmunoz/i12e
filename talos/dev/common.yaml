@@ -1,0 +1,40 @@
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+nodeIP:
+  validSubnets:
+  - 192.168.186.0/24
+---
+# https://docs.siderolabs.com/talos/v1.14/networking/ingress-firewall
+apiVersion: v1alpha1
+kind: NetworkDefaultActionConfig
+ingress: block
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: wireguard
+portSelector:
+  ports:
+    - 51823
+  protocol: udp
+ingress:
+  - subnet: 192.168.56.0/24
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: kubelet-ingress
+portSelector:
+  ports:
+    - 10250
+  protocol: tcp
+ingress:
+  - subnet: 192.168.186.0/24
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: cni-vxlan
+portSelector:
+  ports:
+    - 4789
+  protocol: udp
+ingress:
+  - subnet: 192.168.186.0/24
