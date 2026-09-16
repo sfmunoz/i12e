@@ -38,3 +38,16 @@ portSelector:
   protocol: udp
 ingress:
   - subnet: 192.168.186.0/24
+---
+# https://docs.siderolabs.com/talos/v1.14/networking/configuration/overview
+# Note: Default Talos Linux behavior to run DHCP on any physical link is disabled
+# automatically when any link is configured explicitly in the machine configuration.
+# In order to keep DHCP running, it must be explicitly enabled on the desired link(s).
+apiVersion: v1alpha1
+kind: DHCPv4Config
+name: enp0s3
+---
+apiVersion: v1alpha1
+kind: DHCPv4Config
+name: enp0s8
+---
