@@ -4,7 +4,7 @@ set -e -o pipefail
 
 DNAME="$(dirname "$0")"
 SOPS="${DNAME}/sops.sh"
-TALOS_MESH_PY="${DNAME}/talos-mesh.py"
+TALOS_NODE_WG_PY="${DNAME}/talos-node-wg.py"
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
@@ -53,7 +53,7 @@ function gen_config {
       case "$CFG_NAME" in
       node1 | node2 | node3)
         echo "---"
-        sops decrypt "${CLUSTER_NAME}/wg${CFG_NAME#node}.yaml"
+        "${SOPS}" talos-mesh | "${TALOS_NODE_WG_PY}" "${CFG_NAME#node}"
         ;;
       esac
       [ -f wg.yaml ] || exit 0
@@ -75,17 +75,9 @@ function gen_config {
 CMD="$1"
 
 case "$CMD" in
-mesh)
-  set -x -e -o pipefail
-  mkdir -p "${CLUSTER_NAME}"
-  cd "${CLUSTER_NAME}"
-  # "${TALOS_MESH_PY}" ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823
-  # generate wg-quick files and host config to get into the mesh from the host
-  "../${TALOS_MESH_PY}" -c ${IP_PUB[1]}:51823 ${IP_PUB[2]}:51823 ${IP_PUB[3]}:51823 192.168.56.51:51823
-  cd ..
-  ;;
 talosconfig)
   set -x
+  mkdir -p "${CLUSTER_NAME}"
   gen_config talosconfig >"${TALOSCONFIG}"
   talosctl config endpoint ${IP_PUB[1]}
   talosctl config node ${IP_PRIV[1]} ${IP_PRIV[2]} ${IP_PRIV[3]}
@@ -137,7 +129,6 @@ __EOF
   echo
   echo "Usage (order matters):"
   echo
-  echo "  \$ ${BNAME} mesh                           -- mesh gen"
   echo "  \$ ${BNAME} talosconfig                    -- talosconfig gen"
   echo "  \$ ${BNAME} install-1                      -- control-plane node"
   echo "  \$ ${BNAME} kubeconfig                     -- kubeconfig gen"
