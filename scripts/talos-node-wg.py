@@ -21,6 +21,21 @@ def pubkey(privateKey):
     return result.stdout.strip()
 
 
+def get_peers(mesh, skip):
+    peers = []
+    for i, n in enumerate(mesh, 1):
+        if i == skip:
+            continue
+        peers.append(
+            {
+                "publicKey": pubkey(n["key"]),
+                "endpoint": "{}:{}".format(n["ip"], n["port"]),
+                "allowedIPs": [f"192.168.186.{i}/32"],
+            },
+        )
+    return peers
+
+
 if __name__ == "__main__":
     i1 = int(sys.argv[1])
     mesh = yaml.safe_load(sys.stdin)["mesh"]
@@ -41,19 +56,9 @@ if __name__ == "__main__":
         "listenPort": node["port"],
         "addresses": [{"address": f"192.168.186.{i1}/24"}],
     }
-    peers = []
-    for i, n in enumerate(mesh, 1):
-        if i == i1:
-            continue
-        peers.append(
-            {
-                "publicKey": pubkey(n["key"]),
-                "endpoint": "{}:{}".format(n["ip"], n["port"]),
-                "allowedIPs": [f"192.168.186.{i}/32"],
-            },
-        )
-        if len(peers) > 0:
-            ret["peers"] = peers
+    peers = get_peers(mesh, i1)
+    if len(peers) > 0:
+        ret["peers"] = peers
     print(
         yaml.safe_dump(
             ret,
