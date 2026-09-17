@@ -50,11 +50,11 @@ function flux_bootstrap {
     --token-auth \
     --owner=sfmunoz \
     --repository=i12e \
-    --path=clusters/${CLUSTER} \
+    --path=clusters/${CLUSTER}/k3s \
     --branch=main \
     --private=false \
     --personal=true \
-    --author-name "flux-${CLUSTER}-bot" \
+    --author-name "flux-${CLUSTER}-k3s-bot" \
     --author-email "46285520+sfmunoz@users.noreply.github.com" \
     --components-extra=source-watcher
   return $?

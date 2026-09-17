@@ -5,9 +5,11 @@ function error_and_exit {
   exit 1
 }
 
-CLUSTER="$1"
+I12E_ENV="$1"
+I12E_K8S="$2"
 
-[ "${CLUSTER}" = "dev" -o "${CLUSTER}" = "prod" ] || error_and_exit "unknown cluster '${CLUSTER}' (valid: 'dev' or 'prod')"
+[ "${I12E_ENV}" = "dev" -o "${I12E_ENV}" = "prod" ] || error_and_exit "unknown I12E_ENV '${I12E_ENV}' (valid: 'dev' or 'prod')"
+[ "${I12E_K8S}" = "k3s" -o "${I12E_K8S}" = "talos" ] || error_and_exit "unknown I12E_K8S '${I12E_K8S}' (valid: 'k3s' or 'talos')"
 
 set -x -e -o pipefail
 
@@ -15,10 +17,10 @@ flux bootstrap github \
   --token-auth \
   --owner=sfmunoz \
   --repository=i12e \
-  --path=clusters/${CLUSTER} \
+  --path=clusters/${I12E_ENV}/${I12E_K8S} \
   --branch=main \
   --private=false \
   --personal=true \
-  --author-name "flux-${CLUSTER}-bot" \
+  --author-name "flux-${I12E_ENV}-${I12E_K8S}-bot" \
   --author-email "46285520+sfmunoz@users.noreply.github.com" \
   --components-extra=source-watcher
