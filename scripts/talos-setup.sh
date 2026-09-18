@@ -5,9 +5,10 @@ set -e -o pipefail
 DNAME="$(realpath "$(dirname "$0")/..")"
 SOPS="${DNAME}/scripts/sops.sh"
 TALOS_NODE_WG_PY="${DNAME}/scripts/talos-node-wg.py"
-[ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
+[ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
+[ "$INSTALL_DISK" = "" ] && INSTALL_DISK="/dev/sda"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
 [ "$IP2" = "" ] && IP2="192.168.56.58"
 [ "$IP3" = "" ] && IP3="192.168.56.59"
@@ -43,7 +44,7 @@ function gen_config {
       { set +x; } 2>/dev/null
       "${SOPS}" talos-secrets
     ) \
-    --install-disk /dev/sda \
+    --install-disk "${INSTALL_DISK}" \
     --output - \
     --output-types "${OUTPUT_TYPES}" \
     --config-patch <(
