@@ -17,8 +17,8 @@ IP_PRIV=("----" "192.168.186.1" "192.168.186.2" "192.168.186.3")
 
 export CLUSTER_NAME
 
-export KUBECONFIG="./${CLUSTER_NAME}/kubeconfig"
-export TALOSCONFIG="./${CLUSTER_NAME}/talosconfig"
+export KUBECONFIG="${DNAME}/${CLUSTER_NAME}/kubeconfig"
+export TALOSCONFIG="${DNAME}/${CLUSTER_NAME}/talosconfig"
 
 function gen_config {
   CFG_NAME="$1"
