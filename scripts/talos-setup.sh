@@ -2,9 +2,9 @@
 
 set -e -o pipefail
 
-DNAME="$(dirname "$0")"
-SOPS="${DNAME}/sops.sh"
-TALOS_NODE_WG_PY="${DNAME}/talos-node-wg.py"
+DNAME="$(realpath "$(dirname "$0")/..")"
+SOPS="${DNAME}/scripts/sops.sh"
+TALOS_NODE_WG_PY="${DNAME}/scripts/talos-node-wg.py"
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
@@ -49,7 +49,7 @@ function gen_config {
     --config-patch <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat "${DNAME}/../talos/${I12E_ENV}/common.yaml"
+      cat "${DNAME}/talos/${I12E_ENV}/common.yaml"
       case "$CFG_NAME" in
       node1 | node2 | node3)
         echo "---"
@@ -63,12 +63,12 @@ function gen_config {
     --config-patch-control-plane <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat "${DNAME}/../talos/${I12E_ENV}/control-plane.yaml"
+      cat "${DNAME}/talos/${I12E_ENV}/control-plane.yaml"
     ) \
     --config-patch-worker <(
       { set +x; } 2>/dev/null
       echo "---"
-      cat "${DNAME}/../talos/${I12E_ENV}/worker.yaml"
+      cat "${DNAME}/talos/${I12E_ENV}/worker.yaml"
     )
 }
 
