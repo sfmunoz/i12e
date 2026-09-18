@@ -1,6 +1,6 @@
 #!/bin/bash
-export FLUX_VERSION="2.9.4" # exported: it's used by https://fluxcd.io/install.sh
-SHA256SUM="0c91d4bbbc2aa9c84b42608184534437ef92e5f2d6b862e99a11c0bb24ad0941"
+export FLUX_VERSION="2.9.5" # exported: it's used by https://fluxcd.io/install.sh
+SHA256SUM="392a85dd1126875c1ab677e18b6edb73f292c9e9ebcbb2e5402eb98bcfd81974"
 FLUX_BIN="/opt/bin/flux"
 FLUX_CFG="/etc/i12e/flux/flux.cfg"
 NS="flux-system"
