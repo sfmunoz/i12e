@@ -4,3 +4,5 @@ resources:
 - gotk-components.yaml
 - gotk-sync.yaml
 - traefik.yaml
+patches:
+- path: git-repo-config.yaml
