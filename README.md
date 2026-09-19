@@ -304,6 +304,45 @@ $ ./scripts/flux-bootstrap.sh dev talos
 ✔ source-watcher: deployment ready
 ✔ all components are healthy
 ```
+### prod-talos cluster bootstrap
+
+```
+$ export GITHUB_TOKEN='github_pat_...'
+
+$ ./scripts/flux-bootstrap.sh prod talos
++ flux bootstrap github --token-auth --owner=sfmunoz --repository=i12e --path=clusters/prod/talos --branch=main --private=false --personal=true --author-name flux-prod-talos-bot --author-email 46285520+sfmunoz@users.noreply.github.com --components-extra=source-watcher
+► connecting to github.com
+► cloning branch "main" from Git repository "https://github.com/sfmunoz/i12e.git"
+✔ cloned repository
+► generating component manifests
+✔ generated component manifests
+✔ committed component manifests to "main" ("bce74f07a4729c8cc49417d1cccb5d880033cb59")
+► pushing component manifests to "https://github.com/sfmunoz/i12e.git"
+► installing components in "flux-system" namespace
+✔ installed components
+✔ reconciled components
+► determining if source secret "flux-system/flux-system" exists
+► generating source secret
+► applying source secret "flux-system/flux-system"
+✔ reconciled source secret
+► generating sync manifests
+✔ generated sync manifests
+✔ committed sync manifests to "main" ("e962e2e711082e3b1b1297f2308d612787ab2fab")
+► pushing sync manifests to "https://github.com/sfmunoz/i12e.git"
+► applying sync manifests
+✔ reconciled sync configuration
+◎ waiting for GitRepository "flux-system/flux-system" to be reconciled
+✔ GitRepository reconciled successfully
+◎ waiting for Kustomization "flux-system/flux-system" to be reconciled
+✔ Kustomization reconciled successfully
+► confirming components are healthy
+✔ helm-controller: deployment ready
+✔ kustomize-controller: deployment ready
+✔ notification-controller: deployment ready
+✔ source-controller: deployment ready
+✔ source-watcher: deployment ready
+✔ all components are healthy
+```
 
 ## Tools
 
