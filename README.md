@@ -187,7 +187,7 @@ Running as unit: run-rb96ef8572bb2485e9ba0e96db33005c0.service; invocation ID: 3
 - Applied by **flux** on `go run main.go butane | ssh core@192.168.56.51 bash` execution:
   - https://github.com/sfmunoz/i12e/commit/a87ccc7cc3c6d36d70f41a50cce5355abb0f319e
 
-### Dev cluster bootstrap
+### dev-k3s cluster bootstrap
 
 ```
 $ export GITHUB_TOKEN="github_pat_..."
@@ -226,7 +226,7 @@ $ ./scripts/flux-bootstrap.sh dev
 ✔ all components are healthy
 ```
 
-### Prod cluster bootstrap
+### prod-k3s cluster bootstrap
 
 ```
 $ export GITHUB_TOKEN="github_pat_..."
