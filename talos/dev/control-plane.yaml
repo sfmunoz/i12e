@@ -10,6 +10,15 @@ cluster:
     - 192.168.186.0/24
 ---
 apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+backendType: vxlan
+backendPort: 4789
+# backendMTU must match the MTU of the wireguard interface
+backendMTU: 1420
+extraArgs:
+  - --iface=wgi
+---
+apiVersion: v1alpha1
 kind: NetworkRuleConfig
 name: apid-ingress
 portSelector:
