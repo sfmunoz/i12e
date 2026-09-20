@@ -67,6 +67,10 @@ talos-mesh)
   sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/mesh.yaml"
   exit $?
   ;;
+sops-age)
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml"
+  exit $?
+  ;;
 *)
   error_and_exit "unknown '${BLOCK}' block"
   ;;
