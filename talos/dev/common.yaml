@@ -51,3 +51,9 @@ apiVersion: v1alpha1
 kind: DHCPv4Config
 name: enp0s8
 ---
+# https://docs.siderolabs.com/kubernetes-guides/csi/local-storage
+# https://docs.siderolabs.com/talos/v1.14/configure-your-talos-cluster/storage-and-disk-management/disk-management/user
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: local-path-provisioner
+volumeType: directory
