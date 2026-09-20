@@ -12,11 +12,6 @@
 #   $ kubectl port-forward -n kube-system deployments/traefik 8080:8080   → forward traffic
 #
 
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: traefik
----
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
