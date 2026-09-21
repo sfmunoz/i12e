@@ -55,7 +55,7 @@ data:
     date
     find "${DATA_FOLDER}" -print
     date
-    restic restore -vv --tag main -t / --verify latest
+    restic restore -vv --tag main -t / --verify --exclude-xattr 'security.selinux' latest
     date
     [ -f "${DATA_FOLDER}/.bhooks/post-restore-main.sh" ] && /bin/sh "${DATA_FOLDER}/.bhooks/post-restore-main.sh"
     date
