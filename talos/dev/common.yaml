@@ -57,3 +57,9 @@ apiVersion: v1alpha1
 kind: UserVolumeConfig
 name: local-path-provisioner
 volumeType: directory
+---
+# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server#after-bootstrap
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  rotate-server-certificates: true
