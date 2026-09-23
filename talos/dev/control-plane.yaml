@@ -53,7 +53,6 @@ ingress:
   - subnet: 192.168.56.0/24
   - subnet: 192.168.186.0/24
   - subnet: 10.244.0.0/16  # coredns health check would fail when on control-plane
-  - subnet: 10.96.0.0/12   # coredns health check would fail when on control-plane
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
