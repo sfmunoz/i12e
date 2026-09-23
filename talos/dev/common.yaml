@@ -19,6 +19,9 @@ portSelector:
 ingress:
   - subnet: 192.168.56.0/24
 ---
+# kind: KubeNetworkConfig
+# podSubnets: [10.244.0.0/16]
+# serviceSubnets: [10.96.0.0/12]
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
 name: kubelet-ingress
@@ -28,6 +31,7 @@ portSelector:
   protocol: tcp
 ingress:
   - subnet: 192.168.186.0/24
+  - subnet: 10.244.0.0/16  # coredns health check would fail when on control-plane
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
@@ -57,3 +61,9 @@ apiVersion: v1alpha1
 kind: UserVolumeConfig
 name: local-path-provisioner
 volumeType: directory
+---
+# https://docs.siderolabs.com/kubernetes-guides/monitoring-and-observability/deploy-metrics-server#after-bootstrap
+apiVersion: v1alpha1
+kind: KubeletConfig
+extraArgs:
+  rotate-server-certificates: true
