@@ -50,6 +50,8 @@ function gen_config {
       node1 | node2 | node3)
         echo "---"
         "${SOPS}" talos-mesh | "${TALOS_NODE_WG_PY}" "${CFG_NAME#node}"
+        echo "---"
+        "${SOPS}" talos-wg0
         ;;
       esac
       [ -f wg.yaml ] || exit 0
