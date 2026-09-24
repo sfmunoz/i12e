@@ -20,7 +20,6 @@ export CLUSTER_NAME
 
 OFOLDER="${DNAME}/${CLUSTER_NAME}"
 export KUBECONFIG="${OFOLDER}/kubeconfig"
-export TALOSCONFIG="${OFOLDER}/talosconfig"
 
 function gen_config {
   CFG_NAME="$1"
@@ -79,10 +78,15 @@ CMD="$1"
 case "$CMD" in
 talosconfig)
   set -x
-  mkdir -p "${OFOLDER}"
-  gen_config talosconfig >"${TALOSCONFIG}"
+  TFOLDER="${HOME}/.talos"
+  mkdir -p "${TFOLDER}"
+  chmod 700 "${TFOLDER}"
+  gen_config talosconfig >"${TFOLDER}/config.${I12E_ENV}"
+  ln -sf "config.${I12E_ENV}" "${TFOLDER}/config"
+  ls -l "${TFOLDER}/config"
   talosctl config endpoint ${IP_PUB[1]}
   talosctl config node ${IP_PRIV[1]} ${IP_PRIV[2]} ${IP_PRIV[3]}
+  chmod 600 "${TFOLDER}/config.${I12E_ENV}"
   ;;
 debug-1 | debug-2 | debug-3)
   set -x
