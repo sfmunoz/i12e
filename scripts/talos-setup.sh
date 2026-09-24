@@ -7,7 +7,7 @@ SOPS="${DNAME}/scripts/sops.sh"
 TALOS_NODE_WG_PY="${DNAME}/scripts/talos-node-wg.py"
 
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
-[ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="cdev"
+[ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="c${I12E_ENV}"
 [ "$INSTALL_DISK" = "" ] && INSTALL_DISK="/dev/sda"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
 [ "$IP2" = "" ] && IP2="192.168.56.58"
@@ -15,12 +15,6 @@ TALOS_NODE_WG_PY="${DNAME}/scripts/talos-node-wg.py"
 
 IP_PUB=("----" "$IP1" "$IP2" "$IP3")
 IP_PRIV=("----" "192.168.186.1" "192.168.186.2" "192.168.186.3")
-
-export CLUSTER_NAME
-
-OFOLDER="${DNAME}/${CLUSTER_NAME}"
-export KUBECONFIG="${OFOLDER}/kubeconfig"
-export TALOSCONFIG="${OFOLDER}/talosconfig"
 
 function gen_config {
   CFG_NAME="$1"
@@ -79,10 +73,15 @@ CMD="$1"
 case "$CMD" in
 talosconfig)
   set -x
-  mkdir -p "${OFOLDER}"
-  gen_config talosconfig >"${TALOSCONFIG}"
+  TFOLDER="${HOME}/.talos"
+  mkdir -p "${TFOLDER}"
+  chmod 700 "${TFOLDER}"
+  gen_config talosconfig >"${TFOLDER}/config.${I12E_ENV}"
+  ln -sf "config.${I12E_ENV}" "${TFOLDER}/config"
   talosctl config endpoint ${IP_PUB[1]}
   talosctl config node ${IP_PRIV[1]} ${IP_PRIV[2]} ${IP_PRIV[3]}
+  chmod 600 "${TFOLDER}/config.${I12E_ENV}"
+  ls -l "${TFOLDER}/config"
   ;;
 debug-1 | debug-2 | debug-3)
   set -x
@@ -118,13 +117,13 @@ try-1 | try-2 | try-3)
   ;;
 kubeconfig)
   set -x
-  talosctl kubeconfig --nodes ${IP_PUB[1]}
-  ;;
-source)
-  cat <<__EOF
-export KUBECONFIG="$KUBECONFIG"
-export TALOSCONFIG="$TALOSCONFIG"
-__EOF
+  KFOLDER="${HOME}/.kube"
+  mkdir -p "${KFOLDER}"
+  chmod 700 "${KFOLDER}"
+  talosctl kubeconfig - --nodes ${IP_PUB[1]} >"${KFOLDER}/config.${I12E_ENV}"
+  ln -sf "config.${I12E_ENV}" "${KFOLDER}/config"
+  chmod 600 "${KFOLDER}/config.${I12E_ENV}"
+  ls -l "${KFOLDER}/config"
   ;;
 *)
   BNAME="$(basename "$0")"
@@ -138,7 +137,6 @@ __EOF
   echo "  \$ ${BNAME} debug-1/debug-2/debug-3        -- debug config"
   echo "  \$ ${BNAME} try-1/try-2/try-3              -- try config"
   echo "  \$ ${BNAME} update-1/update-2/update-3     -- update config"
-  echo "  \$ eval \$(${BNAME} source)                 -- set KUBECONFIG/TALOSCONFIG env vars"
   echo
   ;;
 esac
