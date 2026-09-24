@@ -59,16 +59,8 @@ i12e-conf)
     yq -y '.stringData | { "wg_conf": .configData }'
   exit $?
   ;;
-talos-secrets)
-  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/secrets.yaml"
-  exit $?
-  ;;
-talos-mesh)
-  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/mesh.yaml"
-  exit $?
-  ;;
-talos-wg0)
-  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/wg0.yaml"
+talos-secrets | talos-mesh | talos-wg0)
+  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/${BLOCK#talos-}.yaml"
   exit $?
   ;;
 sops-age)
