@@ -125,12 +125,6 @@ kubeconfig)
   chmod 600 "${KFOLDER}/config.${I12E_ENV}"
   ls -l "${KFOLDER}/config"
   ;;
-source)
-  cat <<__EOF
-export KUBECONFIG="$KUBECONFIG"
-export TALOSCONFIG="$TALOSCONFIG"
-__EOF
-  ;;
 *)
   BNAME="$(basename "$0")"
   echo
@@ -143,7 +137,6 @@ __EOF
   echo "  \$ ${BNAME} debug-1/debug-2/debug-3        -- debug config"
   echo "  \$ ${BNAME} try-1/try-2/try-3              -- try config"
   echo "  \$ ${BNAME} update-1/update-2/update-3     -- update config"
-  echo "  \$ eval \$(${BNAME} source)                 -- set KUBECONFIG/TALOSCONFIG env vars"
   echo
   ;;
 esac
