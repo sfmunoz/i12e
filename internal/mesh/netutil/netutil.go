@@ -79,8 +79,8 @@ func IfaceCreate(ifaceName string) (netlink.Link, error) {
 	}
 	la := netlink.NewLinkAttrs()
 	la.Name = ifaceName
-	wgi := &netlink.Wireguard{LinkAttrs: la}
-	if err := netlink.LinkAdd(wgi); err != nil {
+	wgm := &netlink.Wireguard{LinkAttrs: la}
+	if err := netlink.LinkAdd(wgm); err != nil {
 		return nil, err
 	}
 	link, err := netlink.LinkByName(ifaceName)
