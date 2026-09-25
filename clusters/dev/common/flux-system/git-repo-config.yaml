@@ -5,5 +5,5 @@ metadata:
   namespace: flux-system
 spec:
   interval: 26m41s
-  #ref:
-  #  branch: main
+  ref:
+    branch: enh/354-k8s-gateway-api
