@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Input .... sops.sh talos-mesh
+# Input .... sops.sh talos-wgm
 # Args ..... idx
 # Output ... config for idx node
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     ret = {
         "apiVersion": "v1alpha1",
         "kind": "WireguardConfig",
-        "name": "wgi",
+        "name": "wgm",
         "mtu": 1420,
         "up": True,
         "privateKey": node["key"],

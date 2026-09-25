@@ -282,7 +282,7 @@ func (a *Artifact) etcWireguard() error {
 		return nil
 	}
 	for i, v := range a.cfg.WgConf {
-		targetName := fmt.Sprintf("etc/wireguard/wg%d.conf", i)
+		targetName := fmt.Sprintf("etc/wireguard/wg%s.conf", string(rune('e'+i)))
 		body := []byte(v)
 		hdr := &tar.Header{
 			Typeflag: tar.TypeReg,

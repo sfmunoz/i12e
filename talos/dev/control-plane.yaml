@@ -16,18 +16,7 @@ backendPort: 4789
 # backendMTU must match the MTU of the wireguard interface
 backendMTU: 1420
 extraArgs:
-  - --iface=wgi
----
-apiVersion: v1alpha1
-kind: NetworkRuleConfig
-name: apid-ingress
-portSelector:
-  ports:
-    - 50000
-  protocol: tcp
-ingress:
-  - subnet: 192.168.56.0/24
-  - subnet: 192.168.186.0/24
+  - --iface=wgm
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
@@ -50,7 +39,6 @@ portSelector:
     - 6443
   protocol: tcp
 ingress:
-  - subnet: 192.168.56.0/24
   - subnet: 192.168.186.0/24
   - subnet: 10.244.0.0/16  # coredns health check would fail when on control-plane
 ---
