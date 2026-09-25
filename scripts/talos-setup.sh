@@ -45,7 +45,7 @@ function gen_config {
       echo "---"
       "${SOPS}" talos-wgm | "${DNAME}/scripts/talos-wgm.py" "${CFG_NAME#node}"
       echo "---"
-      "${SOPS}" talos-wg0
+      "${SOPS}" talos-wge
       ;;
     esac
   )"
