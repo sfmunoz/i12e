@@ -55,8 +55,10 @@ i12e-conf)
       { "artifact": . }'
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/mesh.yaml" |
     yq -y '.stringData | { "mesh": . }'
-  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/wireguard.yaml" |
-    yq -y '.stringData | { "wg_conf": .configData }'
+  sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/wge.yaml" |
+    awk '/^\-\-\-$/ { exit 0 } { print }' |
+    "${DNAME}/talos-wge.py" |
+    awk 'BEGIN { print "wg_conf: |" } { print($0=="" ? "" : "  "$0) }'
   exit $?
   ;;
 talos-secrets | talos-wgm | talos-wge)
