@@ -87,19 +87,7 @@ debug-1 | debug-2 | debug-3)
   NODE="node$N"
   gen_config $NODE
   ;;
-install-1)
-  NODE_CONFIG="$(gen_config node1)"
-  set -x
-  talosctl apply-config --nodes ${IP_PUB[1]} --file <(
-    { set +x; } 2>/dev/null
-    echo "$NODE_CONFIG"
-  ) --insecure
-  while true; do
-    talosctl bootstrap --nodes ${IP_PUB[1]} && break
-    sleep 10
-  done
-  ;;
-install-2 | install-3 | update-1 | update-2 | update-3 | try-1 | try-2 | try-3)
+install-1 | install-2 | install-3 | update-1 | update-2 | update-3 | try-1 | try-2 | try-3)
   case "${CMD%%-*}" in
   install) FLAGS="--insecure" ;;
   try) FLAGS="--mode try" ;;
@@ -113,6 +101,11 @@ install-2 | install-3 | update-1 | update-2 | update-3 | try-1 | try-2 | try-3)
     { set +x; } 2>/dev/null
     echo "$NODE_CONFIG"
   ) $FLAGS
+  [ "$CMD" = "install-1" ] || exit 0
+  while true; do
+    talosctl bootstrap --nodes ${IP_PUB[1]} && break
+    sleep 10
+  done
   ;;
 kubeconfig)
   set -x
