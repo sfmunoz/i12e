@@ -4,7 +4,6 @@ set -e -o pipefail
 
 DNAME="$(realpath "$(dirname "$0")/..")"
 SOPS="${DNAME}/scripts/sops.sh"
-TALOS_NODE_WG_PY="${DNAME}/scripts/talos-node-wg.py"
 
 [ "$I12E_ENV" = "" ] && I12E_ENV="dev"
 [ "$CLUSTER_NAME" = "" ] && CLUSTER_NAME="c${I12E_ENV}"
@@ -44,7 +43,7 @@ function gen_config {
     case "$CFG_NAME" in
     node1 | node2 | node3)
       echo "---"
-      "${SOPS}" talos-mesh | "${TALOS_NODE_WG_PY}" "${CFG_NAME#node}"
+      "${SOPS}" talos-wgm | "${DNAME}/scripts/talos-wgm.py" "${CFG_NAME#node}"
       echo "---"
       "${SOPS}" talos-wg0
       ;;

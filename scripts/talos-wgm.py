@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Input .... sops.sh talos-mesh
+# Input .... sops.sh talos-wgm
 # Args ..... idx
 # Output ... config for idx node
 
