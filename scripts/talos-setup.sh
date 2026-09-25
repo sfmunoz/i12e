@@ -99,35 +99,20 @@ install-1)
     sleep 10
   done
   ;;
-install-2 | install-3)
-  N="${CMD#install-}"
+install-2 | install-3 | update-1 | update-2 | update-3 | try-1 | try-2 | try-3)
+  case "${CMD%%-*}" in
+  install) FLAGS="--insecure" ;;
+  try) FLAGS="--mode try" ;;
+  *) FLAGS="" ;;
+  esac
+  N="${CMD#*-}"
   NODE="node$N"
   NODE_CONFIG="$(gen_config $NODE)"
   set -x
   talosctl apply-config --nodes ${IP_PUB[$N]} --file <(
     { set +x; } 2>/dev/null
     echo "$NODE_CONFIG"
-  ) --insecure
-  ;;
-update-1 | update-2 | update-3)
-  N="${CMD#update-}"
-  NODE="node$N"
-  NODE_CONFIG="$(gen_config $NODE)"
-  set -x
-  talosctl apply-config --nodes ${IP_PRIV[$N]} --file <(
-    { set +x; } 2>/dev/null
-    echo "$NODE_CONFIG"
-  )
-  ;;
-try-1 | try-2 | try-3)
-  N="${CMD#try-}"
-  NODE="node$N"
-  NODE_CONFIG="$(gen_config $NODE)"
-  set -x
-  talosctl apply-config --nodes ${IP_PRIV[$N]} --file <(
-    { set +x; } 2>/dev/null
-    echo "$NODE_CONFIG"
-  ) --mode try
+  ) $FLAGS
   ;;
 kubeconfig)
   set -x
