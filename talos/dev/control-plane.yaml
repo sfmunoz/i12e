@@ -20,16 +20,6 @@ extraArgs:
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
-name: apid-ingress
-portSelector:
-  ports:
-    - 50000
-  protocol: tcp
-ingress:
-  - subnet: 192.168.186.0/24
----
-apiVersion: v1alpha1
-kind: NetworkRuleConfig
 name: trustd-ingress
 portSelector:
   ports:

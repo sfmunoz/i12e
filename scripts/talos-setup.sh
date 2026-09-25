@@ -62,8 +62,8 @@ function gen_config {
       { set +x; } 2>/dev/null
       echo "$CONFIG_PATCH"
     ) \
-    --config-patch-control-plane @"${DNAME}/talos/${I12E_ENV}/control-plane.yaml" \
-    --config-patch-worker @"${DNAME}/talos/${I12E_ENV}/worker.yaml"
+    --config-patch-control-plane @"${DNAME}/talos/${I12E_ENV}/control-plane.yaml"
+  #--config-patch-worker @"${DNAME}/talos/${I12E_ENV}/worker.yaml"
 }
 
 CMD="$1"
