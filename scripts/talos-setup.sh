@@ -40,12 +40,12 @@ function gen_config {
     set -e -o pipefail
     echo "---"
     cat "${DNAME}/talos/${I12E_ENV}/common.yaml"
+    echo "---"
+    "${SOPS}" talos-wge
     case "$CFG_NAME" in
     node1 | node2 | node3)
       echo "---"
       "${SOPS}" talos-wgm | "${DNAME}/scripts/talos-wgm.py" "${CFG_NAME#node}"
-      echo "---"
-      "${SOPS}" talos-wge
       ;;
     esac
   )"
