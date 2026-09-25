@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -o pipefail
 function etc_wireguard {
-  for i in $(seq 0 2); do
+  for i in e f g; do
     f="/etc/wireguard/wg${i}.conf"
     s="wg-quick@wg${i}.service"
     if [ -f "$f" ]; then
