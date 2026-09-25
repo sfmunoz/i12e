@@ -5,7 +5,7 @@ import sys
 import yaml
 
 
-class TalosWg:
+class TalosWge:
     def __line(self, template, value):
         return None if value is None else template.format(value)
 
@@ -50,4 +50,4 @@ class TalosWg:
 
 
 if __name__ == "__main__":
-    TalosWg().run()
+    TalosWge().run()
