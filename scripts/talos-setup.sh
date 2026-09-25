@@ -48,9 +48,6 @@ function gen_config {
       "${SOPS}" talos-wg0
       ;;
     esac
-    [ -f wg.yaml ] || exit 0
-    echo "---"
-    sops decrypt wg.yaml
   )"
   set -x
   talosctl gen config $CLUSTER_NAME https://${IP_PUB[1]}:6443 \
