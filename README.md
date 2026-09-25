@@ -76,39 +76,39 @@ Generation:
 
 ```
 $ go run main.go artifact
-2026-09-07T13:55:14.527Z 0d00h00m02.159s [I] rclonePush() remFile=rem:artifact.tar.gz
-2026-09-07T13:55:15.800Z 0d00h00m03.432s [I] sha256(bef) sha256=9e1d616d182b2f16c3bef29363eaf9900efac86b158ff80b8213a8ce6188a4bd
-2026-09-07T13:55:15.800Z 0d00h00m03.433s [I] sha256(aft) sha256=9e1d616d182b2f16c3bef29363eaf9900efac86b158ff80b8213a8ce6188a4bd
-2026-09-07T13:55:15.806Z 0d00h00m03.439s [I] > tgz=drwx------ root/root         0 2026-09-07 13:55 etc/i12e
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwx------ root/root         0 2026-09-07 13:55 etc/i12e/flags
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwx------ root/root         0 2026-09-07 13:55 etc/i12e/k3s
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwx------ root/root         0 2026-09-07 13:55 etc/i12e/flux
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwxr-xr-x root/root         0 2026-09-07 13:55 etc/systemd/system.conf.d
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwx------ root/root         0 2026-09-07 13:55 etc/wireguard
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwxr-xr-x root/root         0 2026-09-07 13:55 opt/libexec
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwxr-xr-x root/root         0 2026-09-07 13:55 opt/libexec/i12e
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=drwxr-xr-x root/root         0 2026-09-07 13:55 opt/libexec/i12e/plugins
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root       145 2026-09-07 13:55 etc/crictl.yaml
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root        73 2026-09-07 13:55 etc/flatcar/update.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root         7 2026-09-07 13:55 etc/i12e/iface.txt
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root       223 2026-09-07 13:55 etc/i12e/k3s/config-main.yaml
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root       233 2026-09-07 13:55 etc/i12e/k3s/config-server.yaml
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root        75 2026-09-07 13:55 etc/i12e/k3s/config-agent.yaml
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root       129 2026-09-07 13:55 etc/i12e/k3s/override-main.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root       129 2026-09-07 13:55 etc/i12e/k3s/override-server.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root       128 2026-09-07 13:55 etc/i12e/k3s/override-agent.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root       208 2026-09-07 13:55 etc/i12e/flux/flux.cfg
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root      2031 2026-09-07 13:55 etc/nftables.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root        68 2026-09-07 13:55 etc/systemd/system.conf.d/i12e.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root       304 2026-09-07 13:55 etc/systemd/system/nftables.service
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root      1804 2026-09-07 13:55 etc/wireguard/wg0.conf
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rwxr-xr-x root/root       178 2026-09-07 13:55 opt/bin/e
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rwxr-xr-x root/root       950 2026-09-07 13:55 opt/libexec/i12e/artifact-tune.sh
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root      1028 2026-09-07 13:55 opt/libexec/i12e/plugins/00-purge.sh
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root      1443 2026-09-07 13:55 opt/libexec/i12e/plugins/10-k3s.sh
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw-r--r-- root/root      2360 2026-09-07 13:55 opt/libexec/i12e/plugins/35-flux.sh
-2026-09-07T13:55:15.807Z 0d00h00m03.439s [I] > tgz=-rw------- root/root         0 2026-09-07 13:55 etc/i12e/flags/artifact-pulled
-2026-09-07T13:55:15.807Z 0d00h00m03.440s [I] > tgz=
+2026-09-25T15:09:42.348Z 0d00h00m01.190s [I] rclonePush() remFile=rem:artifact.tar.gz
+2026-09-25T15:09:43.012Z 0d00h00m01.854s [I] sha256(bef) sha256=2f0b5e2a17105146f29c7adeb0c347f9589d5711fc614e326a6606d4c80bd5ec
+2026-09-25T15:09:43.012Z 0d00h00m01.854s [I] sha256(aft) sha256=2f0b5e2a17105146f29c7adeb0c347f9589d5711fc614e326a6606d4c80bd5ec
+2026-09-25T15:09:43.018Z 0d00h00m01.860s [I] > tgz=drwx------ root/root         0 2026-09-25 15:09 etc/i12e
+2026-09-25T15:09:43.018Z 0d00h00m01.860s [I] > tgz=drwx------ root/root         0 2026-09-25 15:09 etc/i12e/flags
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwx------ root/root         0 2026-09-25 15:09 etc/i12e/k3s
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwx------ root/root         0 2026-09-25 15:09 etc/i12e/flux
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwxr-xr-x root/root         0 2026-09-25 15:09 etc/systemd/system.conf.d
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwx------ root/root         0 2026-09-25 15:09 etc/wireguard
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwxr-xr-x root/root         0 2026-09-25 15:09 opt/libexec
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwxr-xr-x root/root         0 2026-09-25 15:09 opt/libexec/i12e
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=drwxr-xr-x root/root         0 2026-09-25 15:09 opt/libexec/i12e/plugins
+2026-09-25T15:09:43.018Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root       145 2026-09-25 15:09 etc/crictl.yaml
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root        73 2026-09-25 15:09 etc/flatcar/update.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root         7 2026-09-25 15:09 etc/i12e/iface.txt
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root       223 2026-09-25 15:09 etc/i12e/k3s/config-main.yaml
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root       233 2026-09-25 15:09 etc/i12e/k3s/config-server.yaml
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root        75 2026-09-25 15:09 etc/i12e/k3s/config-agent.yaml
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root       129 2026-09-25 15:09 etc/i12e/k3s/override-main.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root       129 2026-09-25 15:09 etc/i12e/k3s/override-server.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root       128 2026-09-25 15:09 etc/i12e/k3s/override-agent.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root       208 2026-09-25 15:09 etc/i12e/flux/flux.cfg
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root      2031 2026-09-25 15:09 etc/nftables.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root        68 2026-09-25 15:09 etc/systemd/system.conf.d/i12e.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root       304 2026-09-25 15:09 etc/systemd/system/nftables.service
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root       412 2026-09-25 15:09 etc/wireguard/wge.conf
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rwxr-xr-x root/root       178 2026-09-25 15:09 opt/bin/e
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rwxr-xr-x root/root       945 2026-09-25 15:09 opt/libexec/i12e/artifact-tune.sh
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root      1056 2026-09-25 15:09 opt/libexec/i12e/plugins/00-purge.sh
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root      1443 2026-09-25 15:09 opt/libexec/i12e/plugins/10-k3s.sh
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw-r--r-- root/root      2368 2026-09-25 15:09 opt/libexec/i12e/plugins/35-flux.sh
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=-rw------- root/root         0 2026-09-25 15:09 etc/i12e/flags/artifact-pulled
+2026-09-25T15:09:43.019Z 0d00h00m01.861s [I] > tgz=
 ```
 
 ## I12E Butane
