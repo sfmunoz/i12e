@@ -11,13 +11,12 @@ spec:
         from: All
     name: https
     port: 443
-    protocol: HTTP
-    #protocol: HTTPS
-    #tls:
-    #  mode: Terminate
-    #  certificateRefs:
-    #  - kind: Secret
-    #    name: ${SECRETNAME}
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - kind: Secret
+        name: ${SECRETNAME}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
