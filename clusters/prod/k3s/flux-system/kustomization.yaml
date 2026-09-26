@@ -6,3 +6,5 @@ resources:
 - ../../common/
 components:
 - ../../common/flux-system/
+patches:
+- path: patches.yaml

@@ -4,5 +4,5 @@ resources:
 - ../common/scripts.yaml
 - storage.yaml
 - deployment.yaml
-- ingress.yaml
+- routes.yaml
 - service.yaml
