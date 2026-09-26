@@ -36,3 +36,9 @@ spec:
     - kind: Secret
       name: wikijs-values-yaml
       valuesKey: values.yaml
+  values:
+    route:
+      parent:
+        name: https-8443
+        namespace: kube-system
+        sectionName: https
