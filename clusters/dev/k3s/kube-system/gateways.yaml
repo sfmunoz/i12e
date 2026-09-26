@@ -1,7 +1,7 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: http-8000
+  name: https-443
   namespace: kube-system
 spec:
   gatewayClassName: traefik
@@ -9,6 +9,27 @@ spec:
   - allowedRoutes:
       namespaces:
         from: All
-    name: web
-    port: 8000
+    name: https
+    port: 443
+    protocol: HTTP
+    #protocol: HTTPS
+    #tls:
+    #  mode: Terminate
+    #  certificateRefs:
+    #  - kind: Secret
+    #    name: ${SECRETNAME}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: http-80
+  namespace: kube-system
+spec:
+  gatewayClassName: traefik
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: All
+    name: http
+    port: 80
     protocol: HTTP
