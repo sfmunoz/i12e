@@ -1,10 +1,9 @@
 #
 # ref: https://doc.traefik.io/traefik/reference/install-configuration/entrypoints/
 #
-# "--entrypoints.web.http.redirections.entryPoint.to=websecure" doesn't work
-# because redir to :8443 is done (internal port) instead of :443 (public port)
+# Redirect through websecure; the chart resolves it to its public port, :443.
 #
-# http://localhost:8080/dashboard/ → "--api.insecure=true"
+# http://localhost:8080/dashboard/ → api.insecure: true
 #
 #   $ kubectl get deployments.apps -n kube-system traefik -o yaml         → verify
 #   $ kubectl port-forward -n kube-system deployments/traefik 8080:8080   → forward traffic
@@ -16,9 +15,19 @@ metadata:
   name: traefik
   namespace: kube-system
 spec:
-  valuesContent: |-
-    additionalArguments:
-      - "--api.insecure=true"
-      - "--entrypoints.web.http.redirections.entryPoint.to=:443"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
+  values:
+    api:
+      insecure: true
+    ports:
+      web:
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+    providers:
+      kubernetesGateway:
+        enabled: true
+    gateway:
+      enabled: false
