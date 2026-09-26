@@ -5,7 +5,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   parentRefs:
-  - name: https-443
+  - name: https-8443
     namespace: kube-system
     sectionName: https
   hostnames:
