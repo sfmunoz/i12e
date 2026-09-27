@@ -40,5 +40,5 @@ spec:
     route:
       parent:
         name: https-8443
-        namespace: kube-system
+        namespace: gateways
         sectionName: https
