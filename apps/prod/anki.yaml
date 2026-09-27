@@ -9,6 +9,8 @@ spec:
     namespace: flux-system
   - name: secrets
     namespace: flux-system
+  - name: gateways
+    namespace: gateways
   interval: 11m05s
   sourceRef:
     kind: ExternalArtifact
