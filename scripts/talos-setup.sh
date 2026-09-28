@@ -122,8 +122,9 @@ kubeconfig)
   KFOLDER="${HOME}/.kube"
   mkdir -p "${KFOLDER}"
   chmod 700 "${KFOLDER}"
-  talosctl kubeconfig - --nodes ${IP_PUB[1]} >"${KFOLDER}/config.${I12E_ENV}"
+  talosctl kubeconfig - --nodes ${IP_PRIV[1]} >"${KFOLDER}/config.${I12E_ENV}"
   ln -sf "config.${I12E_ENV}" "${KFOLDER}/config"
+  kubectl config set-cluster "${CLUSTER_NAME}" --server "https://${IP_EP}:6443"
   chmod 600 "${KFOLDER}/config.${I12E_ENV}"
   ls -l "${KFOLDER}/config"
   ;;
