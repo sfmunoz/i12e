@@ -11,6 +11,7 @@ SOPS="${DNAME}/scripts/sops.sh"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
 [ "$IP2" = "" ] && IP2="192.168.56.58"
 [ "$IP3" = "" ] && IP3="192.168.56.59"
+[ "$IP_EP" = "" ] && IP_EP="192.168.185.1" # wge, endpoint
 
 IP_PUB=("----" "$IP1" "$IP2" "$IP3")
 IP_PRIV=("----" "192.168.186.1" "192.168.186.2" "192.168.186.3")
@@ -50,7 +51,7 @@ function gen_config {
     esac
   )"
   set -x
-  talosctl gen config $CLUSTER_NAME https://${IP_PUB[1]}:6443 \
+  talosctl gen config $CLUSTER_NAME https://${IP_PRIV[1]}:6443 \
     --with-secrets <(
       { set +x; } 2>/dev/null
       echo "$SECRETS"
@@ -76,7 +77,7 @@ talosconfig)
   chmod 700 "${TFOLDER}"
   gen_config talosconfig >"${TFOLDER}/config.${I12E_ENV}"
   ln -sf "config.${I12E_ENV}" "${TFOLDER}/config"
-  talosctl config endpoint ${IP_PUB[1]}
+  talosctl config endpoint $IP_EP
   talosctl config node ${IP_PRIV[1]} ${IP_PRIV[2]} ${IP_PRIV[3]}
   chmod 600 "${TFOLDER}/config.${I12E_ENV}"
   ls -l "${TFOLDER}/config"
@@ -88,22 +89,31 @@ debug-1 | debug-2 | debug-3)
   gen_config $NODE
   ;;
 install-1 | install-2 | install-3 | update-1 | update-2 | update-3 | try-1 | try-2 | try-3)
-  case "${CMD%%-*}" in
-  install) FLAGS="--insecure" ;;
-  try) FLAGS="--mode try" ;;
-  *) FLAGS="" ;;
-  esac
   N="${CMD#*-}"
   NODE="node$N"
   NODE_CONFIG="$(gen_config $NODE)"
+  case "${CMD%%-*}" in
+  install)
+    FLAGS="--insecure"
+    IP_NODE=${IP_PUB[$N]}
+    ;;
+  try)
+    FLAGS="--mode try"
+    IP_NODE=${IP_PRIV[$N]}
+    ;;
+  *)
+    FLAGS=""
+    IP_NODE=${IP_PRIV[$N]}
+    ;;
+  esac
   set -x
-  talosctl apply-config --nodes ${IP_PUB[$N]} --file <(
+  talosctl apply-config --nodes $IP_NODE --file <(
     { set +x; } 2>/dev/null
     echo "$NODE_CONFIG"
   ) $FLAGS
   [ "$CMD" = "install-1" ] || exit 0
   while true; do
-    talosctl bootstrap --nodes ${IP_PUB[1]} && break
+    talosctl bootstrap --nodes ${IP_PRIV[1]} && break
     sleep 10
   done
   ;;
@@ -112,8 +122,9 @@ kubeconfig)
   KFOLDER="${HOME}/.kube"
   mkdir -p "${KFOLDER}"
   chmod 700 "${KFOLDER}"
-  talosctl kubeconfig - --nodes ${IP_PUB[1]} >"${KFOLDER}/config.${I12E_ENV}"
+  talosctl kubeconfig - --nodes ${IP_PRIV[1]} >"${KFOLDER}/config.${I12E_ENV}"
   ln -sf "config.${I12E_ENV}" "${KFOLDER}/config"
+  kubectl config set-cluster "${CLUSTER_NAME}" --server "https://${IP_EP}:6443"
   chmod 600 "${KFOLDER}/config.${I12E_ENV}"
   ls -l "${KFOLDER}/config"
   ;;
