@@ -4,7 +4,7 @@ metadata:
   name: traefik-crds
   namespace: traefik
 spec:
-  interval: 1d12h12m15s
+  interval: 36h12m15s
   sourceRef:
     kind: ExternalArtifact
     name: clusters
