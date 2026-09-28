@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: traefik-crds
+  namespace: traefik
+spec:
+  interval: 1d12h12m15s
+  sourceRef:
+    kind: ExternalArtifact
+    name: clusters
+    namespace: flux-system
+  path: ./talos/traefik/crds
+  prune: false   # don't delete CRDs if removed from Git
+  wait: true     # block dependents until CRDs are established
