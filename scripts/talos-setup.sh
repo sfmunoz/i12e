@@ -51,7 +51,7 @@ function gen_config {
     esac
   )"
   set -x
-  talosctl gen config $CLUSTER_NAME https://${IP_PUB[1]}:6443 \
+  talosctl gen config $CLUSTER_NAME https://${IP_PRIV[1]}:6443 \
     --with-secrets <(
       { set +x; } 2>/dev/null
       echo "$SECRETS"
