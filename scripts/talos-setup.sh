@@ -11,6 +11,7 @@ SOPS="${DNAME}/scripts/sops.sh"
 [ "$IP1" = "" ] && IP1="192.168.56.57"
 [ "$IP2" = "" ] && IP2="192.168.56.58"
 [ "$IP3" = "" ] && IP3="192.168.56.59"
+[ "$IP_EP" = "" ] && IP_EP="192.168.185.1" # wge, endpoint
 
 IP_PUB=("----" "$IP1" "$IP2" "$IP3")
 IP_PRIV=("----" "192.168.186.1" "192.168.186.2" "192.168.186.3")
@@ -76,7 +77,7 @@ talosconfig)
   chmod 700 "${TFOLDER}"
   gen_config talosconfig >"${TFOLDER}/config.${I12E_ENV}"
   ln -sf "config.${I12E_ENV}" "${TFOLDER}/config"
-  talosctl config endpoint ${IP_PUB[1]}
+  talosctl config endpoint $IP_EP
   talosctl config node ${IP_PRIV[1]} ${IP_PRIV[2]} ${IP_PRIV[3]}
   chmod 600 "${TFOLDER}/config.${I12E_ENV}"
   ls -l "${TFOLDER}/config"
