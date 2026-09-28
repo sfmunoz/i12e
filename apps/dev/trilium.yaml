@@ -27,5 +27,5 @@ spec:
       DATA_FOLDER: /home/node/trilium-data
     substituteFrom:
       - kind: Secret
-        name: ingress-conf
+        name: routes-conf
         optional: false
