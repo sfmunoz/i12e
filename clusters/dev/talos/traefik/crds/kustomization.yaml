@@ -1,3 +1,26 @@
+#
+# $ helm repo add traefik https://traefik.github.io/charts
+#
+# $ helm repo update
+#
+# $ helm pull traefik/traefik --untar
+#
+# $ grep -E '^(appVersion|version):' traefik/Chart.yaml
+# appVersion: v3.7.13
+# version: 41.6.0
+#
+# $ cat traefik/README.md
+# (...)
+# ### Gateway API CRDs
+#
+# ⚠️   Gateway API CRDs are no longer shipped with this chart.
+# 
+# If you use the Kubernetes Gateway API provider, you will need to install them yourself before deploying Traefik v3.7.12:
+#
+# kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
+# (...)
+#
+
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
