@@ -9,6 +9,6 @@ spec:
     kind: ExternalArtifact
     name: clusters
     namespace: flux-system
-  path: ./talos/traefik/crds
+  path: ./clusters/talos/traefik/crds
   prune: false   # don't delete CRDs if removed from Git
   wait: true     # block dependents until CRDs are established

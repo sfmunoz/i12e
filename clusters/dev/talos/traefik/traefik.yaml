@@ -12,6 +12,6 @@ spec:
     kind: ExternalArtifact
     name: clusters
     namespace: flux-system
-  path: ./talos/traefik/traefik
+  path: ./clusters/talos/traefik/traefik
   prune: true
   wait: true
