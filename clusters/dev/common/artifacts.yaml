@@ -17,6 +17,11 @@ spec:
       kind: GitRepository
       name: secrets
   artifacts:
+    - name: clusters
+      originRevision: "@monorepo"
+      copy:
+        - from: "@monorepo/clusters/dev/**"
+          to: "@artifact/clusters/"
     - name: infra
       originRevision: "@monorepo"
       copy:
