@@ -1,12 +1,8 @@
-#
-# privileged not required since speaker won't be used
-#
-
 apiVersion: v1
 kind: Namespace
 metadata:
   name: metallb-system
-  #labels:
-  #  pod-security.kubernetes.io/enforce: privileged
-  #  pod-security.kubernetes.io/audit: privileged
-  #  pod-security.kubernetes.io/warn: privileged
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged

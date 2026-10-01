@@ -30,14 +30,6 @@ spec:
         name: metallb
         namespace: metallb-system
       interval: 1h9m
-  install:
-    crds: CreateReplace
-    remediation:
-      retries: 3
-  upgrade:
-    crds: CreateReplace
-    remediation:
-      retries: 3
-  values:
-    speaker:
-      enabled: false
+  #values:
+  #  speaker:
+  #    enabled: false
