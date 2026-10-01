@@ -40,4 +40,4 @@ spec:
       retries: 3
   values:
     speaker:
-      enabled: true
+      enabled: false
