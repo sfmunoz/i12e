@@ -9,7 +9,7 @@ spec:
     kind: ExternalArtifact
     name: clusters
     namespace: flux-system
-  path: ./clusters/talos/metallb/metallb
+  path: ./clusters/talos/metallb-system/metallb
   prune: true
   wait: true
 
