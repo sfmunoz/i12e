@@ -16,13 +16,35 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: anki-s
+  namespace: flux-system
+spec:
+  dependsOn:
+  - name: anki-b
+    namespace: anki
+  interval: 11m20s
+  sourceRef:
+    kind: ExternalArtifact
+    name: secrets
+    namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./secrets/anki
+  prune: true
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: anki
   namespace: anki
 spec:
   dependsOn:
   - name: anki-b
     namespace: anki
-  - name: secrets
+  - name: anki-s
     namespace: flux-system
   - name: gateways
     namespace: gateways
