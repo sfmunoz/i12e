@@ -1,12 +1,27 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
+  name: anki-b
+  namespace: anki
+spec:
+  interval: 11m22s
+  sourceRef:
+    kind: ExternalArtifact
+    name: apps
+    namespace: flux-system
+  path: ./apps/anki/b
+  prune: true
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
   name: anki
   namespace: anki
 spec:
   dependsOn:
-  - name: infra
-    namespace: flux-system
+  - name: anki-b
+    namespace: anki
   - name: secrets
     namespace: flux-system
   - name: gateways
