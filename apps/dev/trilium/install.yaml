@@ -2,7 +2,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: trilium-b
-  namespace: trilium
+  namespace: flux-system
 spec:
   interval: 11m54s
   sourceRef:
@@ -21,7 +21,7 @@ metadata:
 spec:
   dependsOn:
   - name: trilium-b
-    namespace: trilium
+    namespace: flux-system
   interval: 11m30s
   sourceRef:
     kind: ExternalArtifact
@@ -43,7 +43,7 @@ metadata:
 spec:
   dependsOn:
   - name: trilium-b
-    namespace: trilium
+    namespace: flux-system
   - name: trilium-s
     namespace: flux-system
   - name: gateways

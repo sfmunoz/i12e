@@ -2,7 +2,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: forgejo-b
-  namespace: forgejo
+  namespace: flux-system
 spec:
   interval: 11m29s
   sourceRef:
@@ -21,7 +21,7 @@ metadata:
 spec:
   dependsOn:
   - name: forgejo-b
-    namespace: forgejo
+    namespace: flux-system
   interval: 11m36s
   sourceRef:
     kind: ExternalArtifact
@@ -43,7 +43,7 @@ metadata:
 spec:
   dependsOn:
   - name: forgejo-b
-    namespace: forgejo
+    namespace: flux-system
   - name: forgejo-s
     namespace: flux-system
   - name: gateways
