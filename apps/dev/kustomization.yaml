@@ -8,5 +8,5 @@ resources:
 - forgejo
 - gateways.yaml
 - i12e.yaml
-- trilium.yaml
+- trilium
 - wikijs.yaml
