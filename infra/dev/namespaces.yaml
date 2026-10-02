@@ -30,11 +30,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: forgejo
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: wikijs
 ---
 apiVersion: v1
