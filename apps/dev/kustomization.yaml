@@ -5,7 +5,7 @@ resources:
 - cert-manager.yaml
 - csi-rclone.yaml
 - db.yaml
-- forgejo.yaml
+- forgejo
 - gateways.yaml
 - i12e.yaml
 - trilium.yaml
