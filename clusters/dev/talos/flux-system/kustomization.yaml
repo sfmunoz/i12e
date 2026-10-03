@@ -4,5 +4,6 @@ resources:
 - gotk-components.yaml
 - gotk-sync.yaml
 - ../../common/
+- ../../apps/
 components:
 - ../../common/flux-system/
