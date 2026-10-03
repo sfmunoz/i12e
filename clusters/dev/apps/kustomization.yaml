@@ -4,3 +4,4 @@ resources:
 - anki.yaml
 - forgejo.yaml
 - trilium.yaml
+- wikijs.yaml
