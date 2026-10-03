@@ -1,0 +1,31 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: forgejo
+  namespace: flux-system
+spec:
+  dependsOn:
+  - name: gateways
+    namespace: gateways
+  interval: 11m56s
+  sourceRef:
+    kind: ExternalArtifact
+    name: blend-scripts
+    namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./blend/forgejo
+  prune: true
+  wait: true
+  postBuild:
+    substitute:
+      DOCKER_IMAGE: codeberg.org/forgejo/forgejo:16.0.3
+      APPNAME: forgejo
+      NAMESPACE: forgejo
+      DATA_FOLDER: /data
+    substituteFrom:
+      - kind: Secret
+        name: routes-conf
+        optional: false
