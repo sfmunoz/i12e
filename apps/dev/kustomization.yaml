@@ -3,10 +3,10 @@ kind: Kustomization
 resources:
 #- anki
 - cert-manager.yaml
-- csi-rclone.yaml
+#- csi-rclone.yaml
 - db.yaml
 #- forgejo
 - gateways.yaml
-- i12e.yaml
+#- i12e.yaml
 #- trilium
 #- wikijs
