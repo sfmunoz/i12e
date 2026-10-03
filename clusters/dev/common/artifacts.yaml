@@ -39,7 +39,7 @@ spec:
           to: "@artifact/secrets/"
     - name: blend
       copy:
-        - from: "@monorepo/apps/dev/**"
-          to: "@artifact/blend/"
         - from: "@secretsrepo/clusters/dev/**"
+          to: "@artifact/blend/"
+        - from: "@monorepo/apps/dev/**"
           to: "@artifact/blend/"
