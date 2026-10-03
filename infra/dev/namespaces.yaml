@@ -11,11 +11,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: reflector
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: csi-rclone
   labels:
     pod-security.kubernetes.io/enforce: privileged

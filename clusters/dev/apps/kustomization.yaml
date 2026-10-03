@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
 - anki.yaml
 - forgejo.yaml
+- reflector.yaml
 - trilium.yaml
 - wikijs.yaml
