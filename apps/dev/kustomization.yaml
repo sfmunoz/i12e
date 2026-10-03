@@ -9,4 +9,4 @@ resources:
 - gateways.yaml
 - i12e.yaml
 - trilium
-- wikijs.yaml
+- wikijs
