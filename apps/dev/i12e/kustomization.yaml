@@ -4,5 +4,3 @@ resources:
 - namespace.yaml
 - storage.yaml
 - deployment.yaml
-# The only secret required (some of them are skipped)
-- rclone-conf.yaml
