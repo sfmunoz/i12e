@@ -37,3 +37,21 @@ spec:
       copy:
         - from: "@secretsrepo/clusters/dev/**"
           to: "@artifact/secrets/"
+    - name: blend
+      copy:
+        - from: "@secretsrepo/clusters/dev/**"
+          to: "@artifact/blend/"
+        - from: "@monorepo/apps/dev/**"
+          to: "@artifact/blend/"
+    - name: blend-scripts
+      copy:
+        - from: "@monorepo/apps/dev/common/**"
+          to: "@artifact/blend/anki"
+        - from: "@monorepo/apps/dev/common/**"
+          to: "@artifact/blend/forgejo"
+        - from: "@monorepo/apps/dev/common/**"
+          to: "@artifact/blend/trilium"
+        - from: "@secretsrepo/clusters/dev/**"
+          to: "@artifact/blend/"
+        - from: "@monorepo/apps/dev/**"
+          to: "@artifact/blend/"
