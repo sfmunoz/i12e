@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- anki.yaml
+- cert-manager-install.yaml
+- cert-manager.yaml
+- csi-rclone.yaml
+- db.yaml
+- forgejo.yaml
+- gateways.yaml
+- i12e.yaml
+- reflector.yaml
+- trilium.yaml
+- wikijs.yaml

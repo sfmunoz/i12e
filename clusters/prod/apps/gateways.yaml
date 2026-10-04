@@ -1,0 +1,22 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gateways
+  namespace: flux-system
+spec:
+  dependsOn:
+  - name: cert-manager
+    namespace: flux-system
+  interval: 11m01s
+  sourceRef:
+    kind: ExternalArtifact
+    name: blend
+    namespace: flux-system
+  path: ./blend/gateways
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: gateway-conf
+        optional: false

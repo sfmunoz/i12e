@@ -22,18 +22,21 @@ spec:
       copy:
         - from: "@monorepo/clusters/prod/**"
           to: "@artifact/clusters/"
-    - name: infra
-      originRevision: "@monorepo"
-      copy:
-        - from: "@monorepo/infra/prod/**"
-          to: "@artifact/infra/"
-    - name: apps
-      originRevision: "@monorepo"
-      copy:
-        - from: "@monorepo/apps/prod/**"
-          to: "@artifact/apps/"
-    - name: secrets
-      originRevision: "@secretsrepo"
+    - name: blend
       copy:
         - from: "@secretsrepo/clusters/prod/**"
-          to: "@artifact/secrets/"
+          to: "@artifact/blend/"
+        - from: "@monorepo/apps/prod/**"
+          to: "@artifact/blend/"
+    - name: blend-scripts
+      copy:
+        - from: "@monorepo/apps/prod/common/**"
+          to: "@artifact/blend/anki"
+        - from: "@monorepo/apps/prod/common/**"
+          to: "@artifact/blend/forgejo"
+        - from: "@monorepo/apps/prod/common/**"
+          to: "@artifact/blend/trilium"
+        - from: "@secretsrepo/clusters/prod/**"
+          to: "@artifact/blend/"
+        - from: "@monorepo/apps/prod/**"
+          to: "@artifact/blend/"
