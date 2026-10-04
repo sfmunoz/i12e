@@ -1,0 +1,14 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cert-approver
+  namespace: flux-system
+spec:
+  interval: 36h24m58s
+  sourceRef:
+    kind: ExternalArtifact
+    name: blend
+    namespace: flux-system
+  path: ./blend/cert-approver
+  prune: true
+  wait: true
