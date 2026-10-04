@@ -22,11 +22,6 @@ spec:
       copy:
         - from: "@monorepo/clusters/dev/**"
           to: "@artifact/clusters/"
-    - name: infra
-      originRevision: "@monorepo"
-      copy:
-        - from: "@monorepo/infra/dev/**"
-          to: "@artifact/infra/"
     - name: apps
       originRevision: "@monorepo"
       copy:
