@@ -22,11 +22,6 @@ spec:
       copy:
         - from: "@monorepo/clusters/dev/**"
           to: "@artifact/clusters/"
-    - name: secrets
-      originRevision: "@secretsrepo"
-      copy:
-        - from: "@secretsrepo/clusters/dev/**"
-          to: "@artifact/secrets/"
     - name: blend
       copy:
         - from: "@secretsrepo/clusters/dev/**"
