@@ -6,11 +6,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: i12e
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: db
 ---
 apiVersion: v1

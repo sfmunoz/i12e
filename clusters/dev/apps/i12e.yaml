@@ -2,18 +2,16 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: i12e
-  namespace: i12e
+  namespace: flux-system
 spec:
   dependsOn:
-  - name: infra
-    namespace: flux-system
-  - name: secrets
+  - name: csi-rclone
     namespace: flux-system
   interval: 11m38s
   sourceRef:
     kind: ExternalArtifact
-    name: apps
+    name: blend
     namespace: flux-system
-  path: ./apps/i12e
+  path: ./blend/i12e
   prune: true
   wait: true

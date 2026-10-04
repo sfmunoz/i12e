@@ -4,6 +4,7 @@ resources:
 - anki.yaml
 - csi-rclone.yaml
 - forgejo.yaml
+- i12e.yaml
 - reflector.yaml
 - trilium.yaml
 - wikijs.yaml
