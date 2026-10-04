@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
 - anki.yaml
 - csi-rclone.yaml
+- db.yaml
 - forgejo.yaml
 - i12e.yaml
 - reflector.yaml
