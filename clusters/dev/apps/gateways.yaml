@@ -4,6 +4,9 @@ metadata:
   name: gateways
   namespace: flux-system
 spec:
+  dependsOn:
+  - name: cert-manager
+    namespace: flux-system
   interval: 11m01s
   sourceRef:
     kind: ExternalArtifact
