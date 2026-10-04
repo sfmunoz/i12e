@@ -6,7 +6,7 @@ metadata:
 spec:
   dependsOn:
   - name: gateways
-    namespace: gateways
+    namespace: flux-system
   interval: 11m26s
   sourceRef:
     kind: ExternalArtifact

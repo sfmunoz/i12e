@@ -5,6 +5,7 @@ resources:
 - csi-rclone.yaml
 - db.yaml
 - forgejo.yaml
+- gateways.yaml
 - i12e.yaml
 - reflector.yaml
 - trilium.yaml
