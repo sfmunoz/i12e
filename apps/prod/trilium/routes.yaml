@@ -9,7 +9,7 @@ spec:
     namespace: gateways
     sectionName: https
   hostnames:
-  - "${HOSTNAME}"
+  - "${TRILIUM_HOSTNAME}"
   rules:
   - matches:
     - path:
