@@ -18,7 +18,7 @@ BLOCK="$1"
 
 case "$BLOCK" in
 rclone-conf)
-  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/i12e/rclone-conf.yaml" | yq -r .stringData.configData
+  sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/csi-rclone/rclone-conf.yaml" | yq -r .stringData.configData
   exit $?
   ;;
 restic-conf)
