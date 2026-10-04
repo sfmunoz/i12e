@@ -9,6 +9,10 @@ spec:
     kind: ExternalArtifact
     name: blend
     namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   path: ./blend/csi-rclone
   prune: true
   wait: true
