@@ -2,24 +2,22 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cert-manager
-  namespace: cert-manager
+  namespace: flux-system
 spec:
   dependsOn:
   - name: infra
     namespace: flux-system
-  - name: secrets
-    namespace: flux-system
   interval: 10m38s
   sourceRef:
     kind: ExternalArtifact
-    name: apps
+    name: blend
     namespace: flux-system
-  path: ./apps/cert-manager
+  path: ./blend/cert-manager
   prune: true
   timeout: 10m
   wait: true
   postBuild:
     substituteFrom:
       - kind: Secret
-        name: certs-config
+        name: certs-conf
         optional: false
