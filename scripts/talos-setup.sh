@@ -41,6 +41,7 @@ function gen_config {
     set -e -o pipefail
     echo "---"
     cat "${DNAME}/talos/${I12E_ENV}/common.yaml"
+    "${SOPS}" talos-common
     echo "---"
     "${SOPS}" talos-wge
     case "$CFG_NAME" in
