@@ -38,7 +38,7 @@ metadata:
   name: traefik-crds
   namespace: flux-system
 spec:
-  interval: 1h0m0s
+  interval: 36h12m15s
   url: https://github.com/kubernetes-sigs/gateway-api
   ref:
     tag: v1.6.1
@@ -51,7 +51,7 @@ metadata:
   name: traefik-crds
   namespace: flux-system
 spec:
-  interval: 36h12m15s
+  interval: 12m15s
   sourceRef:
     kind: GitRepository
     name: traefik-crds
