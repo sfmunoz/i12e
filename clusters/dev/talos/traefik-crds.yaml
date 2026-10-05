@@ -1,3 +1,50 @@
+#
+# $ helm repo add traefik https://traefik.github.io/charts
+#
+# $ helm repo update
+#
+# $ helm pull traefik/traefik --untar
+#
+# $ grep -E '^(appVersion|version):' traefik/Chart.yaml
+# appVersion: v3.7.13
+# version: 41.6.0
+#
+# $ cat traefik/README.md
+# (...)
+# ### Gateway API CRDs
+#
+# ⚠   Gateway API CRDs are no longer shipped with this chart.
+#
+# If you use the Kubernetes Gateway API provider, you will need to install them yourself before deploying Traefik v3.7.12:
+#
+# kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/standard-install.yaml
+# (...)
+#
+#----------------------------------------------------------------------------------------------------------------------------
+#
+# https://github.com/kubernetes-sigs/gateway-api
+#
+# Upstream CRDs are consumed directly from a pinned GitRepository source
+# (no Kustomize remote bases). './config/crd' is the standard channel and
+# reproduces the released 'standard-install.yaml' asset.
+#
+#   $ git ls-remote https://github.com/kubernetes-sigs/gateway-api.git refs/tags/v1.6.1
+#   8bb74df00e56ec8f944d48c25e6c1c9c2f6848e3  refs/tags/v1.6.1
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: traefik-crds
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://github.com/kubernetes-sigs/gateway-api
+  ref:
+    tag: v1.6.1
+
+---
+
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -6,9 +53,9 @@ metadata:
 spec:
   interval: 36h12m15s
   sourceRef:
-    kind: ExternalArtifact
-    name: blend
+    kind: GitRepository
+    name: traefik-crds
     namespace: flux-system
-  path: ./blend/traefik-crds
+  path: ./config/crd
   prune: false   # don't delete CRDs if removed from Git
   wait: true     # block dependents until CRDs are established
