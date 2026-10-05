@@ -1,0 +1,53 @@
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+taints:
+  node-role.kubernetes.io/control-plane:
+    $patch: delete
+---
+cluster:
+  etcd:
+    advertisedSubnets:
+    - 192.168.186.0/24
+---
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+backendType: vxlan
+backendPort: 4789
+# backendMTU must match the MTU of the wireguard interface
+backendMTU: 1420
+extraArgs:
+  - --iface=wgm
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: trustd-ingress
+portSelector:
+  ports:
+    - 50001
+  protocol: tcp
+ingress:
+  - subnet: 192.168.186.0/24
+---
+# kind: KubeNetworkConfig
+# podSubnets: [10.244.0.0/16]
+# serviceSubnets: [10.96.0.0/12]
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: kubernetes-api-ingress
+portSelector:
+  ports:
+    - 6443
+  protocol: tcp
+ingress:
+  - subnet: 192.168.186.0/24
+  - subnet: 10.244.0.0/16  # coredns health check would fail when on control-plane
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: etcd-ingress
+portSelector:
+  ports:
+    - 2379-2380
+  protocol: tcp
+ingress:
+  - subnet: 192.168.186.0/24
