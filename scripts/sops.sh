@@ -65,6 +65,13 @@ talos-secrets | talos-wgm | talos-wge)
   sops decrypt "${I12E_SECRETS}/talos/${I12E_ENV}/${BLOCK#talos-}.yaml"
   exit $?
   ;;
+talos-common | talos-control-plane | talos-worker)
+  FNAME="${I12E_SECRETS}/talos/${I12E_ENV}/${BLOCK#talos-}.yaml"
+  [ -f "$FNAME" ] || exit 0
+  echo "---"
+  sops decrypt "$FNAME"
+  exit $?
+  ;;
 sops-age)
   sops decrypt "${I12E_SECRETS}/clusters/${I12E_ENV}/flux-system/sops-age.yaml"
   exit $?
