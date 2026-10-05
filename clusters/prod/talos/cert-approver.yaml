@@ -1,14 +1,35 @@
+#
+# https://github.com/alex1989hu/kubelet-serving-cert-approver
+#
+# Upstream manifests are consumed directly from a pinned GitRepository source
+# (no Kustomize remote bases).
+#
+#   $ git ls-remote https://github.com/alex1989hu/kubelet-serving-cert-approver.git refs/tags/v0.12.1
+#   f72897c68e38185aeca848952d10a094054642ba  refs/tags/v0.12.1
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: cert-approver
+  namespace: flux-system
+spec:
+  interval: 36h24m58s
+  url: https://github.com/alex1989hu/kubelet-serving-cert-approver
+  ref:
+    tag: v0.12.1
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: cert-approver
   namespace: flux-system
 spec:
-  interval: 36h24m58s
+  interval: 12m58s
   sourceRef:
-    kind: ExternalArtifact
-    name: blend
+    kind: GitRepository
+    name: cert-approver
     namespace: flux-system
-  path: ./blend/cert-approver
+  path: ./deploy/standalone
   prune: true
   wait: true

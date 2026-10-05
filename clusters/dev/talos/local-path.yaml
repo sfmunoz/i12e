@@ -1,15 +1,82 @@
+#
+# https://github.com/rancher/local-path-provisioner
+#
+# Upstream manifests are consumed directly from a pinned GitRepository source
+# (no Kustomize remote bases). The local customizations that used to live in a
+# Kustomize overlay are applied through the Flux Kustomization 'spec.patches':
+#   - ConfigMap 'local-path-config': data path under '/var/mnt'
+#   - StorageClass 'local-path': marked as the cluster default
+#   - Namespace 'local-path-storage': privileged Pod Security Admission
+#
+#   $ git ls-remote https://github.com/rancher/local-path-provisioner.git refs/tags/v0.0.37
+#   49b2be8e26d6d34c9afaa21fa33108d2e82f8955  refs/tags/v0.0.37
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: local-path
+  namespace: flux-system
+spec:
+  interval: 37h01m01s
+  url: https://github.com/rancher/local-path-provisioner
+  ref:
+    tag: v0.0.37
+
+---
+
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: local-path
   namespace: flux-system
 spec:
-  interval: 37h01m01s
+  interval: 13m19s
   sourceRef:
-    kind: ExternalArtifact
-    name: blend
+    kind: GitRepository
+    name: local-path
     namespace: flux-system
-  path: ./blend/local-path
+  path: ./deploy
   prune: true
   wait: true
-
+  patches:
+  - target:
+      kind: ConfigMap
+      name: local-path-config
+      namespace: local-path-storage
+    patch: |-
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: local-path-config
+        namespace: local-path-storage
+      data:
+        config.json: |-
+          {
+                  "nodePathMap":[
+                  {
+                          "node":"DEFAULT_PATH_FOR_NON_LISTED_NODES",
+                          "paths":["/var/mnt/local-path-provisioner"]
+                  }
+                  ]
+          }
+  - target:
+      kind: StorageClass
+      name: local-path
+    patch: |-
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: local-path
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+  - target:
+      kind: Namespace
+      name: local-path-storage
+    patch: |-
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: local-path-storage
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
