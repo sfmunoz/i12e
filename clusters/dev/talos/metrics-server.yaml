@@ -1,14 +1,36 @@
+#
+# https://github.com/kubernetes-sigs/metrics-server
+#
+# Upstream manifests are consumed directly from a pinned GitRepository source
+# (no Kustomize remote bases). './manifests/overlays/release' reproduces the
+# released 'components.yaml' asset (base + release image component).
+#
+#   $ git ls-remote https://github.com/kubernetes-sigs/metrics-server.git refs/tags/v0.9.0
+#   2a7c4b2c7d46552ff47f4aeaa3a735c582587ecd  refs/tags/v0.9.0
+#
+
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: metrics-server
+  namespace: flux-system
+spec:
+  interval: 35h25m04s
+  url: https://github.com/kubernetes-sigs/metrics-server
+  ref:
+    tag: v0.9.0
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: metrics-server
   namespace: flux-system
 spec:
-  interval: 35h25m04s
+  interval: 12m54s
   sourceRef:
-    kind: ExternalArtifact
-    name: blend
+    kind: GitRepository
+    name: metrics-server
     namespace: flux-system
-  path: ./blend/metrics-server
+  path: ./manifests/overlays/release
   prune: true
   wait: true
