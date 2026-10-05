@@ -35,7 +35,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: traefik-crds
+  name: gateway-api
   namespace: flux-system
 spec:
   interval: 36h12m15s
@@ -48,13 +48,13 @@ spec:
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: traefik-crds
+  name: gateway-api
   namespace: flux-system
 spec:
   interval: 12m15s
   sourceRef:
     kind: GitRepository
-    name: traefik-crds
+    name: gateway-api
     namespace: flux-system
   path: ./config/crd
   prune: false   # don't delete CRDs if removed from Git

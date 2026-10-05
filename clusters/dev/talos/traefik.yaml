@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-  - name: traefik-crds
+  - name: gateway-api
     namespace: flux-system
   interval: 11m55s
   sourceRef:
