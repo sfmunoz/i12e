@@ -31,6 +31,11 @@ docker run --rm -t \
 
 cat <<__EOF
 
+Grml box:
+
+  # /etc/init.d/ssh start
+  # passwd
+
 Use the following command to push the image:
 
   $ ssh root@<VPS_IP_ADDRESS> "zstd -d | dd of=/dev/sdX bs=4M conv=fsync status=progress" < _out/metal-amd64.raw.zst
