@@ -26,3 +26,13 @@ docker run --rm -t \
   ghcr.io/siderolabs/imager:v1.14.2 \
   "$IMAGE_KIND" \
   --embedded-config-path=/out/debug-1.yaml
+
+{ set +x; } 2>/dev/null
+
+cat <<__EOF
+
+Use the following command to push the image:
+
+  $ ssh root@<VPS_IP_ADDRESS> "zstd -d | dd of=/dev/sdX bs=4M conv=fsync status=progress" < _out/metal-amd64.raw.zst
+
+__EOF
