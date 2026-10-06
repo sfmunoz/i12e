@@ -33,7 +33,7 @@ cat <<__EOF
 
 Grml box:
 
-  # /etc/init.d/ssh start
+  # systemctl start ssh
   # passwd
 
 Use the following command to push the image:
