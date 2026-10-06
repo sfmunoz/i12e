@@ -40,4 +40,10 @@ Use the following command to push the image:
 
   $ ssh root@<VPS_IP_ADDRESS> "zstd -d | dd of=/dev/sdX bs=4M conv=fsync status=progress" < _out/metal-amd64.raw.zst
 
+Once Talos has booted bootstrap is required:
+
+  $ talos-setup.sh talosconfig
+  $ talos-setup.sh kubeconfig   (optional but recommended)
+  $ talosctl bootstrap --nodes 192.168.186.1
+
 __EOF
