@@ -1,0 +1,53 @@
+#!/bin/bash
+#
+# Ref:
+#   https://docs.siderolabs.com/talos/v1.14/platform-specific-installations/boot-assets
+#
+
+[ "$IMAGE_KIND" = "" ] && IMAGE_KIND="metal"
+
+EXTRA_KERNEL_ARGS="--extra-kernel-arg talos.dashboard.disabled=1"
+[ "$I12E_ENV" = "prod" ] && EXTRA_KERNEL_ARGS="$EXTRA_KERNEL_ARGS --extra-kernel-arg net.ifnames=0"
+
+set -e -o pipefail
+
+DNAME="$(realpath "$(dirname "$0")/..")"
+TALOS_SETUP_SH="${DNAME}/scripts/talos-setup.sh"
+
+TARGET="${DNAME}/_out"
+
+set -x
+
+sudo rm -rfv "$TARGET"
+
+mkdir "$TARGET"
+
+"${TALOS_SETUP_SH}" machine-1 >"${TARGET}/machine-1.yaml"
+
+docker run --rm -t \
+  -v "${TARGET}:/out" \
+  ghcr.io/siderolabs/imager:v1.14.2 \
+  "$IMAGE_KIND" \
+  $EXTRA_KERNEL_ARGS \
+  --embedded-config-path=/out/machine-1.yaml
+
+{ set +x; } 2>/dev/null
+
+cat <<__EOF
+
+Grml box:
+
+  # systemctl start ssh
+  # passwd
+
+Use the following command to push the image:
+
+  $ ssh root@<VPS_IP_ADDRESS> "zstd -d | dd of=/dev/sdX bs=4M conv=fsync status=progress" < _out/metal-amd64.raw.zst
+
+Once Talos has booted bootstrap is required:
+
+  $ talos-setup.sh talosconfig
+  $ talos-setup.sh kubeconfig   (optional but recommended)
+  $ talosctl bootstrap --nodes 192.168.186.1
+
+__EOF
