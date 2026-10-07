@@ -20,13 +20,13 @@ sudo rm -rfv "$TARGET"
 
 mkdir "$TARGET"
 
-"${TALOS_SETUP_SH}" debug-1 >"${TARGET}/debug-1.yaml"
+"${TALOS_SETUP_SH}" machine-1 >"${TARGET}/machine-1.yaml"
 
 docker run --rm -t \
   -v "${TARGET}:/out" \
   ghcr.io/siderolabs/imager:v1.14.2 \
   "$IMAGE_KIND" \
-  $EXTRA_KERNEL_ARG --embedded-config-path=/out/debug-1.yaml
+  $EXTRA_KERNEL_ARG --embedded-config-path=/out/machine-1.yaml
 
 { set +x; } 2>/dev/null
 

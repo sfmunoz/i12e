@@ -83,9 +83,9 @@ talosconfig)
   chmod 600 "${TFOLDER}/config.${I12E_ENV}"
   ls -l "${TFOLDER}/config"
   ;;
-debug-1 | debug-2 | debug-3)
+machine-1 | machine-2 | machine-3)
   set -x
-  N="${CMD#debug-}"
+  N="${CMD#machine-}"
   NODE="node$N"
   gen_config $NODE
   ;;
@@ -138,7 +138,7 @@ kubeconfig)
   echo "  \$ ${BNAME} install-1                      -- control-plane node"
   echo "  \$ ${BNAME} kubeconfig                     -- kubeconfig gen"
   echo "  \$ ${BNAME} install-2/install-3            -- worker nodes"
-  echo "  \$ ${BNAME} debug-1/debug-2/debug-3        -- debug config"
+  echo "  \$ ${BNAME} machine-1/machine-2/machine-3  -- machine config"
   echo "  \$ ${BNAME} try-1/try-2/try-3              -- try config"
   echo "  \$ ${BNAME} update-1/update-2/update-3     -- update config"
   echo
