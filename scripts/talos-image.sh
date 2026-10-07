@@ -5,6 +5,7 @@
 #
 
 [ "$IMAGE_KIND" = "" ] && IMAGE_KIND="metal"
+[ "$I12E_ENV" = "prod" ] && EXTRA_KERNEL_ARG="--extra-kernel-arg net.ifnames=0"
 
 set -e -o pipefail
 
@@ -25,8 +26,7 @@ docker run --rm -t \
   -v "${TARGET}:/out" \
   ghcr.io/siderolabs/imager:v1.14.2 \
   "$IMAGE_KIND" \
-  --extra-kernel-arg net.ifnames=0 \
-  --embedded-config-path=/out/debug-1.yaml
+  $EXTRA_KERNEL_ARG --embedded-config-path=/out/debug-1.yaml
 
 { set +x; } 2>/dev/null
 
