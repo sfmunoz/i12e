@@ -5,7 +5,9 @@
 #
 
 [ "$IMAGE_KIND" = "" ] && IMAGE_KIND="metal"
-[ "$I12E_ENV" = "prod" ] && EXTRA_KERNEL_ARG="--extra-kernel-arg net.ifnames=0"
+
+EXTRA_KERNEL_ARGS="--extra-kernel-arg talos.dashboard.disabled=1"
+[ "$I12E_ENV" = "prod" ] && EXTRA_KERNEL_ARGS="$EXTRA_KERNEL_ARGS --extra-kernel-arg net.ifnames=0"
 
 set -e -o pipefail
 
@@ -26,7 +28,8 @@ docker run --rm -t \
   -v "${TARGET}:/out" \
   ghcr.io/siderolabs/imager:v1.14.2 \
   "$IMAGE_KIND" \
-  $EXTRA_KERNEL_ARG --embedded-config-path=/out/machine-1.yaml
+  $EXTRA_KERNEL_ARGS \
+  --embedded-config-path=/out/machine-1.yaml
 
 { set +x; } 2>/dev/null
 
