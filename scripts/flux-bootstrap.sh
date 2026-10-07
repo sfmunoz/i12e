@@ -20,7 +20,7 @@ set -x
 
 kubectl get ns flux-system || kubectl create ns flux-system
 kubectl get ns flux-system
-kubectl get secret -n flux-system sops-age || kubectl apply -f <("$SOPS" sops-age)
+kubectl get secret -n flux-system sops-age || kubectl apply -f <(I12E_ENV="$I12E_ENV" "$SOPS" sops-age)
 kubectl get secret -n flux-system sops-age
 
 flux bootstrap github \
