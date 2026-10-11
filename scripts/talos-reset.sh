@@ -1,5 +1,4 @@
 #!/bin/bash
-
 [ "$NODE" = "" ] && NODE="192.168.186.1"
 [ "$FULL" = "true" ] || FULL="false"
 
@@ -20,3 +19,13 @@ SYSTEMS_LABELS_TO_WIPE="--system-labels-to-wipe EPHEMERAL"
 
 set -x
 talosctl -n "$NODE" reset $SYSTEMS_LABELS_TO_WIPE --graceful=false --reboot
+{ set +x; } 2>/dev/null
+
+cat <<__EOF
+
+Reset done. Next steps:
+
+  \$ talosctl dashboard
+  \$ talosctl bootstrap --nodes "$NODE"
+
+__EOF
