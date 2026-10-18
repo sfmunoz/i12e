@@ -21,6 +21,8 @@ metadata:
 spec:
   interval: 10m0s
   path: ./clusters/dev/k3s
+  #ref:
+  #  branch: main
   prune: true
   sourceRef:
     kind: GitRepository
