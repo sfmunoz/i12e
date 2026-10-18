@@ -8,7 +8,7 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: main
+    branch: enh/397-pi-config
   secretRef:
     name: flux-system
   url: https://github.com/sfmunoz/i12e.git
@@ -21,8 +21,6 @@ metadata:
 spec:
   interval: 10m0s
   path: ./clusters/dev/talos
-  ref:
-    branch: enh/397-pi-config
   prune: true
   sourceRef:
     kind: GitRepository
