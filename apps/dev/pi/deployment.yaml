@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pi
+  namespace: pi
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pi
+  template:
+    metadata:
+      labels:
+        app: pi
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: main
+        image: "ghcr.io/sfmunoz/k8s-bulk:4.8.0"
+        command: ["/bin/bash","-c"]
+        args:
+          - |
+            #!/bin/bash
+            set -x
+            tail -f /dev/null &
+            wait $!
+            exit 1
