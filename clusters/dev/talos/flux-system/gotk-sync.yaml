@@ -21,8 +21,8 @@ metadata:
 spec:
   interval: 10m0s
   path: ./clusters/dev/talos
-  #ref:
-  #  branch: main
+  ref:
+    branch: enh/397-pi-config
   prune: true
   sourceRef:
     kind: GitRepository
