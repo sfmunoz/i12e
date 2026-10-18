@@ -9,6 +9,7 @@ resources:
 #- forgejo.yaml
 #- gateways.yaml
 #- i12e.yaml
+- pi.yaml
 - reflector.yaml
 #- trilium.yaml
 #- wikijs.yaml
