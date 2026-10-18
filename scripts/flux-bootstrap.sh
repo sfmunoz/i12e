@@ -11,6 +11,8 @@ I12E_K8S="$2"
 [ "${I12E_ENV}" = "dev" -o "${I12E_ENV}" = "prod" ] || error_and_exit "unknown I12E_ENV '${I12E_ENV}' (valid: 'dev' or 'prod')"
 [ "${I12E_K8S}" = "k3s" -o "${I12E_K8S}" = "talos" ] || error_and_exit "unknown I12E_K8S '${I12E_K8S}' (valid: 'k3s' or 'talos')"
 
+[ "${I12E_BRANCH}" = "" ] && I12E_BRANCH="main"
+
 set -e -o pipefail
 
 DNAME="$(dirname "$0")"
@@ -28,7 +30,7 @@ flux bootstrap github \
   --owner=sfmunoz \
   --repository=i12e \
   --path=clusters/${I12E_ENV}/${I12E_K8S} \
-  --branch=main \
+  --branch=${I12E_BRANCH} \
   --private=false \
   --personal=true \
   --author-name "flux-${I12E_ENV}-${I12E_K8S}-bot" \
