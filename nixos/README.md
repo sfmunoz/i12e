@@ -18,7 +18,14 @@ Initial status:
 - Debian 12.13 on memory
 - Empty /dev/sda HD (+100GB)
 
-Std user creation (as `root`):
+Software install (as `root`):
+
+```
+apt update
+apt install xz-utils htop
+```
+
+`i12e` user creation with `sudo` privileges (as `root`):
 
 ```
 useradd -m -s /bin/bash -g users i12e
@@ -26,25 +33,23 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-Nix install (as `i12e` user, `htop` is optional):
+Nix install (as `i12e` user, `htop` is optional, `sudo` used):
 
 ```
-sudo apt update
-sudo apt install xz-utils htop
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
-Disk partition/formatting (swap not needed/wanted):
+Disk partition/formatting, swap not needed/wanted (as `root`):
 
 ```
-sudo parted /dev/sda -- mklabel msdos
-sudo parted /dev/sda -- mkpart primary 1MB 100%
-sudo parted /dev/sda -- set 1 boot on
-sudo mkfs.ext4 -L nixos /dev/sda1
+parted /dev/sda -- mklabel msdos
+parted /dev/sda -- mkpart primary 1MB 100%
+parted /dev/sda -- set 1 boot on
+mkfs.ext4 -L nixos /dev/sda1
 ```
 
-Mount:
+Mount (as `root`):
 
 ```
-sudo mount /dev/disk/by-label/nixos /mnt
+mount /dev/disk/by-label/nixos /mnt
 ```
