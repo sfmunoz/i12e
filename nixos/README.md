@@ -124,3 +124,9 @@ diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix
    # Open ports in the firewall.
    # networking.firewall.allowedTCPPorts = [ ... ];
 ```
+
+Cleanup (as `root`):
+
+```
+rm /mnt/etc/nixos/configuration.nix.orig
+```
