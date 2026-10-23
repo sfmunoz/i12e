@@ -18,14 +18,18 @@ Initial status:
 - Debian 12.13 on memory
 - Empty /dev/sda HD (+100GB)
 
-Software install (as `root`, `htop` is optional):
+### 1. Software install
+
+As `root` (`htop` is optional):
 
 ```
 apt update
 apt install xz-utils htop
 ```
 
-`i12e` user creation with `sudo` privileges (as `root`):
+### 2. Create i12e user
+
+With `sudo` privileges (as `root`):
 
 ```
 useradd -m -s /bin/bash -g users i12e
@@ -33,26 +37,34 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-Nix install (as `i12e` user, `sudo` used):
+### 3. Nix install
+
+As `i12e` user (passwordless `sudo` required):
 
 ```
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
-Nix `experimental-features` config (as `root`):
+### 4. Nix experimental features
+
+As `root`:
 
 ```
 printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
 systemctl restart nix-daemon
 ```
 
-NixOS install tools (as `root`):
+### 5. NixOS install tools
+
+As `root`:
 
 ```
 nix profile add nixpkgs#nixos-install-tools
 ```
 
-Disk partition/formatting, swap not needed/wanted (as `root`):
+### 6. Target FS
+
+Swap not needed/wanted, as `root`:
 
 ```
 wipefs -a /dev/sda
@@ -60,23 +72,15 @@ parted /dev/sda -- mklabel msdos
 parted /dev/sda -- mkpart primary 1MB 100%
 parted /dev/sda -- set 1 boot on
 mkfs.ext4 -L nixos /dev/sda1
-```
-
-Mount (as `root`):
-
-```
 mount /dev/disk/by-label/nixos /mnt
 ```
 
-Generate NixOS config (as `root`):
+### 7. NixOS config
+
+As `root`:
 
 ```
 nixos-generate-config --root /mnt
-```
-
-Configuration tuning (as `root`):
-
-```
 cp /mnt/etc/nixos/configuration.nix /mnt/etc/nixos/configuration.nix.orig
 vi /mnt/etc/nixos/configuration.nix
 ```
