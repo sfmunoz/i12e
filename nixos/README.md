@@ -89,8 +89,8 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
 
 ```diff
 --- /mnt/etc/nixos/configuration.nix.orig       2026-10-23 17:30:31.732000000 +0000
-+++ /mnt/etc/nixos/configuration.nix    2026-10-23 17:41:53.164000000 +0000
-@@ -16,12 +16,12 @@
++++ /mnt/etc/nixos/configuration.nix    2026-10-23 17:48:02.276000000 +0000
+@@ -16,15 +16,15 @@
    # boot.loader.grub.efiInstallAsRemovable = true;
    # boot.loader.efi.efiSysMountPoint = "/boot/efi";
    # Define on which hard drive you want to install Grub.
@@ -104,7 +104,11 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
 +  #networking.networkmanager.enable = true;
 
    # Set your time zone.
-   # time.timeZone = "Europe/Amsterdam";
+-  # time.timeZone = "Europe/Amsterdam";
++  time.timeZone = "UTC";
+
+   # Configure network proxy if necessary
+   # networking.proxy.default = "http://user:password@proxy:port/";
 @@ -63,13 +63,13 @@
    # services.libinput.enable = true;
 
@@ -154,7 +158,6 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
    # Copy the NixOS configuration file and link it from the resulting system
    # (/run/current-system/configuration.nix). This is useful in case you
    # accidentally delete configuration.nix.
-
 ```
 
 Cleanup (as `root`):
