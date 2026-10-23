@@ -18,7 +18,7 @@ Initial status:
 - Debian 12.13 on memory
 - Empty /dev/sda HD (+100GB)
 
-Software install (as `root`):
+Software install (as `root`, `htop` is optional):
 
 ```
 apt update
@@ -33,7 +33,7 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-Nix install (as `i12e` user, `htop` is optional, `sudo` used):
+Nix install (as `i12e` user, `sudo` used):
 
 ```
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
