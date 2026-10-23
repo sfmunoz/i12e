@@ -85,13 +85,12 @@ cp /mnt/etc/nixos/configuration.nix /mnt/etc/nixos/configuration.nix.orig
 vi /mnt/etc/nixos/configuration.nix
 ```
 
-Differences:
+Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix` (network configuration must be tuned):
 
 ```diff
-diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix
---- /mnt/etc/nixos/configuration.nix.orig       2026-10-23 17:06:34.348000000 +0000
-+++ /mnt/etc/nixos/configuration.nix    2026-10-23 17:07:12.180000000 +0000
-@@ -16,7 +16,7 @@
+--- /mnt/etc/nixos/configuration.nix.orig       2026-10-23 17:30:31.732000000 +0000
++++ /mnt/etc/nixos/configuration.nix    2026-10-23 17:41:53.164000000 +0000
+@@ -16,12 +16,12 @@
    # boot.loader.grub.efiInstallAsRemovable = true;
    # boot.loader.efi.efiSysMountPoint = "/boot/efi";
    # Define on which hard drive you want to install Grub.
@@ -100,6 +99,12 @@ diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix
 
    # networking.hostName = "nixos"; # Define your hostname.
 
+   # Configure network connections interactively with nmcli or nmtui.
+-  networking.networkmanager.enable = true;
++  #networking.networkmanager.enable = true;
+
+   # Set your time zone.
+   # time.timeZone = "Europe/Amsterdam";
 @@ -63,13 +63,13 @@
    # services.libinput.enable = true;
 
@@ -127,6 +132,29 @@ diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix
 
    # Open ports in the firewall.
    # networking.firewall.allowedTCPPorts = [ ... ];
+@@ -99,6 +99,21 @@
+   # Or disable the firewall altogether.
+   # networking.firewall.enable = false;
+
++  networking = {
++    hostName = "vm";
++    useDHCP = false;
++    usePredictableInterfaceNames = false;   # enp0s3 -> eth0
++    interfaces.eth0 = {
++      ipv4.addresses = [ { address = "192.168.56.10"; prefixLength = 24; } ];
++      ipv6.addresses = [ { address = "fd00::10"; prefixLength = 64; } ];
++      tempAddress = "enabled";
++    };
++    defaultGateway = { address = "192.168.56.1"; interface = "eth0"; };
++    defaultGateway6 = { address = "fd00::1"; interface = "eth0"; };
++    nameservers = [ "192.168.56.1" "fd00::1" "1.1.1.1" "2606:4700:4700::1111" ];
++    firewall.allowedTCPPorts = [ 22 ];
++  };
++
+   # Copy the NixOS configuration file and link it from the resulting system
+   # (/run/current-system/configuration.nix). This is useful in case you
+   # accidentally delete configuration.nix.
+
 ```
 
 Cleanup (as `root`):
