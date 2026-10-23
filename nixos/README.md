@@ -46,6 +46,12 @@ printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
 systemctl restart nix-daemon
 ```
 
+NixOS install tools (as `root`):
+
+```
+nix profile add nixpkgs#nixos-install-tools
+```
+
 Disk partition/formatting, swap not needed/wanted (as `root`):
 
 ```
