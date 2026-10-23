@@ -33,3 +33,18 @@ sudo apt update
 sudo apt install xz-utils htop
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
+
+Disk partition/formatting (swap not needed/wanted):
+
+```
+sudo parted /dev/sda -- mklabel msdos
+sudo parted /dev/sda -- mkpart primary 1MB 100%
+sudo parted /dev/sda -- set 1 boot on
+sudo mkfs.ext4 -L nixos /dev/sda1
+```
+
+Mount:
+
+```
+sudo mount /dev/disk/by-label/nixos /mnt
+```
