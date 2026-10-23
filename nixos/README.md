@@ -145,8 +145,19 @@ nixos-install
 
 ### 9. Password setup
 
+As `root`:
+
 ```
 nixos-enter --root /mnt
 passwd i12e
 exit
+```
+
+### 10. Reboot
+
+As `root` (`umount /mnt` is optional):
+
+```
+umount /mnt
+reboot
 ```
