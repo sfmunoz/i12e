@@ -134,3 +134,11 @@ Cleanup (as `root`):
 ```
 rm /mnt/etc/nixos/configuration.nix.orig
 ```
+
+### 8. Password setup
+
+```
+nixos-enter --root /mnt
+passwd i12e
+exit
+```
