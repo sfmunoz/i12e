@@ -39,6 +39,13 @@ Nix install (as `i12e` user, `sudo` used):
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
+Nix `experimental-features` config (as `root`):
+
+```
+printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
+systemctl restart nix-daemon
+```
+
 Disk partition/formatting, swap not needed/wanted (as `root`):
 
 ```
