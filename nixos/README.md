@@ -135,7 +135,15 @@ Cleanup (as `root`):
 rm /mnt/etc/nixos/configuration.nix.orig
 ```
 
-### 8. Password setup
+### 8. NixOS install
+
+As `root`:
+
+```
+nixos-install
+```
+
+### 9. Password setup
 
 ```
 nixos-enter --root /mnt
