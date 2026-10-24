@@ -139,12 +139,37 @@ Network configuration must be adapted:
 +
 ```
 
+### 7b. NixOS flake
+
+As `root`, create `/mnt/etc/nixos/flake.nix` to pin the `nixpkgs` the target
+system is built from. `nixos-install` will then ignore `NIX_PATH` and the
+`nixpkgs` channels, and install exactly the release declared here:
+
+```
+cat > /mnt/etc/nixos/flake.nix <<'EOF'
+{
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+
+  outputs = { nixpkgs, ... }: {
+    nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [ ./configuration.nix ];
+    };
+  };
+}
+EOF
+```
+
+`vm` is the configuration name used in step 8 (`--flake .#vm`). The lock file
+`/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
+repo so the machine can be rebuilt from the same inputs.
+
 ### 8. NixOS install
 
 As `root`:
 
 ```
-nixos-install
+nixos-install --flake /mnt/etc/nixos#vm
 ```
 
 ### 9. Password setup
