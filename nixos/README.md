@@ -120,6 +120,10 @@ Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
 -  # services.openssh.enable = true;
 +  services.openssh.enable = true;
 ```
+```diff
++  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+```
+Keeps the installed system able to run `nixos-rebuild --flake` (step 9).
 Network configuration must be adapted:
 ```diff
 +  networking = {
