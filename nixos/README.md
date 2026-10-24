@@ -61,15 +61,12 @@ systemctl restart nix-daemon
 As `root`:
 
 ```
-nix profile add nixpkgs#nixos-install-tools
-```
-
-> [!WARNING]
-> The following alternative would avoid `system.stateVersion` fiddling from `26.11` to `26.05`. We won't use it because `nixos-install` ends up with a `/nix/var/nix/profiles/system/sw/bin/bash: line 10: mount: command not found` error (ref: [https://github.com/NixOS/nixpkgs/pull/533826](https://github.com/NixOS/nixpkgs/pull/533826)):
-
-```
 nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
 ```
+
+Pinned to the `nixos-26.05` release branch on purpose: a bare `nixpkgs#` is
+resolved through the flake registry, which points at `nixpkgs-unstable`, and
+would install `26.11pre` tools (and with them a `26.11pre` system).
 
 ### 6. Target FS
 
