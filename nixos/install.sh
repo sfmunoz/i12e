@@ -17,6 +17,10 @@ done
 sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/flake.nix" |
   sudo tee "${TARGET}/etc/nixos/flake.nix" >/dev/null
 
+sops decrypt "${SOURCE}/../../i12e-secrets/nixos/etc/nixos/vm/${HNAME}.yaml" |
+  yq -r .network_nix |
+  sudo tee "${TARGET}/etc/nixos/network.nix" >/dev/null
+
 { set +x; } 2>/dev/null
 
 echo
