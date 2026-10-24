@@ -61,6 +61,13 @@ systemctl restart nix-daemon
 As `root`:
 
 ```
+nix profile add nixpkgs#nixos-install-tools
+```
+
+> [!WARNING]
+> The following alternative would avoid `system.stateVersion` fiddling from `26.11` to `26.05`. We won't use it because `nixos-install` ends up with a `/nix/var/nix/profiles/system/sw/bin/bash: line 10: mount: command not found` error (ref: [https://github.com/NixOS/nixpkgs/pull/533826](https://github.com/NixOS/nixpkgs/pull/533826)):
+
+```
 nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
 ```
 
@@ -90,8 +97,8 @@ vi /mnt/etc/nixos/configuration.nix
 Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix` (network configuration must be tuned):
 
 ```diff
---- /mnt/etc/nixos/configuration.nix.orig       2026-10-23 17:30:31.732000000 +0000
-+++ /mnt/etc/nixos/configuration.nix    2026-10-23 17:48:02.276000000 +0000
+--- /mnt/etc/nixos/configuration.nix.orig	2026-10-24 07:02:19.192000000 +0000
++++ /mnt/etc/nixos/configuration.nix	2026-10-24 06:54:11.004000000 +0000
 @@ -16,15 +16,15 @@
    # boot.loader.grub.efiInstallAsRemovable = true;
    # boot.loader.efi.efiSysMountPoint = "/boot/efi";
@@ -160,6 +167,14 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
    # Copy the NixOS configuration file and link it from the resulting system
    # (/run/current-system/configuration.nix). This is useful in case you
    # accidentally delete configuration.nix.
+@@ -121,7 +136,7 @@
+   # and migrated your data accordingly.
+   #
+   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
+-  system.stateVersion = "26.11"; # Did you read the comment?
++  system.stateVersion = "26.05"; # Did you read the comment?
+
+ }
 ```
 
 Cleanup (as `root`):
