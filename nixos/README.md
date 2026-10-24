@@ -24,7 +24,7 @@ As `root` (`htop` is optional):
 
 ```
 apt update
-apt install xz-utils htop
+apt install -y xz-utils curl ca-certificates htop
 ```
 
 ### 2. Create i12e user
