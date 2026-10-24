@@ -45,6 +45,8 @@ As `i12e` user (passwordless `sudo` required):
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
+Notice: Nix won't work in active shell sessions until it is restarted.
+
 ### 4. Nix experimental features
 
 As `root`:
