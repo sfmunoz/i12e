@@ -87,38 +87,23 @@ As `root`:
 
 ```
 nixos-generate-config --root /mnt
-cp /mnt/etc/nixos/configuration.nix /mnt/etc/nixos/configuration.nix.orig
-vi /mnt/etc/nixos/configuration.nix
 ```
 
-Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/configuration.nix` (network configuration must be tuned):
+Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
 
 ```diff
---- /mnt/etc/nixos/configuration.nix.orig	2026-10-24 07:02:19.192000000 +0000
-+++ /mnt/etc/nixos/configuration.nix	2026-10-24 06:54:11.004000000 +0000
-@@ -16,15 +16,15 @@
-   # boot.loader.grub.efiInstallAsRemovable = true;
-   # boot.loader.efi.efiSysMountPoint = "/boot/efi";
-   # Define on which hard drive you want to install Grub.
 -  # boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
 +  boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
-
-   # networking.hostName = "nixos"; # Define your hostname.
-
-   # Configure network connections interactively with nmcli or nmtui.
+```
+```diff
 -  networking.networkmanager.enable = true;
 +  #networking.networkmanager.enable = true;
-
-   # Set your time zone.
+```
+```diff
 -  # time.timeZone = "Europe/Amsterdam";
 +  time.timeZone = "UTC";
-
-   # Configure network proxy if necessary
-   # networking.proxy.default = "http://user:password@proxy:port/";
-@@ -63,13 +63,13 @@
-   # services.libinput.enable = true;
-
-   # Define a user account. Don't forget to set a password with ‘passwd’.
+```
+```diff
 -  # users.users.alice = {
 -  #   isNormalUser = true;
 -  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
@@ -130,22 +115,13 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
    #   ];
 -  # };
 +  };
-
-   # programs.firefox.enable = true;
-
-@@ -91,7 +91,7 @@
-   # List services that you want to enable:
-
-   # Enable the OpenSSH daemon.
+```
+```diff
 -  # services.openssh.enable = true;
 +  services.openssh.enable = true;
-
-   # Open ports in the firewall.
-   # networking.firewall.allowedTCPPorts = [ ... ];
-@@ -99,6 +99,21 @@
-   # Or disable the firewall altogether.
-   # networking.firewall.enable = false;
-
+```
+Network configuration must be adapted:
+```diff
 +  networking = {
 +    hostName = "vm";
 +    useDHCP = false;
@@ -161,23 +137,10 @@ Differences using `diff -u /mnt/etc/nixos/configuration.nix.orig /mnt/etc/nixos/
 +    firewall.allowedTCPPorts = [ 22 ];
 +  };
 +
-   # Copy the NixOS configuration file and link it from the resulting system
-   # (/run/current-system/configuration.nix). This is useful in case you
-   # accidentally delete configuration.nix.
-@@ -121,7 +136,7 @@
-   # and migrated your data accordingly.
-   #
-   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
+```
+```diff
 -  system.stateVersion = "26.11"; # Did you read the comment?
 +  system.stateVersion = "26.05"; # Did you read the comment?
-
- }
-```
-
-Cleanup (as `root`):
-
-```
-rm /mnt/etc/nixos/configuration.nix.orig
 ```
 
 ### 8. NixOS install
