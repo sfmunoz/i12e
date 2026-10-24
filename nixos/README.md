@@ -160,8 +160,10 @@ cat > /mnt/etc/nixos/flake.nix <<'EOF'
 EOF
 ```
 
-`vm` is the configuration name used in step 9 (`--flake .#vm`). The lock file
-`/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
+Notes:
+
+- `vm` is the configuration name used in step 9 (`--flake .#vm`).
+- The lock file `/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
 repo so the machine can be rebuilt from the same inputs.
 
 ### 9. NixOS install
