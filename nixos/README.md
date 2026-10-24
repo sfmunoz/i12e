@@ -61,7 +61,7 @@ systemctl restart nix-daemon
 As `root`:
 
 ```
-nix profile add nixpkgs#nixos-install-tools
+nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
 ```
 
 ### 6. Target FS
