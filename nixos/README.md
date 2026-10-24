@@ -160,12 +160,9 @@ The following keeps the installed system able to run `nixos-rebuild --flake` (st
 
 ### 9. NixOS flake
 
-As `root`, create `/mnt/etc/nixos/flake.nix` to pin the `nixpkgs` the target
-system is built from. `nixos-install` will then ignore `NIX_PATH` and the
-`nixpkgs` channels, and install exactly the release declared here:
+As `root`, create `/mnt/etc/nixos/flake.nix` with the following content to pin the `nixpkgs` the target system is built from. `nixos-install` will then ignore `NIX_PATH` and the `nixpkgs` channels, and install exactly the release declared here:
 
 ```
-cat > /mnt/etc/nixos/flake.nix <<'EOF'
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -176,7 +173,6 @@ cat > /mnt/etc/nixos/flake.nix <<'EOF'
     };
   };
 }
-EOF
 ```
 
 Notes:
