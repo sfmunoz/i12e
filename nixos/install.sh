@@ -10,7 +10,7 @@ mountpoint -q /mnt && TARGET="/mnt"
 
 sudo mkdir -p "${TARGET}/etc/nixos"
 
-for f in configuration.nix users.nix; do
+for f in configuration.nix users.nix packages.nix; do
   sudo cp -v "${SOURCE}/etc/nixos/$f" "${TARGET}/etc/nixos/$f"
 done
 
