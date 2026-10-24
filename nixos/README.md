@@ -153,7 +153,7 @@ Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
 -  # services.openssh.enable = true;
 +  services.openssh.enable = true;
 ```
-The following keeps the installed system able to run `nixos-rebuild --flake` (step 9).
+The following keeps the installed system able to run `nixos-rebuild --flake` (step 10).
 ```diff
 +  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
@@ -181,7 +181,7 @@ EOF
 
 Notes:
 
-- `vm` is the configuration name used in step 9 (`--flake .#vm`).
+- `vm` is the configuration name used in step 10 (`--flake .#vm`).
 - The lock file `/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
 repo so the machine can be rebuilt from the same inputs.
 
