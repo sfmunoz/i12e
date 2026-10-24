@@ -18,18 +18,18 @@ Initial status:
 - Debian 12.13 on memory
 - Empty /dev/sda HD (+100GB)
 
-### 1. Software install
+### 1. Software install (as `root`)
 
-As `root` (`htop` is optional):
+`htop` is optional:
 
 ```
 apt update
 apt install -y xz-utils curl ca-certificates htop
 ```
 
-### 2. Create i12e user
+### 2. Create i12e user (as `root`)
 
-With `sudo` privileges (as `root`):
+`i12e` is granted with `sudo` privileges:
 
 ```
 useradd -m -s /bin/bash -g users i12e
@@ -37,9 +37,9 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-### 3. Nix install
+### 3. Nix install (as `i12e`)
 
-As `i12e` user (passwordless `sudo` required):
+Passwordless `sudo` required (granted by step 2):
 
 ```
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
@@ -47,18 +47,14 @@ curl -L https://nixos.org/nix/install | sh -s -- --daemon
 
 Notice: Nix won't work in active shell sessions until it is restarted.
 
-### 4. Nix experimental features
-
-As `root`:
+### 4. Nix experimental features (as `root`)
 
 ```
 printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
 systemctl restart nix-daemon
 ```
 
-### 5. NixOS install tools
-
-As `root`:
+### 5. NixOS install tools (as `root`)
 
 ```
 nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
@@ -68,9 +64,9 @@ Pinned to the `nixos-26.05` release branch on purpose: a bare `nixpkgs#` is
 resolved through the flake registry, which points at `nixpkgs-unstable`, and
 would install `26.11pre` tools (and with them a `26.11pre` system).
 
-### 6. Target FS
+### 6. Target FS (as `root`)
 
-Swap not needed/wanted, as `root`:
+Swap is not needed/wanted:
 
 ```
 wipefs -a /dev/sda
@@ -81,9 +77,9 @@ mkfs.ext4 -L nixos /dev/sda1
 mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 7. Network config
+### 7. Network config (as `root`)
 
-As `root` create `/mnt/etc/nixos/network.nix` with the following content (must be adapted):
+Create `/mnt/etc/nixos/network.nix` with the following content (must be adapted):
 
 ```
 { config, lib, pkgs, ... }:
@@ -105,9 +101,7 @@ As `root` create `/mnt/etc/nixos/network.nix` with the following content (must b
 }
 ```
 
-### 8. NixOS config
-
-As `root`:
+### 8. NixOS config (as `root`)
 
 ```
 nixos-generate-config --root /mnt
@@ -161,9 +155,9 @@ The following keeps the installed system able to run `nixos-rebuild --flake` (st
 +  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-### 9. NixOS flake
+### 9. NixOS flake (as `root`)
 
-As `root`, create `/mnt/etc/nixos/flake.nix` with the following content to pin the `nixpkgs` the target system is built from. `nixos-install` will then ignore `NIX_PATH` and the `nixpkgs` channels, and install exactly the release declared here:
+Create `/mnt/etc/nixos/flake.nix` with the following content to pin the `nixpkgs` the target system is built from. `nixos-install` will then ignore `NIX_PATH` and the `nixpkgs` channels, and install exactly the release declared here:
 
 ```
 {
@@ -184,17 +178,13 @@ Notes:
 - The lock file `/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
 repo so the machine can be rebuilt from the same inputs.
 
-### 10. NixOS install
-
-As `root`:
+### 10. NixOS install (as `root`)
 
 ```
 nixos-install --flake /mnt/etc/nixos#vm
 ```
 
-### 11. Password setup
-
-As `root`:
+### 11. Password setup (as `root`)
 
 ```
 nixos-enter --root /mnt
@@ -202,9 +192,7 @@ passwd i12e
 exit
 ```
 
-### 12. Reboot
-
-As `root` (`umount /mnt` is optional):
+### 12. Reboot (as `root`)
 
 ```
 umount /mnt
