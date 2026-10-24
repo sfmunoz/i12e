@@ -137,6 +137,9 @@ Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
 +  time.timeZone = "UTC";
 ```
 ```diff
++  security.sudo.wheelNeedsPassword = false;
+```
+```diff
 -  # users.users.alice = {
 -  #   isNormalUser = true;
 -  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
