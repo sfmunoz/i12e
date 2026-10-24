@@ -207,3 +207,25 @@ As `root` (`umount /mnt` is optional):
 umount /mnt
 reboot
 ```
+
+## Day-two workflow
+
+- `nixos-rebuild` implies `--flake /etc/nixos` when `/etc/nixos/flake.nix` exists
+  (`--no-flake` disables it).
+- The implied configuration name is the hostname: `nixosConfigurations.<hostName>`.
+  Keep `networking.hostName = "vm"` in sync with `nixosConfigurations.vm`, or be
+  explicit with `--flake /etc/nixos#vm`.
+- Edit and rebuild:
+
+```
+sudoedit /etc/nixos/configuration.nix
+sudo nixos-rebuild switch
+```
+
+- `/etc/nixos/flake.lock` is written by `nixos-install`; keep it in the repo so
+  rebuilds use the same inputs. Regenerate with `sudo nix flake lock /etc/nixos`.
+- `/etc/nixos` is not a git repo: the whole directory is copied into the store on
+  every rebuild, so stray files count and `.gitignore` is irrelevant.
+- `nix.settings.experimental-features` must be enabled, or `nixos-rebuild` fails
+  with `experimental Nix feature 'nix-command' is disabled`.
+
