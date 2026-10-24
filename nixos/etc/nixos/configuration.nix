@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./users.nix
     ];
 
   # Use the GRUB 2 boot loader.
@@ -63,15 +64,6 @@
   # services.libinput.enable = true;
 
   security.sudo.wheelNeedsPassword = false;
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.users.alice = {
-  #   isNormalUser = true;
-  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  #   packages = with pkgs; [
-  #     tree
-  #   ];
-  # };
 
   # programs.firefox.enable = true;
 
