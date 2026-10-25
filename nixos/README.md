@@ -18,16 +18,7 @@ Initial status:
 - Debian 12.13 on memory
 - Empty /dev/sda HD (+100GB)
 
-### 1. Software install (as `root`)
-
-`htop` is optional:
-
-```
-apt update
-apt install -y xz-utils curl ca-certificates htop
-```
-
-### 2. Create i12e user (as `root`)
+### 1. Create i12e user (as `root`)
 
 `i12e` is granted with `sudo` privileges:
 
@@ -37,9 +28,18 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
+### 2. Software install (as `root`)
+
+`htop` is optional:
+
+```
+apt update
+apt install -y xz-utils curl ca-certificates htop
+```
+
 ### 3. Nix install (as `i12e`)
 
-Passwordless `sudo` required (granted by step 2):
+Passwordless `sudo` required (granted by step 1):
 
 ```
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
