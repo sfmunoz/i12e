@@ -20,6 +20,7 @@
   programs.git = {
     enable = true;
     config = {
+      alias.ln = "log --graph --decorate -n 15 --pretty=tformat:'%ci %Cgreen%an%Creset %C(auto)%h%Creset%Cred%d%Creset %s'";
       init.defaultBranch = "main";
       user.name = "sfmunoz";
       user.email = "46285520+sfmunoz@users.noreply.github.com";
