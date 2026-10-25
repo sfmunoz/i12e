@@ -88,117 +88,37 @@ mkfs.ext4 -L nixos /dev/sda1
 mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 8. Network config (as `root`)
+### 8. NixOS config generation (as `root`)
 
-Create `/mnt/etc/nixos/network.nix` with the following content (must be adapted):
-
-```
-{ config, lib, pkgs, ... }:
-{
-  networking = {
-    hostName = "vm";
-    useDHCP = false;
-    usePredictableInterfaceNames = false;   # enp0s3 -> eth0
-    interfaces.eth0 = {
-      ipv4.addresses = [ { address = "192.168.56.10"; prefixLength = 24; } ];
-      ipv6.addresses = [ { address = "fd00::10"; prefixLength = 64; } ];
-      tempAddress = "enabled";
-    };
-    defaultGateway = { address = "192.168.56.1"; interface = "eth0"; };
-    defaultGateway6 = { address = "fd00::1"; interface = "eth0"; };
-    nameservers = [ "192.168.56.1" "fd00::1" "1.1.1.1" "2606:4700:4700::1111" ];
-    firewall.allowedTCPPorts = [ 22 ];
-  };
-}
-```
-
-### 9. NixOS config (as `root`)
+Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-configuration.nix`:
 
 ```
 nixos-generate-config --root /mnt
 ```
 
-Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
+### 9. Clone and install (as `i12e`)
 
-```diff
-   imports =
-     [ # Include the results of the hardware scan.
-       ./hardware-configuration.nix
-+      ./network.nix
-     ];
-
-   # Use the GRUB 2 boot loader.
-```
-```diff
--  # boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
-+  boot.loader.grub.device = "/dev/sda"; # or "nodev" for efi only
-```
-```diff
--  networking.networkmanager.enable = true;
-+  #networking.networkmanager.enable = true;
-```
-```diff
--  # time.timeZone = "Europe/Amsterdam";
-+  time.timeZone = "UTC";
-```
-```diff
-+  security.sudo.wheelNeedsPassword = false;
-```
-```diff
--  # users.users.alice = {
--  #   isNormalUser = true;
--  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-+  users.users.i12e = {
-+    isNormalUser = true;
-+    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-   #   packages = with pkgs; [
-   #     tree
-   #   ];
--  # };
-+  };
-```
-```diff
--  # services.openssh.enable = true;
-+  services.openssh.enable = true;
-```
-The following keeps the installed system able to run `nixos-rebuild --flake` (step 11).
-```diff
-+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-```
-
-### 10. NixOS flake (as `root`)
-
-Create `/mnt/etc/nixos/flake.nix` with the following content to pin the
-`nixpkgs` revision the target system is built from. `nixos-install` will then
-ignore `NIX_PATH` and the `nixpkgs` channels, and install exactly the release
-declared here:
+Sops: `SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` may be used:
 
 ```
-{
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
-
-  outputs = { nixpkgs, ... }: {
-    nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [ ./configuration.nix ];
-    };
-  };
-}
+mkdir ~/src
+git clone https://github.com/sfmunoz/i12e.git ~/src/i12e
+gh auth login
+git clone https://github.com/sfmunoz/i12e-secrets.git ~/src/i12e-secrets
+export HNAME="<name-of-the-target-hostname>"
+export SOPS_AGE_KEY="..."
+~/src/i12e/nixos/install.sh
 ```
 
-Notes:
+### 10. NixOS install (as `i12e`)
 
-- `vm` is the configuration name used in step 11 (`--flake .#vm`).
-- The lock file `/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
-repo so the machine can be rebuilt from the same inputs.
-
-### 11. NixOS install (as `root`)
+It may be required to run this twice if `error: NAR hash mismatch in input` aborts the process:
 
 ```
-nixos-install --flake /mnt/etc/nixos#vm
+sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME}
 ```
 
-### 12. Password setup (as `root`)
+### 11. Password setup (as `root`)
 
 ```
 nixos-enter --root /mnt
@@ -206,31 +126,9 @@ passwd i12e
 exit
 ```
 
-### 13. Reboot (as `root`)
+### 12. Reboot (as `root`)
 
 ```
 umount /mnt
 reboot
 ```
-
-## Day-two workflow
-
-- `nixos-rebuild` implies `--flake /etc/nixos` when `/etc/nixos/flake.nix` exists
-  (`--no-flake` disables it).
-- The implied configuration name is the hostname: `nixosConfigurations.<hostName>`.
-  Keep `networking.hostName = "vm"` in sync with `nixosConfigurations.vm`, or be
-  explicit with `--flake /etc/nixos#vm`.
-- Edit and rebuild:
-
-```
-sudoedit /etc/nixos/configuration.nix
-sudo nixos-rebuild switch
-```
-
-- `/etc/nixos/flake.lock` is written by `nixos-install`; keep it in the repo so
-  rebuilds use the same inputs. Regenerate with `sudo nix flake lock /etc/nixos`.
-- `/etc/nixos` is not a git repo: the whole directory is copied into the store on
-  every rebuild, so stray files count and `.gitignore` is irrelevant.
-- `nix.settings.experimental-features` must be enabled, or `nixos-rebuild` fails
-  with `experimental Nix feature 'nix-command' is disabled`.
-
