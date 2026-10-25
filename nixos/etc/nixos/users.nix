@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  authorizedKeys = [ "@@AUTHORIZED_KEY@@" ];
+  authorizedKeys = import ./authorized_keys.nix;   # rendered by 'install.sh' from 'i12e-secrets'
 in
 {
   users.users.i12e = {

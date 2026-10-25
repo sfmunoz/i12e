@@ -21,25 +21,9 @@ sudo chmod 0700 "${TARGET}/etc/nixos"
 # Use "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" to get the AGE public key
 env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key"
 
-for FNAME in network.nix; do
+for FNAME in network.nix authorized_keys.nix; do
   sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" |
     yq -r ".${FNAME%.nix}_nix" |
-    sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
-done
-
-SSH_AUTHORIZED_KEY="$(sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" | yq -r ".ssh_authorized_key")"
-
-case "${SSH_AUTHORIZED_KEY}" in
-  "" | "null") error_and_exit "'ssh_authorized_key' not found in '${HNAME}.yaml'" ;;
-  *"|"* | *";"*) error_and_exit "'ssh_authorized_key' contains unsupported characters ('|' or ';')" ;;
-esac
-
-# 'sed' replacement escaping: backslash first, then '&' (whole match)
-SSH_AUTHORIZED_KEY="${SSH_AUTHORIZED_KEY//\\/\\\\}"
-SSH_AUTHORIZED_KEY="${SSH_AUTHORIZED_KEY//&/\\&}"
-
-for FNAME in users.nix; do
-  sed -e "s|@@AUTHORIZED_KEY@@|${SSH_AUTHORIZED_KEY}|g" "${SOURCE}/etc/nixos/${FNAME}" |
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
@@ -48,7 +32,7 @@ for FNAME in flake.nix; do
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
-for FNAME in configuration.nix packages.nix; do
+for FNAME in configuration.nix users.nix packages.nix; do
   sudo cp -v "${SOURCE}/etc/nixos/${FNAME}" "${TARGET}/etc/nixos/${FNAME}"
 done
 
