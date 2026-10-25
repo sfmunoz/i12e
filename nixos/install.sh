@@ -9,6 +9,8 @@ TARGET=""
 [ "$(basename "$0")" = "install.sh" ] && TARGET="/mnt"
 
 sudo mkdir -p "${TARGET}/etc/nixos"
+sudo chown 0:0 "${TARGET}/etc/nixos"
+sudo chmod 0700 "${TARGET}/etc/nixos"
 
 # Use "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" to get the AGE public key
 env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key"
