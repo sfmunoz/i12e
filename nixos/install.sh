@@ -4,8 +4,9 @@ set -x -e -o pipefail
 
 [ "$HNAME" = "" ] && HNAME="$(hostname -s)"
 SOURCE="$(realpath "$(dirname "$0")")"
-TARGET=""
+SOURCE_SECRETS="$(realpath "${SOURCE}/../../i12e-secrets")"
 
+TARGET=""
 [ "$(basename "$0")" = "install.sh" ] && TARGET="/mnt"
 
 sudo mkdir -p "${TARGET}/etc/nixos"
@@ -15,7 +16,7 @@ sudo chmod 0700 "${TARGET}/etc/nixos"
 # Use "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" to get the AGE public key
 env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key"
 
-sops decrypt "${SOURCE}/../../i12e-secrets/nixos/etc/nixos/vm/${HNAME}.yaml" |
+sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" |
   yq -r .network_nix |
   sudo tee "${TARGET}/etc/nixos/network.nix" >/dev/null
 
