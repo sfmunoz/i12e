@@ -22,8 +22,10 @@ for f in network.nix; do
     sudo tee "${TARGET}/etc/nixos/$f" >/dev/null
 done
 
-sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/flake.nix" |
-  sudo tee "${TARGET}/etc/nixos/flake.nix" >/dev/null
+for f in flake.nix; do
+  sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/${f}" |
+    sudo tee "${TARGET}/etc/nixos/${f}" >/dev/null
+done
 
 for f in configuration.nix users.nix packages.nix; do
   sudo cp -v "${SOURCE}/etc/nixos/$f" "${TARGET}/etc/nixos/$f"
