@@ -23,7 +23,7 @@ env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-
 
 for FNAME in network.nix authorized_keys.nix; do
   sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" |
-    yq -r ".${FNAME%.nix}_nix" |
+    yq -r -e ".${FNAME%.nix}_nix" |
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
