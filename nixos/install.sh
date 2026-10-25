@@ -16,9 +16,11 @@ sudo chmod 0700 "${TARGET}/etc/nixos"
 # Use "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" to get the AGE public key
 env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key"
 
-sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" |
-  yq -r .network_nix |
-  sudo tee "${TARGET}/etc/nixos/network.nix" >/dev/null
+for f in network.nix; do
+  sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" |
+    yq -r ".${f%.nix}_nix" |
+    sudo tee "${TARGET}/etc/nixos/$f" >/dev/null
+done
 
 sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/flake.nix" |
   sudo tee "${TARGET}/etc/nixos/flake.nix" >/dev/null
