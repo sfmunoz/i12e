@@ -10,19 +10,19 @@ TARGET=""
 
 sudo mkdir -p "${TARGET}/etc/nixos"
 
-for f in configuration.nix users.nix packages.nix; do
-  sudo cp -v "${SOURCE}/etc/nixos/$f" "${TARGET}/etc/nixos/$f"
-done
-
-sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/flake.nix" |
-  sudo tee "${TARGET}/etc/nixos/flake.nix" >/dev/null
-
 # Use "ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub" to get the AGE public key
 env | grep -q "^SOPS_AGE_" || export SOPS_AGE_KEY_CMD="sudo ssh-to-age -private-key -i /etc/ssh/ssh_host_ed25519_key"
 
 sops decrypt "${SOURCE}/../../i12e-secrets/nixos/etc/nixos/vm/${HNAME}.yaml" |
   yq -r .network_nix |
   sudo tee "${TARGET}/etc/nixos/network.nix" >/dev/null
+
+sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/flake.nix" |
+  sudo tee "${TARGET}/etc/nixos/flake.nix" >/dev/null
+
+for f in configuration.nix users.nix packages.nix; do
+  sudo cp -v "${SOURCE}/etc/nixos/$f" "${TARGET}/etc/nixos/$f"
+done
 
 { set +x; } 2>/dev/null
 
