@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+function error_and_exit {
+  echo "error: $1" >&2
+  exit 1
+}
+
 set -x -e -o pipefail
 
 [ "$HNAME" = "" ] && HNAME="$(hostname -s)"
@@ -22,12 +27,28 @@ for FNAME in network.nix; do
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
+SSH_AUTHORIZED_KEY="$(sops decrypt "${SOURCE_SECRETS}/nixos/etc/nixos/vm/${HNAME}.yaml" | yq -r ".ssh_authorized_key")"
+
+case "${SSH_AUTHORIZED_KEY}" in
+  "" | "null") error_and_exit "'ssh_authorized_key' not found in '${HNAME}.yaml'" ;;
+  *"|"* | *";"*) error_and_exit "'ssh_authorized_key' contains unsupported characters ('|' or ';')" ;;
+esac
+
+# 'sed' replacement escaping: backslash first, then '&' (whole match)
+SSH_AUTHORIZED_KEY="${SSH_AUTHORIZED_KEY//\\/\\\\}"
+SSH_AUTHORIZED_KEY="${SSH_AUTHORIZED_KEY//&/\\&}"
+
+for FNAME in users.nix; do
+  sed -e "s|@@AUTHORIZED_KEY@@|${SSH_AUTHORIZED_KEY}|g" "${SOURCE}/etc/nixos/${FNAME}" |
+    sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
+done
+
 for FNAME in flake.nix; do
   sed -e "s;@@HOSTNAME@@;${HNAME};g" "${SOURCE}/etc/nixos/${FNAME}" |
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
-for FNAME in configuration.nix users.nix packages.nix; do
+for FNAME in configuration.nix packages.nix; do
   sudo cp -v "${SOURCE}/etc/nixos/${FNAME}" "${TARGET}/etc/nixos/${FNAME}"
 done
 
