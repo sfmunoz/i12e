@@ -34,7 +34,7 @@ chmod 440 /etc/sudoers.d/90-i12e
 
 ```
 sudo apt update
-sudo apt install -y xz-utils curl ca-certificates age gh htop
+sudo apt install -y xz-utils curl ca-certificates age gh jq yq htop
 ```
 
 ### 3. Sops install (as `i12e`)
