@@ -36,7 +36,7 @@ for FNAME in network.nix authorized_keys.nix; do
     sudo tee "${TARGET}/etc/nixos/${FNAME}" >/dev/null
 done
 
-for FNAME in configuration.nix flake.nix users.nix packages.nix; do
+for FNAME in configuration.nix flake.lock flake.nix users.nix packages.nix; do
   sudo cp -v "${SOURCE}/etc/nixos/${FNAME}" "${TARGET}/etc/nixos/${FNAME}"
 done
 
