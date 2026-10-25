@@ -77,7 +77,7 @@ would install `26.11pre` tools (and with them a `26.11pre` system).
 
 ### 7. Target FS (as `root`)
 
-Swap is not needed/wanted:
+Swap is not needed/wanted. Use `wipefs -a /dev/sda1`, `wipefs -a /dev/sda2`, ... if those partitions exist:
 
 ```
 wipefs -a /dev/sda
