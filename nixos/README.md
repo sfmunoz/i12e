@@ -52,45 +52,47 @@ Nix, passwordless `sudo` required (granted by step 1):
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
-### 3. Nix experimental features (as `root`)
+### 3. Nix setup (as `i12e`)
+
+Nix experimental features
 
 ```
-printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
-systemctl restart nix-daemon
+printf 'experimental-features = nix-command flakes\n' | sudo tee -a /etc/nix/nix.conf > /dev/null
+sudo systemctl restart nix-daemon
 ```
 
-### 4. NixOS install tools (as `root`)
+NixOS install tools:
 
 ```
-nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
+sudo -i nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
 ```
 
 Pinned to the `nixos-26.05` release branch on purpose: a bare `nixpkgs#` is
 resolved through the flake registry, which points at `nixpkgs-unstable`, and
 would install `26.11pre` tools (and with them a `26.11pre` system).
 
-### 5. Target FS (as `root`)
+### 4. Target FS (as `i12e`)
 
-Swap is not needed/wanted. Use `wipefs -a /dev/sda1`, `wipefs -a /dev/sda2`, ... if those partitions exist:
+Swap is not needed/wanted. Use `sudo wipefs -a /dev/sda1`, `sudo wipefs -a /dev/sda2`, ... if those partitions exist:
 
 ```
-wipefs -a /dev/sda
-parted /dev/sda -- mklabel msdos
-parted /dev/sda -- mkpart primary 1MB 100%
-parted /dev/sda -- set 1 boot on
-mkfs.ext4 -L nixos /dev/sda1
-mount /dev/disk/by-label/nixos /mnt
+sudo wipefs -a /dev/sda
+sudo parted /dev/sda -- mklabel msdos
+sudo parted /dev/sda -- mkpart primary 1MB 100%
+sudo parted /dev/sda -- set 1 boot on
+sudo mkfs.ext4 -F -L nixos /dev/sda1
+sudo mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 6. NixOS config generation (as `root`)
+### 5. NixOS config generation (as `i12e`)
 
 Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-configuration.nix`:
 
 ```
-nixos-generate-config --root /mnt
+sudo -i nixos-generate-config --root /mnt
 ```
 
-### 7. Clone and install (as `i12e`)
+### 6. Clone and install (as `i12e`)
 
 Sops: `SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` may be used:
 
@@ -104,7 +106,7 @@ export SOPS_AGE_KEY="..."
 ~/src/i12e/nixos/install.sh
 ```
 
-### 8. NixOS install (as `i12e`)
+### 7. NixOS install (as `i12e`)
 
 It may be required to run this twice if `error: NAR hash mismatch in input` aborts the process:
 
@@ -112,7 +114,7 @@ It may be required to run this twice if `error: NAR hash mismatch in input` abor
 sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME}
 ```
 
-### 9. Password setup (as `root`)
+### 8. Password setup (as `root`)
 
 ```
 nixos-enter --root /mnt
@@ -120,7 +122,7 @@ passwd i12e
 exit
 ```
 
-### 10. Reboot (as `root`)
+### 9. Reboot (as `root`)
 
 ```
 umount /mnt
