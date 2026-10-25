@@ -84,15 +84,7 @@ sudo mkfs.ext4 -F -L nixos /dev/sda1
 sudo mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 5. NixOS config generation (as `i12e`)
-
-Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-configuration.nix`:
-
-```
-sudo -i nixos-generate-config --root /mnt
-```
-
-### 6. Git clone (as `i12e`)
+### 5. Git clone (as `i12e`)
 
 ```
 mkdir ~/src
@@ -101,7 +93,13 @@ gh auth login
 git clone https://github.com/sfmunoz/i12e-secrets.git ~/src/i12e-secrets
 ```
 
-### 7. NixOS install (as `i12e`)
+### 6. NixOS install (as `i12e`)
+
+Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-configuration.nix`:
+
+```
+sudo -i nixos-generate-config --root /mnt
+```
 
 `SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` can be used instead of `SOPS_AGE_KEY`:
 
@@ -112,7 +110,7 @@ export SOPS_AGE_KEY="..."
 sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME} --no-root-password
 ```
 
-### 8. Reboot (as `i12e`)
+### 7. Reboot (as `i12e`)
 
 ```
 sudo umount /mnt
