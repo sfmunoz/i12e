@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -x -e
+set -x -e -o pipefail
 
 [ "$HNAME" = "" ] && HNAME="$(hostname -s)"
 SOURCE="$(realpath "$(dirname "$0")")"
