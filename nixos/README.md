@@ -92,39 +92,29 @@ Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-conf
 sudo -i nixos-generate-config --root /mnt
 ```
 
-### 6. Clone and install (as `i12e`)
-
-Sops: `SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` may be used:
+### 6. Git clone (as `i12e`)
 
 ```
 mkdir ~/src
 git clone https://github.com/sfmunoz/i12e.git ~/src/i12e
 gh auth login
 git clone https://github.com/sfmunoz/i12e-secrets.git ~/src/i12e-secrets
-export HNAME="<name-of-the-target-hostname>"
-export SOPS_AGE_KEY="..."
-~/src/i12e/nixos/install.sh
 ```
 
 ### 7. NixOS install (as `i12e`)
 
-It may be required to run this twice if `error: NAR hash mismatch in input` aborts the process:
+`SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` can be used instead of `SOPS_AGE_KEY`:
 
 ```
-sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME}
+export HNAME="<name-of-the-target-hostname>"
+export SOPS_AGE_KEY="..."
+~/src/i12e/nixos/install.sh
+sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME} --no-root-password
 ```
 
-### 8. Password setup (as `root`)
+### 8. Reboot (as `i12e`)
 
 ```
-nixos-enter --root /mnt
-passwd i12e
-exit
-```
-
-### 9. Reboot (as `root`)
-
-```
-umount /mnt
-reboot
+sudo umount /mnt
+sudo reboot
 ```
