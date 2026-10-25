@@ -28,16 +28,27 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-### 2. Software install (as `root`)
+### 2. Debian software install (as `i12e`)
 
 `htop` is optional:
 
 ```
-apt update
-apt install -y xz-utils curl ca-certificates htop
+sudo apt update
+sudo apt install -y xz-utils curl ca-certificates age gh htop
 ```
 
-### 3. Nix install (as `i12e`)
+### 3. Sops install (as `i12e`)
+
+Ref: https://github.com/getsops/sops/releases
+
+```
+curl -LO https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64
+sudo mv sops-v3.13.3.linux.amd64 /usr/local/bin/sops
+sudo chown root:root /usr/local/bin/sops
+sudo chmod 0755 /usr/local/bin/sops
+```
+
+### 4. Nix install (as `i12e`)
 
 Passwordless `sudo` required (granted by step 1):
 
@@ -47,14 +58,14 @@ curl -L https://nixos.org/nix/install | sh -s -- --daemon
 
 Notice: Nix won't work in active shell sessions until it is restarted.
 
-### 4. Nix experimental features (as `root`)
+### 5. Nix experimental features (as `root`)
 
 ```
 printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
 systemctl restart nix-daemon
 ```
 
-### 5. NixOS install tools (as `root`)
+### 6. NixOS install tools (as `root`)
 
 ```
 nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
@@ -64,7 +75,7 @@ Pinned to the `nixos-26.05` release branch on purpose: a bare `nixpkgs#` is
 resolved through the flake registry, which points at `nixpkgs-unstable`, and
 would install `26.11pre` tools (and with them a `26.11pre` system).
 
-### 6. Target FS (as `root`)
+### 7. Target FS (as `root`)
 
 Swap is not needed/wanted:
 
@@ -77,7 +88,7 @@ mkfs.ext4 -L nixos /dev/sda1
 mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 7. Network config (as `root`)
+### 8. Network config (as `root`)
 
 Create `/mnt/etc/nixos/network.nix` with the following content (must be adapted):
 
@@ -101,7 +112,7 @@ Create `/mnt/etc/nixos/network.nix` with the following content (must be adapted)
 }
 ```
 
-### 8. NixOS config (as `root`)
+### 9. NixOS config (as `root`)
 
 ```
 nixos-generate-config --root /mnt
@@ -150,12 +161,12 @@ Changes to `/mnt/etc/nixos/configuration.nix` if diff format:
 -  # services.openssh.enable = true;
 +  services.openssh.enable = true;
 ```
-The following keeps the installed system able to run `nixos-rebuild --flake` (step 10).
+The following keeps the installed system able to run `nixos-rebuild --flake` (step 11).
 ```diff
 +  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 ```
 
-### 9. NixOS flake (as `root`)
+### 10. NixOS flake (as `root`)
 
 Create `/mnt/etc/nixos/flake.nix` with the following content to pin the
 `nixpkgs` revision the target system is built from. `nixos-install` will then
@@ -177,17 +188,17 @@ declared here:
 
 Notes:
 
-- `vm` is the configuration name used in step 10 (`--flake .#vm`).
+- `vm` is the configuration name used in step 11 (`--flake .#vm`).
 - The lock file `/mnt/etc/nixos/flake.lock` is generated during installation; keep it in the
 repo so the machine can be rebuilt from the same inputs.
 
-### 10. NixOS install (as `root`)
+### 11. NixOS install (as `root`)
 
 ```
 nixos-install --flake /mnt/etc/nixos#vm
 ```
 
-### 11. Password setup (as `root`)
+### 12. Password setup (as `root`)
 
 ```
 nixos-enter --root /mnt
@@ -195,7 +206,7 @@ passwd i12e
 exit
 ```
 
-### 12. Reboot (as `root`)
+### 13. Reboot (as `root`)
 
 ```
 umount /mnt
