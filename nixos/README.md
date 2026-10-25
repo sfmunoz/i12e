@@ -28,18 +28,16 @@ echo 'i12e ALL=(ALL:ALL) NOPASSWD:ALL' > /etc/sudoers.d/90-i12e
 chmod 440 /etc/sudoers.d/90-i12e
 ```
 
-### 2. Debian software install (as `i12e`)
+### 2. Software install (as `i12e`)
 
-`htop` is optional:
+Debian packages, `htop` is optional:
 
 ```
 sudo apt update
 sudo apt install -y xz-utils curl ca-certificates age git gh jq yq htop
 ```
 
-### 3. Sops install (as `i12e`)
-
-Ref: https://github.com/getsops/sops/releases
+Sops, not available as Debian package (ref: [https://github.com/getsops/sops/releases](https://github.com/getsops/sops/releases)):
 
 ```
 curl -LO https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64
@@ -48,24 +46,20 @@ sudo chown root:root /usr/local/bin/sops
 sudo chmod 0755 /usr/local/bin/sops
 ```
 
-### 4. Nix install (as `i12e`)
-
-Passwordless `sudo` required (granted by step 1):
+Nix, passwordless `sudo` required (granted by step 1):
 
 ```
 curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ```
 
-Notice: Nix won't work in active shell sessions until it is restarted.
-
-### 5. Nix experimental features (as `root`)
+### 3. Nix experimental features (as `root`)
 
 ```
 printf 'experimental-features = nix-command flakes\n' >> /etc/nix/nix.conf
 systemctl restart nix-daemon
 ```
 
-### 6. NixOS install tools (as `root`)
+### 4. NixOS install tools (as `root`)
 
 ```
 nix profile add github:NixOS/nixpkgs/nixos-26.05#nixos-install-tools
@@ -75,7 +69,7 @@ Pinned to the `nixos-26.05` release branch on purpose: a bare `nixpkgs#` is
 resolved through the flake registry, which points at `nixpkgs-unstable`, and
 would install `26.11pre` tools (and with them a `26.11pre` system).
 
-### 7. Target FS (as `root`)
+### 5. Target FS (as `root`)
 
 Swap is not needed/wanted. Use `wipefs -a /dev/sda1`, `wipefs -a /dev/sda2`, ... if those partitions exist:
 
@@ -88,7 +82,7 @@ mkfs.ext4 -L nixos /dev/sda1
 mount /dev/disk/by-label/nixos /mnt
 ```
 
-### 8. NixOS config generation (as `root`)
+### 6. NixOS config generation (as `root`)
 
 Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-configuration.nix`:
 
@@ -96,7 +90,7 @@ Create both `/mnt/etc/nixos/configuration.nix` and `/mnt/etc/nixos/hardware-conf
 nixos-generate-config --root /mnt
 ```
 
-### 9. Clone and install (as `i12e`)
+### 7. Clone and install (as `i12e`)
 
 Sops: `SOPS_AGE_SSH_PRIVATE_KEY_FILE`, `SOPS_AGE_SSH_PRIVATE_KEY_CMD`, `SOPS_AGE_KEY`, `SOPS_AGE_KEY_FILE` or `SOPS_AGE_KEY_CMD` may be used:
 
@@ -110,7 +104,7 @@ export SOPS_AGE_KEY="..."
 ~/src/i12e/nixos/install.sh
 ```
 
-### 10. NixOS install (as `i12e`)
+### 8. NixOS install (as `i12e`)
 
 It may be required to run this twice if `error: NAR hash mismatch in input` aborts the process:
 
@@ -118,7 +112,7 @@ It may be required to run this twice if `error: NAR hash mismatch in input` abor
 sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME}
 ```
 
-### 11. Password setup (as `root`)
+### 9. Password setup (as `root`)
 
 ```
 nixos-enter --root /mnt
@@ -126,7 +120,7 @@ passwd i12e
 exit
 ```
 
-### 12. Reboot (as `root`)
+### 10. Reboot (as `root`)
 
 ```
 umount /mnt
