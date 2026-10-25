@@ -4,13 +4,9 @@ set -x -e
 
 [ "$HNAME" = "" ] && HNAME="$(hostname -s)"
 SOURCE="$(realpath "$(dirname "$0")")"
+TARGET=""
 
-# 'update.sh' is a symlink to this script, targeting the running system
-if [ "$(basename "$0")" = "update.sh" ]; then
-  TARGET=""
-else
-  TARGET="/mnt"
-fi
+[ "$(basename "$0")" = "install.sh" ] && TARGET="/mnt"
 
 sudo mkdir -p "${TARGET}/etc/nixos"
 
