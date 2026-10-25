@@ -17,6 +17,14 @@
   boot.loader.grub.device = "/dev/sda";
   time.timeZone = "UTC";
   i18n.defaultLocale = "en_US.UTF-8";
+  programs.git = {
+    enable = true;
+    config = {
+      init.defaultBranch = "main";
+      user.name = "sfmunoz";
+      user.email = "46285520+sfmunoz@users.noreply.github.com";
+    };
+  };
   security.sudo.wheelNeedsPassword = false;
   services.openssh.enable = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
