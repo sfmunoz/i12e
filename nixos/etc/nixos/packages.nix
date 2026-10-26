@@ -5,6 +5,7 @@
   environment.systemPackages = with pkgs; [
     vim tmux git sops age ssh-to-age gh jq yq htop
     nodejs ripgrep fd
+    neovim zellij
   ];
 }
 
