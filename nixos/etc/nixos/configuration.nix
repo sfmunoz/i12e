@@ -21,6 +21,7 @@
     enable = true;
     config = {
       alias.ln = "log --graph --decorate -n 15 --pretty=tformat:'%ci %Cgreen%an%Creset %C(auto)%h%Creset%Cred%d%Creset %s'";
+      color.ui = "auto";
       core.pager = "cat";
       init.defaultBranch = "main";
       user.name = "sfmunoz";
