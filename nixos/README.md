@@ -116,3 +116,11 @@ sudo -i nixos-install --flake /mnt/etc/nixos#${HNAME} --no-root-password
 sudo umount /mnt
 sudo reboot
 ```
+
+## Day-two workflow
+
+After the install, changes are made in the repository and then copied to `/etc/nixos`:
+
+1. Edit the configuration files under `~/src/i12e/nixos/`.
+2. Run `~/src/i12e/nixos/update.sh` to regenerate `/etc/nixos` (`hostname.nix` and the SOPS-rendered files included).
+3. Rebuild the system by running `sudo -i nixos-rebuild switch`
