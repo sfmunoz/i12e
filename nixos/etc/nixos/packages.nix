@@ -7,6 +7,7 @@
     nodejs ripgrep fd
     neovim zellij
     python314
+    restic
   ];
 }
 
