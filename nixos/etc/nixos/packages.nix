@@ -7,6 +7,7 @@
     nodejs ripgrep fd
     neovim zellij
     python314 go_1_27
+    gcc gnumake pkg-config
     restic
   ];
 }
