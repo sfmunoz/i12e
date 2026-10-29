@@ -28,6 +28,7 @@
       user.email = "46285520+sfmunoz@users.noreply.github.com";
     };
   };
+  programs.nix-ld.enable = true;
   security.sudo.wheelNeedsPassword = false;
   services.openssh.enable = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
