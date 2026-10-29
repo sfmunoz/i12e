@@ -9,6 +9,7 @@
     python314 go_1_27
     gcc gnumake pkg-config
     ghc cabal-install haskell-language-server
+    tree-sitter
     restic
   ];
 }
