@@ -10,6 +10,7 @@
     gcc gnumake pkg-config
     ghc cabal-install haskell-language-server
     zip unzip
+    file
     restic
   ];
 }
