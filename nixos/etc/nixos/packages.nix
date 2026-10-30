@@ -11,6 +11,7 @@
     ghc cabal-install haskell-language-server
     zip unzip
     file
+    wireguard-tools
     restic rclone
   ];
 }
