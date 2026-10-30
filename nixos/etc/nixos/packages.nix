@@ -11,7 +11,7 @@
     ghc cabal-install haskell-language-server
     zip unzip
     file
-    restic
+    restic rclone
   ];
 }
 
