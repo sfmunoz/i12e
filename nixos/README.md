@@ -124,3 +124,9 @@ After the install, changes are made in the repository and then copied to `/etc/n
 1. Edit the configuration files under `~/src/i12e/nixos/`.
 2. Run `~/src/i12e/nixos/update.sh` to regenerate `/etc/nixos` (`hostname.nix` and the SOPS-rendered files included).
 3. Rebuild the system by running `sudo -i nixos-rebuild switch`
+
+## System update
+
+1. Run `nix flake update` in `~/src/i12e/nixos/` → `flake.lock` will be updated.
+2. Run `~/src/i12e/nixos/update.sh` to regenerate `/etc/nixos` (`hostname.nix` and the SOPS-rendered files included).
+3. Rebuild the system by running `sudo -i nixos-rebuild switch`
