@@ -30,7 +30,16 @@
   };
   programs.nix-ld.enable = true;
   security.sudo.wheelNeedsPassword = false;
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      # Key-only auth: no account here has a password hash anyway (all locked),
+      # so this removes the brute-force surface instead of relying on that luck.
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "prohibit-password";
+    };
+  };
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # XXX Most users should NEVER change this value after the initial install
   # Refs: 'man 5 configuration.nix' and https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion
