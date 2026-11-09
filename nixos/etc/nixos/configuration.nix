@@ -38,6 +38,11 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "prohibit-password";
+      # Built-in per-source penalties instead of fail2ban: the source *block* is
+      # refused, not just one IP, which is what the rotating /24 botnets need.
+      PerSourcePenalties = "crash:120s authfail:60s noauth:30s invaliduser:60s grace-exceeded:120s refuseconnection:120s max:3600s";
+      PerSourceNetBlockSize = "24:64"; # IPv4 /24, IPv6 /64
+      PerSourceMaxStartups = 4;        # max 4 unauthenticated conns per block
     };
   };
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
