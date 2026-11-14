@@ -26,7 +26,7 @@ mkdir "$TARGET"
 
 docker run --rm -t \
   -v "${TARGET}:/out" \
-  ghcr.io/siderolabs/imager:v1.14.2 \
+  ghcr.io/siderolabs/imager:v1.14.6 \
   "$IMAGE_KIND" \
   $EXTRA_KERNEL_ARGS \
   --embedded-config-path=/out/machine-1.yaml
