@@ -36,8 +36,8 @@ data:
     #!/bin/sh
     set -x -e -o pipefail
     date
-    ln -s /tools/restic /usr/local/bin/restic
-    ln -s /tools/rclone /usr/local/bin/rclone
+    [ -f /tools/restic ] && ln -s /tools/restic /usr/local/bin/restic
+    [ -f /tools/rclone ] && ln -s /tools/rclone /usr/local/bin/rclone
     date
     /bin/sh /scripts/rclone-pull.sh
     date
@@ -96,8 +96,8 @@ data:
   backup-main.sh: |
     #!/bin/sh
     set -x -e -o pipefail
-    ln -s /tools/restic /usr/local/bin/restic
-    ln -s /tools/rclone /usr/local/bin/rclone
+    [ -f /tools/restic ] && ln -s /tools/restic /usr/local/bin/restic
+    [ -f /tools/rclone ] && ln -s /tools/rclone /usr/local/bin/rclone
     trap "exec /bin/sh /scripts/backup-at-exit.sh" TERM
     while true
     do
