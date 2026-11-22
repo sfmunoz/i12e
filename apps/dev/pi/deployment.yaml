@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${APPNAME}
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: ${APPNAME}
+  template:
+    metadata:
+      labels:
+        app: ${APPNAME}
+    spec:
+      terminationGracePeriodSeconds: 300
+      initContainers:
+      - name: restore
+        image: "${DOCKER_IMAGE}"
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/restore-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
+      containers:
+      - name: main
+        image: "${DOCKER_IMAGE}"
+        command: ["/bin/sh","-c"]
+        args:
+          - |
+            set -x
+            trap 'exit 0' TERM INT
+            tail -f /dev/null &
+            wait $!
+            exit 0
+        volumeMounts:
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+      - name: backup
+        image: "${DOCKER_IMAGE}"
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+        env:
+        - name: RESTIC_REPOSITORY
+          value: "/backup"
+        - name: RESTIC_PASSWORD_FILE
+          value: "/restic-conf/password.txt"
+        command: ["/bin/sh","/scripts/backup-main.sh"]
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+        - name: data
+          mountPath: "${DATA_FOLDER}"
+          readOnly: true
+        - name: backup
+          mountPath: /backup
+        - name: restic-conf
+          mountPath: /restic-conf
+          readOnly: true
+        - name: rclone-conf
+          mountPath: /root/.config/rclone
+          readOnly: true
+      volumes:
+      - name: scripts
+        configMap:
+          name: "${APPNAME}-scripts"
+      - name: data
+        persistentVolumeClaim:
+          claimName: ${APPNAME}-data
+      - name: backup
+        persistentVolumeClaim:
+          claimName: ${APPNAME}-backup
+      - name: restic-conf
+        secret:
+          secretName: restic-conf
+          items:
+          - key: password
+            path: password.txt
+      - name: rclone-conf
+        secret:
+          secretName: rclone-conf
+          items:
+          - key: configData
+            path: rclone.conf
