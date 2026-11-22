@@ -49,6 +49,7 @@ spec:
         args:
           - |
             set -x
+            trap 'exit 0' TERM INT
             tail -f /dev/null &
             wait $!
             exit 0
