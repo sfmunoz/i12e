@@ -7,7 +7,7 @@ spec:
   interval: 12m37s
   sourceRef:
     kind: ExternalArtifact
-    name: blend
+    name: blend-scripts
     namespace: flux-system
   decryption:
     provider: sops
@@ -16,3 +16,9 @@ spec:
   path: ./blend/pi
   prune: true
   wait: true
+  postBuild:
+    substitute:
+      DOCKER_IMAGE: ghcr.io/sfmunoz/k8s-bulk:5.1.0
+      APPNAME: pi
+      NAMESPACE: pi
+      DATA_FOLDER: /home/bulk
