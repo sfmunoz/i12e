@@ -45,6 +45,9 @@
       PerSourceMaxStartups = 4;        # max 4 unauthenticated conns per block
     };
   };
+  # Package alone ships only binaries: this module wires the daemon unit,
+  # socket, storage and firewall integration.
+  virtualisation.docker.enable = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # XXX Most users should NEVER change this value after the initial install
   # Refs: 'man 5 configuration.nix' and https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion

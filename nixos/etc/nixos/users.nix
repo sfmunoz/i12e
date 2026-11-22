@@ -7,7 +7,7 @@ in
 
   users.users.i12e = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ]; # Enable sudo
+    extraGroups = [ "wheel" "docker" ]; # Enable sudo, docker
     shell = pkgs.zsh;
     openssh.authorizedKeys.keys = authorizedKeys;
   #   packages = with pkgs; [
