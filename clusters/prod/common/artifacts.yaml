@@ -35,6 +35,8 @@ spec:
         - from: "@monorepo/apps/prod/common/**"
           to: "@artifact/blend/forgejo"
         - from: "@monorepo/apps/prod/common/**"
+          to: "@artifact/blend/pi"
+        - from: "@monorepo/apps/prod/common/**"
           to: "@artifact/blend/trilium"
         - from: "@secretsrepo/clusters/prod/**"
           to: "@artifact/blend/"
