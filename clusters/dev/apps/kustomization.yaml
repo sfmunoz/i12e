@@ -13,3 +13,4 @@ resources:
 - reflector.yaml
 - trilium.yaml
 - wikijs.yaml
+- zeroclaw.yaml

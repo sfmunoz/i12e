@@ -38,6 +38,8 @@ spec:
           to: "@artifact/blend/pi"
         - from: "@monorepo/apps/dev/common/**"
           to: "@artifact/blend/trilium"
+        - from: "@monorepo/apps/dev/common/**"
+          to: "@artifact/blend/zeroclaw"
         - from: "@secretsrepo/clusters/dev/**"
           to: "@artifact/blend/"
         - from: "@monorepo/apps/dev/**"
