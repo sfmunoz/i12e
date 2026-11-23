@@ -45,14 +45,8 @@ spec:
       containers:
       - name: main
         image: "${DOCKER_IMAGE}"
-        command: ["/bin/sh","-c"]
-        args:
-          - |
-            set -x
-            trap 'exit 0' TERM INT
-            tail -f /dev/null &
-            wait $!
-            exit 0
+        command: ["/usr/bin/tini", "-g", "--"]
+        args: ["sleep", "infinity"]
         volumeMounts:
         - name: data
           mountPath: "${DATA_FOLDER}"
