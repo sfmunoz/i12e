@@ -18,7 +18,7 @@ spec:
   wait: true
   postBuild:
     substitute:
-      DOCKER_IMAGE: ghcr.io/sfmunoz/k8s-bulk:5.2.0
+      DOCKER_IMAGE: ghcr.io/sfmunoz/k8s-bulk:6.0.0
       APPNAME: pi
       NAMESPACE: pi
       DATA_FOLDER: /home/bulk
