@@ -46,7 +46,15 @@ spec:
       - name: main
         image: "${DOCKER_IMAGE}"
         command: ["/usr/bin/tini", "-g", "--"]
-        args: ["sleep", "infinity"]
+        args:
+          - /bin/sh
+          - -c
+          - |
+              set -e -x -o pipefail
+              [ -x /home/bulk/.nanobot/venv/bin/nanobot ] || exec sleep infinity
+              cd /home/bulk
+              export PYTHONUNBUFFERED=1
+              exec /home/bulk/.nanobot/venv/bin/nanobot gateway --foreground
         volumeMounts:
         - name: data
           mountPath: "${DATA_FOLDER}"
