@@ -46,7 +46,16 @@ spec:
       - name: main
         image: "${DOCKER_IMAGE}"
         command: ["/usr/bin/tini", "-g", "--"]
-        args: ["sleep", "infinity"]
+        args:
+          - /bin/sh
+          - -c
+          - |
+              set -e -x -o pipefail
+              [ -x /home/bulk/.cargo/bin/zeroclaw ] || exec sleep infinity
+              export HOME=/home/bulk
+              export PATH=/home/bulk/.cargo/bin:$PATH
+              cd /home/bulk
+              exec /home/bulk/.cargo/bin/zeroclaw daemon
         volumeMounts:
         - name: data
           mountPath: "${DATA_FOLDER}"
