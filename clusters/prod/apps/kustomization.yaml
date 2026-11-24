@@ -9,7 +9,9 @@ resources:
 - forgejo.yaml
 - gateways.yaml
 - i12e.yaml
+- nanobot.yaml
 - pi.yaml
 - reflector.yaml
 - trilium.yaml
 - wikijs.yaml
+- zeroclaw.yaml

@@ -1,0 +1,31 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zeroclaw
+  namespace: flux-system
+spec:
+  dependsOn:
+  - name: gateways
+    namespace: flux-system
+  interval: 12m55s
+  sourceRef:
+    kind: ExternalArtifact
+    name: blend-scripts
+    namespace: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+  path: ./blend/zeroclaw
+  prune: true
+  wait: true
+  postBuild:
+    substitute:
+      DOCKER_IMAGE: ghcr.io/sfmunoz/k8s-bulk:6.0.0
+      APPNAME: zeroclaw
+      NAMESPACE: zeroclaw
+      DATA_FOLDER: /home/bulk
+    substituteFrom:
+      - kind: Secret
+        name: routes-conf
+        optional: false
